@@ -28,7 +28,7 @@ public class AnvilLibIntegrations {
     private static void apply(String name) {
         try {
             Class<?> clazz = Class.forName(name);
-            if (!clazz.isAssignableFrom(Integration.class)) return;
+            if (!Integration.class.isAssignableFrom(clazz)) return;
             Class<? extends Integration> integrationClass = clazz.asSubclass(Integration.class);
             Integration integration = integrationClass.getDeclaredConstructor().newInstance();
             integration.apply();
