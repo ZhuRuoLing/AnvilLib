@@ -6,6 +6,7 @@ import dev.anvilcraft.lib.mixin.ItemPropertiesAccessor;
 import dev.anvilcraft.lib.registrar.AbstractRegistrar;
 import dev.anvilcraft.lib.registrar.entry.ItemEntry;
 import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -16,17 +17,14 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class ItemBuilder<T extends Item> {
+public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
     private final ItemEntry<T> entry;
-    private final AbstractRegistrar registrar;
-    private final String name;
     private final Item.Properties properties = new Item.Properties();
     private final Function<Item.Properties, T> factory;
 
-    public ItemBuilder(AbstractRegistrar registrar, String name, Function<Item.Properties, T> factory) {
-        this.registrar = registrar;
+    public ItemBuilder(AbstractRegistrar registrar, String id, Function<Item.Properties, T> factory) {
+        super(registrar, id);
         this.factory = factory;
-        this.name = name;
         this.entry = new ItemEntry<>(this);
     }
 
