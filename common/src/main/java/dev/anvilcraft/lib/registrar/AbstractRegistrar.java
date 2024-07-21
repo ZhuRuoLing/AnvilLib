@@ -1,5 +1,8 @@
 package dev.anvilcraft.lib.registrar;
 
+import dev.anvilcraft.lib.data.DataProviderType;
+import dev.anvilcraft.lib.registrar.builder.ItemBuilder;
+import dev.anvilcraft.lib.registrar.entry.TagKeyEntry;
 import net.minecraft.core.Registry;
 import net.minecraft.data.DataProvider;
 import net.minecraft.resources.ResourceKey;

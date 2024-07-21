@@ -1,4 +1,4 @@
-package dev.anvilcraft.lib.registrar;
+package dev.anvilcraft.lib.registrar.entry;
 
 import java.util.function.Supplier;
 

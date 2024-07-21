@@ -1,4 +1,4 @@
-package dev.anvilcraft.lib.registrar;
+package dev.anvilcraft.lib.registrar.entry;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;

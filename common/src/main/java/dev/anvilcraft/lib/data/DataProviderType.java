@@ -1,14 +1,13 @@
-package dev.anvilcraft.lib.registrar;
+package dev.anvilcraft.lib.data;
 
 import net.minecraft.data.DataProvider;
-import net.minecraft.data.models.ModelProvider;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
 public interface DataProviderType<P extends DataProvider> {
-    DataProviderType<ModelProvider> MODEL = new DataProviderType<>() {
+    DataProviderType<AnvilLibModelProvider> MODEL = new DataProviderType<>() {
     };
     DataProviderType<RecipeProvider> RECIPE = new DataProviderType<>() {
     };

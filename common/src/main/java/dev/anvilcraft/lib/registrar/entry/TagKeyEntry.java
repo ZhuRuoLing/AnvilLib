@@ -1,6 +1,7 @@
-package dev.anvilcraft.lib.registrar;
+package dev.anvilcraft.lib.registrar.entry;
 
 import dev.anvilcraft.lib.AnvilLib;
+import dev.anvilcraft.lib.registrar.AbstractRegistrar;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;

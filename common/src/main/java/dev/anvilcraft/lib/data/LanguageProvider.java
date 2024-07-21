@@ -1,4 +1,4 @@
-package dev.anvilcraft.lib.registrar;
+package dev.anvilcraft.lib.data;
 
 import net.minecraft.data.DataProvider;
 
