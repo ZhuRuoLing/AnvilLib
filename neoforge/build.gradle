@@ -108,7 +108,7 @@ dependencies {
     forge("net.neoforged:forge:${rootProject.neoforge_version}")
 
     common(project(path: ":${mod_id}-common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":${mod_id}-common", configuration: "transformProductionNeoForge")) { transitive = false }
+    shadowCommon(project(path: ":${mod_id}-common", configuration: "transformProductionForge")) { transitive = false }
 
     // JEI
     modCompileOnly(forge.jei.common.api) { transitive = false }
