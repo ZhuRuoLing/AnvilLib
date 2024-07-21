@@ -143,7 +143,7 @@ processResources {
     Map<String, String> properties = Map.of(
             "version", version,
             "mod_id", mod_id,
-            "forge_version", project.neo_version_range, // only specify major version of forge
+            "forge_version", rootProject.neoforge_version, // only specify major version of forge
             "minecraft_version", libs.versions.minecraft.get(),
             "mod_license", mod_license,
             "mod_name", mod_name,
