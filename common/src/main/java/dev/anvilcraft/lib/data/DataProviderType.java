@@ -7,7 +7,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
 public interface DataProviderType<P extends DataProvider> {
-    DataProviderType<AnvilLibModelProvider> MODEL = new DataProviderType<>() {
+    DataProviderType<AnvilLibItemModelProvider> ITEM_MODEL = new DataProviderType<>() {
+    };
+    DataProviderType<AnvilLibBlockModelProvider> BLOCK_MODEL = new DataProviderType<>() {
     };
     DataProviderType<RecipeProvider> RECIPE = new DataProviderType<>() {
     };

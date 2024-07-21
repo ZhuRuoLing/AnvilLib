@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public class AnvilLibModelProvider implements DataProvider {
+public class AnvilLibBlockModelProvider implements DataProvider {
     @Override
     public @NotNull CompletableFuture<?> run(@NotNull CachedOutput output) {
         return CompletableFuture.allOf();
@@ -14,6 +14,6 @@ public class AnvilLibModelProvider implements DataProvider {
 
     @Override
     public @NotNull String getName() {
-        return "Model";
+        return "BlockModel";
     }
 }

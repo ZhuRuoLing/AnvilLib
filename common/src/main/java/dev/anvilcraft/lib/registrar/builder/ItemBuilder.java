@@ -1,12 +1,11 @@
 package dev.anvilcraft.lib.registrar.builder;
 
-import dev.anvilcraft.lib.data.AnvilLibModelProvider;
+import dev.anvilcraft.lib.data.AnvilLibItemModelProvider;
 import dev.anvilcraft.lib.data.DataProviderType;
 import dev.anvilcraft.lib.mixin.ItemPropertiesAccessor;
 import dev.anvilcraft.lib.registrar.AbstractRegistrar;
 import dev.anvilcraft.lib.registrar.entry.ItemEntry;
 import net.minecraft.data.recipes.RecipeProvider;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -28,8 +27,8 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
         this.entry = new ItemEntry<>(this);
     }
 
-    public ItemBuilder<T> model(BiConsumer<ItemEntry<T>, AnvilLibModelProvider> consumer) {
-        this.registrar.data(DataProviderType.MODEL, p -> consumer.accept(this.entry, p));
+    public ItemBuilder<T> model(BiConsumer<ItemEntry<T>, AnvilLibItemModelProvider> consumer) {
+        this.registrar.data(DataProviderType.ITEM_MODEL, p -> consumer.accept(this.entry, p));
         return this;
     }
 
