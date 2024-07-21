@@ -24,7 +24,7 @@ public final class TagKeyEntry<T> extends RegistryEntry<TagKey<T>> {
     }
 
     @NotNull
-    static <T> TagKeyEntry<T> create(AbstractRegistrar registrar, ResourceKey<? extends Registry<T>> registry, @NotNull String fabricPath, String forgePath) {
+    public static <T> TagKeyEntry<T> create(AbstractRegistrar registrar, ResourceKey<? extends Registry<T>> registry, @NotNull String fabricPath, String forgePath) {
         return new TagKeyEntry<>(registrar, registry, fabricPath, forgePath);
     }
 
