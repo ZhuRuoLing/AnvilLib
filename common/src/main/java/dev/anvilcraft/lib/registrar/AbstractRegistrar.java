@@ -10,11 +10,18 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
 public abstract class AbstractRegistrar {
+    protected final Set<ItemBuilder<?>> itemBuilders = Collections.synchronizedSet(new HashSet<>());
+    protected final Map<DataProviderType<?>, Consumer<DataProvider>> dataProviders = Collections.synchronizedMap(new HashMap<>());
     private final String modid;
 
     protected AbstractRegistrar(String modid) {
@@ -48,5 +55,18 @@ public abstract class AbstractRegistrar {
     public <P extends DataProvider> void data(DataProviderType<P> type, Consumer<P> consumer) {
     }
 
-    public void init(){}
+    public void init() {
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public <T extends DataProvider> AbstractRegistrar initDatagen(DataProviderType<T> type, Consumer<DataProvider> consumer) {
+        this.dataProviders.put(type, consumer);
+        return this;
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public AbstractRegistrar addItemBuilder(ItemBuilder<?> builder) {
+        this.itemBuilders.add(builder);
+        return this;
+    }
 }

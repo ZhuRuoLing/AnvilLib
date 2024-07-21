@@ -1,14 +1,16 @@
 package dev.anvilcraft.lib.registrar;
 
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
-public class Registrar extends AbstractRegistrar {
-    private Registrar(String modid) {
+public abstract class Registrar extends AbstractRegistrar {
+    protected Registrar(String modid) {
         super(modid);
     }
 
+    @ExpectPlatform
     public static @NotNull Registrar create(String modid) {
-        return new Registrar(modid);
+        throw new AssertionError();
     }
 }
