@@ -61,3 +61,4 @@ jobs:
           path: |
             fabric/build/libs/${{ steps.properties.outputs.mod_id }}-fabric-${{ steps.version.outputs.version }}.jar
             forge/build/libs/${{ steps.properties.outputs.mod_id }}-forge-${{ steps.version.outputs.version }}.jar
+            neoforge/build/libs/${{ steps.properties.outputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar
