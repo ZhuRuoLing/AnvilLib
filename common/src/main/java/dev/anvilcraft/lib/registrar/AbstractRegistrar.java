@@ -2,12 +2,15 @@ package dev.anvilcraft.lib.registrar;
 
 import dev.anvilcraft.lib.data.DataProviderType;
 import dev.anvilcraft.lib.registrar.builder.ItemBuilder;
+import dev.anvilcraft.lib.registrar.builder.BlockBuilder;
 import dev.anvilcraft.lib.registrar.entry.TagKeyEntry;
 import net.minecraft.core.Registry;
 import net.minecraft.data.DataProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -21,6 +24,7 @@ import java.util.function.Function;
 @SuppressWarnings("unused")
 public abstract class AbstractRegistrar {
     protected final Set<ItemBuilder<?>> itemBuilders = Collections.synchronizedSet(new HashSet<>());
+    protected final Set<BlockBuilder<?>> blockBuilders = Collections.synchronizedSet(new HashSet<>());
     protected final Map<DataProviderType<?>, Consumer<DataProvider>> dataProviders = Collections.synchronizedMap(new HashMap<>());
     private final String modid;
 
@@ -48,8 +52,12 @@ public abstract class AbstractRegistrar {
         return TagKeyEntry.create(null, registry, fabricPath, forgePath);
     }
 
-    public <T extends Item> ItemBuilder<T> item(String name, Function<Item.Properties, T> factory) {
-        return new ItemBuilder<>(this, name, factory);
+    public <T extends Item> ItemBuilder<T> item(String id, Function<Item.Properties, T> factory) {
+        return new ItemBuilder<>(this, id, factory);
+    }
+
+    public <T extends Block> BlockBuilder<T> block(String id, Function<BlockBehaviour.Properties, T> factory) {
+        return new BlockBuilder<>(this, id, factory);
     }
 
     public <P extends DataProvider> void data(DataProviderType<P> type, Consumer<P> consumer) {
@@ -67,6 +75,12 @@ public abstract class AbstractRegistrar {
     @SuppressWarnings("UnusedReturnValue")
     public AbstractRegistrar addItemBuilder(ItemBuilder<?> builder) {
         this.itemBuilders.add(builder);
+        return this;
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public AbstractRegistrar addBlockBuilder(BlockBuilder<?> builder) {
+        this.blockBuilders.add(builder);
         return this;
     }
 }
