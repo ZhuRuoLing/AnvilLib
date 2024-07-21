@@ -24,13 +24,6 @@ static def isJetBrainsRuntime() {
 }
 
 loom {
-    forge {
-        mixinConfig "${mod_id}-common.mixins.json"
-        mixinConfig "${mod_id}.mixins.json"
-    }
-}
-
-loom {
     accessWidenerPath = common_project.file("src/main/resources/${mod_id}.accesswidener")
 
     forge {
@@ -50,7 +43,6 @@ loom {
     runConfigs.named("data").configure {
         programArg("--existing=" + common_project.file("src/main/resources").absolutePath)
     }
-
     if (isJetBrainsRuntime()) {
         runs {
             client {
@@ -87,7 +79,7 @@ configurations {
 
     apiElements {
         outgoing {
-            capability("net.minecraftforge:forge:${this.forge.versions.minecraftForge.get()}")
+            capability("net.neoforged:forge:${rootProject.neoforge_version}")
             capability("io.github.llamalad7:mixinextras-forge:${this.forge.versions.mixinextras.get()}")
         }
     }
@@ -109,10 +101,11 @@ repositories {
         }
     }
     maven { url 'https://jitpack.io' } // Mixin Extras, Fabric ASM
+    maven { url "https://maven.neoforged.net/releases" }
 }
 
 dependencies {
-    forge forge.minecraftForge
+    forge("net.neoforged:forge:${rootProject.neoforge_version}")
 
     common(project(path: ":${mod_id}-common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":${mod_id}-common", configuration: "transformProductionForge")) { transitive = false }
@@ -150,7 +143,7 @@ processResources {
     Map<String, String> properties = Map.of(
             "version", version,
             "mod_id", mod_id,
-            "forge_version", forge.versions.forgeShortVersion.get().split("\\.")[0], // only specify major version of forge
+            "forge_version", rootProject.neoforge_version, // only specify major version of forge
             "minecraft_version", libs.versions.minecraft.get(),
             "mod_license", mod_license,
             "mod_name", mod_name,
