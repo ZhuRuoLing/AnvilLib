@@ -4,6 +4,7 @@ import dev.anvilcraft.lib.data.AnvilLibBlockModelProvider;
 import dev.anvilcraft.lib.data.DataProviderType;
 import dev.anvilcraft.lib.registrar.AbstractRegistrar;
 import dev.anvilcraft.lib.registrar.entry.BlockEntry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
@@ -34,7 +35,7 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
 
     @Override
     public BlockEntry<T> register() {
-        this.registrar.addBlockBuilder(this);
+        this.registrar.addBuilder(BuiltInRegistries.BLOCK, this);
         return this.entry;
     }
 }

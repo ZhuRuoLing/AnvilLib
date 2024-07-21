@@ -13,6 +13,9 @@ public abstract class EntryBuilder<T> {
         this.id = id;
     }
 
+    public abstract T build();
+
+    @SuppressWarnings("UnusedReturnValue")
     public abstract RegistryEntry<T> register();
 
     public ResourceLocation getId() {

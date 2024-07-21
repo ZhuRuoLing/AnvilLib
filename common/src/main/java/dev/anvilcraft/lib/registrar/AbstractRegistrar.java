@@ -1,9 +1,12 @@
 package dev.anvilcraft.lib.registrar;
 
+import dev.anvilcraft.lib.AnvilLib;
 import dev.anvilcraft.lib.data.DataProviderType;
+import dev.anvilcraft.lib.registrar.builder.EntryBuilder;
 import dev.anvilcraft.lib.registrar.builder.ItemBuilder;
 import dev.anvilcraft.lib.registrar.builder.BlockBuilder;
 import dev.anvilcraft.lib.registrar.entry.TagKeyEntry;
+import dev.anvilcraft.lib.util.TripleConsumer;
 import net.minecraft.core.Registry;
 import net.minecraft.data.DataProvider;
 import net.minecraft.resources.ResourceKey;
@@ -13,18 +16,17 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
 public abstract class AbstractRegistrar {
-    protected final Set<ItemBuilder<?>> itemBuilders = Collections.synchronizedSet(new HashSet<>());
-    protected final Set<BlockBuilder<?>> blockBuilders = Collections.synchronizedSet(new HashSet<>());
+    protected final Map<Registry<?>, List<EntryBuilder<?>>> builders = Collections.synchronizedMap(new HashMap<>());
     protected final Map<DataProviderType<?>, Consumer<DataProvider>> dataProviders = Collections.synchronizedMap(new HashMap<>());
     private final String modid;
 
@@ -73,14 +75,25 @@ public abstract class AbstractRegistrar {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public AbstractRegistrar addItemBuilder(ItemBuilder<?> builder) {
-        this.itemBuilders.add(builder);
+    public <T> AbstractRegistrar addBuilder(Registry<T> registry, EntryBuilder<? extends T> builder) {
+        List<EntryBuilder<?>> builderList = this.builders.getOrDefault(registry, Collections.synchronizedList(new ArrayList<>()));
+        builderList.add(builder);
         return this;
     }
 
-    @SuppressWarnings("UnusedReturnValue")
-    public AbstractRegistrar addBlockBuilder(BlockBuilder<?> builder) {
-        this.blockBuilders.add(builder);
-        return this;
+    @SuppressWarnings("unchecked")
+    public <V, T extends V> void build(Registry<V> registry, TripleConsumer<Registry<V>, ResourceLocation, T> consumer) {
+        List<EntryBuilder<?>> builderList = this.builders.getOrDefault(registry, Collections.synchronizedList(new ArrayList<>()));
+        List<EntryBuilder<T>> builderList2 = builderList.stream()
+            .map(builder -> (EntryBuilder<T>) builder)
+            .toList();
+        for (EntryBuilder<T> builder : builderList2) {
+            try {
+                consumer.accept(registry, builder.getId(), builder.build());
+            } catch (Exception e) {
+                if (e instanceof ClassCastException) continue;
+                AnvilLib.LOGGER.error(e.getMessage(), e);
+            }
+        }
     }
 }
