@@ -89,35 +89,11 @@ dependencies {
     shadowCommon(project(path: ":${mod_id}-common", configuration: "transformProductionFabric")) { transitive false }
 
     // Development QOL
-    modCompileOnly(fabric.lazydfu)
-    modCompileOnly(fabric.modmenu)
-
-    // JEI
-    modCompileOnlyApi(fabric.jei.common.api) { transitive = false }
-    modCompileOnlyApi(fabric.jei.fabric.api) { transitive = false }
-    modCompileOnly(fabric.jei.fabric.impl) { transitive = false }
-
-    // REI
-    modCompileOnly(fabric.rei.plugin) { transitive = false }
-    modCompileOnly(fabric.rei.api) { transitive = false }
-    modCompileOnly(fabric.rei.fabric) { transitive = false }
-
-    // EMI
-    modCompileOnly("dev.emi:emi-fabric:${fabric.versions.emi.get()}:api")
-    modImplementation(fabric.emi)
-
-    // Jade
-    modImplementation(fabric.jade)
-
-    // KJS
-    modCompileOnly(fabric.kubejs)
+    modRuntimeOnly(fabric.lazydfu)
+    modRuntimeOnly(fabric.modmenu)
 
     // Mixin Extras
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${fabric.versions.mixinextras.get()}")))
-
-    // Configuration
-    modImplementation(fabric.configuration)
-    include(fabric.configuration)
 }
 
 

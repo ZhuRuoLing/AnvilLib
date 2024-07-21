@@ -1,6 +1,7 @@
 package dev.anvilcraft.lib.registrar.fabric;
 
 import dev.anvilcraft.lib.registrar.Registrar;
+import dev.anvilcraft.lib.registrar.builder.EntryBuilder;
 import net.minecraft.core.Registry;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,7 +18,13 @@ public class RegistrarImpl extends Registrar {
     @Override
     public void init() {
         for (Registry<?> registry : this.builders.keySet()) {
-            this.build(registry, Registry::register);
+            this.init(registry);
+        }
+    }
+
+    private <T> void init(Registry<T> registry) {
+        for (EntryBuilder<T> builder : this.getBuilders(registry)) {
+            this.register(registry, builder);
         }
     }
 }

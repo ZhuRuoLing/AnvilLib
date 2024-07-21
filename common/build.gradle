@@ -32,31 +32,8 @@ dependencies {
     modImplementation(fabric.fabricLoader)
     modCompileOnly(fabric.fabricApi)
 
-    // JEI
-    modCompileOnly(fabric.jei.common.api)
-    modCompileOnly(fabric.jei.fabric.api)
-    modCompileOnly(fabric.jei.fabric.impl)
-
-    // REI
-    modCompileOnly(fabric.rei.plugin)
-    modCompileOnly(fabric.rei.api)
-    modCompileOnly(fabric.rei.fabric)
-
-    // EMI
-    modCompileOnly("dev.emi:emi-fabric:${fabric.versions.emi.get()}:api")
-    modCompileOnly(fabric.emi)
-
-    // Jade
-    modCompileOnly(fabric.jade)
-
-    // KJS
-    modCompileOnly(fabric.kubejs)
-
     // Mixin Extras
     implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${fabric.versions.mixinextras.get()}"))
-
-    // Configuration
-    modCompileOnly(fabric.configuration)
 }
 
 publishing {

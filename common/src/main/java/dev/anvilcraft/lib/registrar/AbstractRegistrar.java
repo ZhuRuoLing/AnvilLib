@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -82,18 +83,20 @@ public abstract class AbstractRegistrar {
     }
 
     @SuppressWarnings("unchecked")
-    public <V, T extends V> void build(Registry<V> registry, TripleConsumer<Registry<V>, ResourceLocation, T> consumer) {
+    protected <V, T extends V> List<EntryBuilder<T>> getBuilders(Registry<V> registry) {
         List<EntryBuilder<?>> builderList = this.builders.getOrDefault(registry, Collections.synchronizedList(new ArrayList<>()));
-        List<EntryBuilder<T>> builderList2 = builderList.stream()
+        return builderList.stream()
             .map(builder -> (EntryBuilder<T>) builder)
             .toList();
-        for (EntryBuilder<T> builder : builderList2) {
-            try {
-                consumer.accept(registry, builder.getId(), builder.build());
-            } catch (Exception e) {
-                if (e instanceof ClassCastException) continue;
-                AnvilLib.LOGGER.error(e.getMessage(), e);
-            }
+    }
+
+    protected <V, T extends V> boolean register(Registry<V> registry, EntryBuilder<T> builder) {
+        try {
+            Registry.register(registry, builder.getId(), builder.build());
+        } catch (Exception e) {
+            if (e instanceof ClassCastException) return false;
+            AnvilLib.LOGGER.error(e.getMessage(), e);
         }
+        return true;
     }
 }
