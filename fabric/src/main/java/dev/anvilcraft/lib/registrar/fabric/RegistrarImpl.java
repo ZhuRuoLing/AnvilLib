@@ -17,7 +17,7 @@ public class RegistrarImpl extends Registrar {
 
     @Override
     public void init() {
-        for (Registry<?> registry : this.builders.keySet()) {
+        for (Registry<?> registry : this.manager) {
             this.init(registry);
         }
     }

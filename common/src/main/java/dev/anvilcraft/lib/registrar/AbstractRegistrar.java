@@ -6,7 +6,6 @@ import dev.anvilcraft.lib.registrar.builder.EntryBuilder;
 import dev.anvilcraft.lib.registrar.builder.ItemBuilder;
 import dev.anvilcraft.lib.registrar.builder.BlockBuilder;
 import dev.anvilcraft.lib.registrar.entry.TagKeyEntry;
-import dev.anvilcraft.lib.util.TripleConsumer;
 import net.minecraft.core.Registry;
 import net.minecraft.data.DataProvider;
 import net.minecraft.resources.ResourceKey;
@@ -16,18 +15,16 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
 public abstract class AbstractRegistrar {
-    protected final Map<Registry<?>, List<EntryBuilder<?>>> builders = Collections.synchronizedMap(new HashMap<>());
+    protected final BuilderManager manager = new BuilderManager();
     protected final Map<DataProviderType<?>, Consumer<DataProvider>> dataProviders = Collections.synchronizedMap(new HashMap<>());
     private final String modid;
 
@@ -77,26 +74,20 @@ public abstract class AbstractRegistrar {
 
     @SuppressWarnings("UnusedReturnValue")
     public <T> AbstractRegistrar addBuilder(Registry<T> registry, EntryBuilder<? extends T> builder) {
-        List<EntryBuilder<?>> builderList = this.builders.getOrDefault(registry, Collections.synchronizedList(new ArrayList<>()));
-        builderList.add(builder);
+        this.manager.addBuilder(registry, builder);
         return this;
     }
 
-    @SuppressWarnings("unchecked")
     protected <V, T extends V> List<EntryBuilder<T>> getBuilders(Registry<V> registry) {
-        List<EntryBuilder<?>> builderList = this.builders.getOrDefault(registry, Collections.synchronizedList(new ArrayList<>()));
-        return builderList.stream()
-            .map(builder -> (EntryBuilder<T>) builder)
-            .toList();
+        return this.manager.getBuilders(registry);
     }
 
-    protected <V, T extends V> boolean register(Registry<V> registry, EntryBuilder<T> builder) {
+    protected <V, T extends V> void register(Registry<V> registry, EntryBuilder<T> builder) {
         try {
             Registry.register(registry, builder.getId(), builder.build());
         } catch (Exception e) {
-            if (e instanceof ClassCastException) return false;
+            if (e instanceof ClassCastException) return;
             AnvilLib.LOGGER.error(e.getMessage(), e);
         }
-        return true;
     }
 }
