@@ -7,6 +7,7 @@ on:
       - common/**
       - fabric/**
       - forge/**
+      - neoforge/**
       - build.gradle
       - gradle.properties
       - settings.gradle
