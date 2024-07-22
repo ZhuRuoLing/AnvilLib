@@ -1,6 +1,5 @@
 package dev.anvilcraft.lib.registrar;
 
-import dev.anvilcraft.lib.AnvilLib;
 import dev.anvilcraft.lib.data.DataProviderType;
 import dev.anvilcraft.lib.registrar.builder.EntryBuilder;
 import dev.anvilcraft.lib.registrar.builder.ItemBuilder;
@@ -80,14 +79,5 @@ public abstract class AbstractRegistrar {
 
     protected <V, T extends V> List<EntryBuilder<T>> getBuilders(Registry<V> registry) {
         return this.manager.getBuilders(registry);
-    }
-
-    protected <V, T extends V> void register(Registry<V> registry, EntryBuilder<T> builder) {
-        try {
-            Registry.register(registry, builder.getId(), builder.build());
-        } catch (Exception e) {
-            if (e instanceof ClassCastException) return;
-            AnvilLib.LOGGER.error(e.getMessage(), e);
-        }
     }
 }
