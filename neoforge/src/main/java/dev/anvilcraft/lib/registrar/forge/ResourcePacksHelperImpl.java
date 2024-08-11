@@ -8,7 +8,9 @@ import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddPackFindersEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.forgespi.language.IModFileInfo;
 import net.minecraftforge.forgespi.locating.IModFile;
 import net.minecraftforge.resource.PathPackResources;
@@ -24,7 +26,8 @@ public class ResourcePacksHelperImpl {
             throw new IllegalStateException("%s's ModContainer couldn't be found!".formatted(modid));
         }
         IModFile modFile = modFileInfo.getFile();
-        MinecraftForge.EVENT_BUS.addListener((AddPackFindersEvent event) -> {
+        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+        bus.addListener((AddPackFindersEvent event) -> {
             if (event.getPackType() == PackType.SERVER_DATA && type.isServer()) {
                 registerPack(event, modFile, pack, PackType.SERVER_DATA);
             } else if (type.isClient()) {
