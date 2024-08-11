@@ -1,5 +1,6 @@
 package dev.anvilcraft.lib.registrar.forge;
 
+import dev.anvilcraft.lib.registrar.ResourcePacksHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
@@ -16,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
 
 public class ResourcePacksHelperImpl {
-    public static void registerBuiltinResourcePack(@NotNull ResourceLocation pack) {
+    public static void registerBuiltinResourcePack(@NotNull ResourceLocation pack, ResourcePacksHelper.PackType type) {
         String modid = pack.getNamespace();
         IModFileInfo modFileInfo = ModList.get().getModFileById(modid);
         if (modFileInfo == null) {
@@ -24,9 +25,9 @@ public class ResourcePacksHelperImpl {
         }
         IModFile modFile = modFileInfo.getFile();
         MinecraftForge.EVENT_BUS.addListener((AddPackFindersEvent event) -> {
-            if (event.getPackType() == PackType.SERVER_DATA) {
+            if (event.getPackType() == PackType.SERVER_DATA && type.isServer()) {
                 registerPack(event, modFile, pack, PackType.SERVER_DATA);
-            } else {
+            } else if (type.isClient()) {
                 registerPack(event, modFile, pack, PackType.CLIENT_RESOURCES);
             }
         });

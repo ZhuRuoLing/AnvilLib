@@ -1,5 +1,6 @@
 package dev.anvilcraft.lib.registrar.fabric;
 
+import dev.anvilcraft.lib.registrar.ResourcePacksHelper;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
@@ -9,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 public class ResourcePacksHelperImpl {
-    public static void registerBuiltinResourcePack(@NotNull ResourceLocation pack) {
+    public static void registerBuiltinResourcePack(@NotNull ResourceLocation pack, ResourcePacksHelper.PackType type) {
         String modid = pack.getNamespace();
         ModContainer modContainer = FabricLoader.getInstance()
             .getModContainer(modid)
