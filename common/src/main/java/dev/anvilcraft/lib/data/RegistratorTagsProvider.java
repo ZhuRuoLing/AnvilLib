@@ -24,15 +24,15 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class RegistratorTagsProvider<T> extends TagsProvider<T> {
-    protected final Map<TagKey<T>, List<RegistryEntry<T>>> tags = Collections.synchronizedMap(new HashMap<>());
+    protected final Map<TagKey<T>, List<RegistryEntry<? extends T>>> tags = Collections.synchronizedMap(new HashMap<>());
 
     protected RegistratorTagsProvider(PackOutput output, ResourceKey<? extends Registry<T>> registryKey) {
         super(output, registryKey, CompletableFuture.supplyAsync(VanillaRegistries::createLookup, Util.backgroundExecutor()));
     }
 
     @SafeVarargs
-    public final void add(TagKey<T> tag, RegistryEntry<T>... values) {
-        List<RegistryEntry<T>> list = this.tags.getOrDefault(tag, Collections.synchronizedList(new ArrayList<>()));
+    public final <E extends T> void add(TagKey<T> tag, RegistryEntry<E>... values) {
+        List<RegistryEntry<? extends T>> list = this.tags.getOrDefault(tag, Collections.synchronizedList(new ArrayList<>()));
         list.addAll(List.of(values));
         this.tags.put(tag, list);
     }
@@ -46,7 +46,7 @@ public abstract class RegistratorTagsProvider<T> extends TagsProvider<T> {
         protected void addTags(@NotNull HolderLookup.Provider provider) {
             for (var entry : this.tags.entrySet()) {
                 var builder = this.getOrCreateRawBuilder(entry.getKey());
-                for (RegistryEntry<Item> item : entry.getValue()) {
+                for (RegistryEntry<? extends Item> item : entry.getValue()) {
                     builder.add(TagEntry.optionalElement(BuiltInRegistries.ITEM.getKey(item.get())));
                 }
             }
@@ -62,7 +62,7 @@ public abstract class RegistratorTagsProvider<T> extends TagsProvider<T> {
         protected void addTags(@NotNull HolderLookup.Provider provider) {
             for (var entry : this.tags.entrySet()) {
                 var builder = this.getOrCreateRawBuilder(entry.getKey());
-                for (RegistryEntry<Block> block : entry.getValue()) {
+                for (RegistryEntry<? extends Block> block : entry.getValue()) {
                     builder.add(TagEntry.optionalElement(BuiltInRegistries.BLOCK.getKey(block.get())));
                 }
             }
