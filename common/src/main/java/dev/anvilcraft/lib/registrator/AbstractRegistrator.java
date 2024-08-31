@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.function.Function;
 @SuppressWarnings("unused")
 public abstract class AbstractRegistrator {
     protected final BuilderManager manager = new BuilderManager();
-    protected final Map<DataProviderType<?>, Consumer<? extends DataProvider>> dataProviders = Collections.synchronizedMap(new HashMap<>());
+    protected final Map<DataProviderType<?>, List<Consumer<? extends DataProvider>>> dataProviders = Collections.synchronizedMap(new HashMap<>());
     private final String modid;
 
     protected AbstractRegistrator(String modid) {
@@ -61,10 +62,17 @@ public abstract class AbstractRegistrator {
     }
 
     public <P extends DataProvider> void data(DataProviderType<P> type, Consumer<P> consumer) {
-        this.dataProviders.put(type, consumer);
+        List<Consumer<? extends DataProvider>> list = this.dataProviders.getOrDefault(type, Collections.synchronizedList(new ArrayList<>()));
+        list.add(consumer);
+        this.dataProviders.put(type, list);
     }
 
     public void init() {
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <P extends DataProvider> List<Consumer<P>> getDataProviders(DataProviderType<P> type) {
+        return (List<Consumer<P>>) (List<?>) this.dataProviders.getOrDefault(type, Collections.emptyList());
     }
 
     @SuppressWarnings("UnusedReturnValue")
