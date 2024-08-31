@@ -2,7 +2,6 @@ package dev.anvilcraft.lib.data;
 
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
-import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
@@ -25,9 +24,25 @@ public interface DataProviderType<P extends DataProvider> {
             });
         }
     };
-    DataProviderType<TagsProvider<Item>> ITEM_TAG = new DataProviderType<>() {
+    DataProviderType<RegistratorTagsProvider<Item>> ITEM_TAG = new DataProviderType<>() {
+        @Override
+        public void create(@NotNull DataGenerator.PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<RegistratorTagsProvider<Item>>> consumer) {
+            generator.addProvider(output -> {
+                RegistratorTagsProvider<Item> provider = new RegistratorTagsProvider.ItemProvider(output);
+                consumer.forEach(c -> c.accept(provider));
+                return provider;
+            });
+        }
     };
-    DataProviderType<TagsProvider<Block>> BLOCK_TAG = new DataProviderType<>() {
+    DataProviderType<RegistratorTagsProvider<Block>> BLOCK_TAG = new DataProviderType<>() {
+        @Override
+        public void create(@NotNull DataGenerator.PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<RegistratorTagsProvider<Block>>> consumer) {
+            generator.addProvider(output -> {
+                RegistratorTagsProvider<Block> provider = new RegistratorTagsProvider.BlockProvider(output);
+                consumer.forEach(c -> c.accept(provider));
+                return provider;
+            });
+        }
     };
     DataProviderType<LanguageProvider> LANG = new DataProviderType<>() {
         @Override
