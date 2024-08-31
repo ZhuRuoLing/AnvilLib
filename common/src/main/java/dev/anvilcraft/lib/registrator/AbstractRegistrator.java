@@ -6,6 +6,7 @@ import dev.anvilcraft.lib.registrator.builder.ItemBuilder;
 import dev.anvilcraft.lib.registrator.builder.BlockBuilder;
 import dev.anvilcraft.lib.registrator.entry.TagKeyEntry;
 import net.minecraft.core.Registry;
+import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -24,7 +25,7 @@ import java.util.function.Function;
 @SuppressWarnings("unused")
 public abstract class AbstractRegistrator {
     protected final BuilderManager manager = new BuilderManager();
-    protected final Map<DataProviderType<?>, Consumer<DataProvider>> dataProviders = Collections.synchronizedMap(new HashMap<>());
+    protected final Map<DataProviderType<?>, Consumer<? extends DataProvider>> dataProviders = Collections.synchronizedMap(new HashMap<>());
     private final String modid;
 
     protected AbstractRegistrator(String modid) {
@@ -60,14 +61,14 @@ public abstract class AbstractRegistrator {
     }
 
     public <P extends DataProvider> void data(DataProviderType<P> type, Consumer<P> consumer) {
+        this.dataProviders.put(type, consumer);
     }
 
     public void init() {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public <T extends DataProvider> AbstractRegistrator initDatagen(DataProviderType<T> type, Consumer<DataProvider> consumer) {
-        this.dataProviders.put(type, consumer);
+    public <T extends DataProvider> AbstractRegistrator initDatagen(DataGenerator generator) {
         return this;
     }
 
