@@ -28,6 +28,7 @@ public class BuilderManager implements Iterable<Registry<?>> {
     public <T> void addBuilder(Registry<T> registry, EntryBuilder<? extends T> builder) {
         List<EntryBuilder<?>> builderList = this.builders.getOrDefault(registry, Collections.synchronizedList(new ArrayList<>()));
         builderList.add(builder);
+        this.builders.put(registry, builderList);
         this.addRegistry(registry);
     }
 
@@ -35,8 +36,8 @@ public class BuilderManager implements Iterable<Registry<?>> {
     protected <V, T extends V> List<EntryBuilder<T>> getBuilders(Registry<V> registry) {
         List<EntryBuilder<?>> builderList = this.builders.getOrDefault(registry, Collections.synchronizedList(new ArrayList<>()));
         return builderList.stream()
-            .map(builder -> (EntryBuilder<T>) builder)
-            .toList();
+                .map(builder -> (EntryBuilder<T>) builder)
+                .toList();
     }
 
     @NotNull
@@ -46,7 +47,7 @@ public class BuilderManager implements Iterable<Registry<?>> {
     }
 
     private static final Map<Registry<?>, Integer> REGISTRY_PRIORITY = Map.of(
-        BuiltInRegistries.BLOCK, 1
+            BuiltInRegistries.BLOCK, 1
     );
 
     private static int getRegistryPriority(Registry<?> registry) {
