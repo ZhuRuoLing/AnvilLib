@@ -5,13 +5,13 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 public class BlockItemBuilder<T extends BlockItem, B extends Block> extends ItemBuilder<T> {
     protected final BlockBuilder<B> blockBuilder;
 
-    public BlockItemBuilder(AbstractRegistrator registrar, BlockBuilder<B> builder, String id, Function<Item.Properties, T> factory) {
-        super(registrar, id, factory);
+    public BlockItemBuilder(AbstractRegistrator registrator, BlockBuilder<B> builder, String id, BiFunction<Block, Item.Properties, T> factory) {
+        super(registrator, id, (properties) -> factory.apply(null, properties));
         this.blockBuilder = builder;
     }
 

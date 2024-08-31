@@ -10,22 +10,22 @@ import org.jetbrains.annotations.NotNull;
 
 public final class TagKeyEntry<T> extends RegistryEntry<TagKey<T>> {
     private TagKey<T> self = null;
-    private final AbstractRegistrator registrar;
+    private final AbstractRegistrator registrator;
     private final ResourceKey<? extends Registry<T>> registry;
     @NotNull
     private final String defaultPath;
     private final String forgePath;
 
-    private TagKeyEntry(AbstractRegistrator registrar, ResourceKey<? extends Registry<T>> registry, @NotNull String defaultPath, String forgePath) {
-        this.registrar = registrar;
+    private TagKeyEntry(AbstractRegistrator registrator, ResourceKey<? extends Registry<T>> registry, @NotNull String defaultPath, String forgePath) {
+        this.registrator = registrator;
         this.registry = registry;
         this.defaultPath = defaultPath;
         this.forgePath = forgePath;
     }
 
     @NotNull
-    public static <T> TagKeyEntry<T> create(AbstractRegistrator registrar, ResourceKey<? extends Registry<T>> registry, @NotNull String fabricPath, String forgePath) {
-        return new TagKeyEntry<>(registrar, registry, fabricPath, forgePath);
+    public static <T> TagKeyEntry<T> create(AbstractRegistrator registrator, ResourceKey<? extends Registry<T>> registry, @NotNull String fabricPath, String forgePath) {
+        return new TagKeyEntry<>(registrator, registry, fabricPath, forgePath);
     }
 
     @Override
@@ -36,8 +36,8 @@ public final class TagKeyEntry<T> extends RegistryEntry<TagKey<T>> {
             case FORGE -> this.forgePath != null ? this.forgePath : this.defaultPath;
             default -> this.defaultPath;
         };
-        ResourceLocation location = this.registrar != null ?
-            this.registrar.of(path) :
+        ResourceLocation location = this.registrator != null ?
+            this.registrator.of(path) :
             switch (AnvilLib.getPlatform()) {
                 case FORGE -> new ResourceLocation("forge", path);
                 default -> new ResourceLocation("c", path);

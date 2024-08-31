@@ -5,11 +5,11 @@ import dev.anvilcraft.lib.registrator.entry.RegistryEntry;
 import net.minecraft.resources.ResourceLocation;
 
 public abstract class EntryBuilder<T> {
-    protected final AbstractRegistrator registrar;
+    protected final AbstractRegistrator registrator;
     protected final String id;
 
-    protected EntryBuilder(AbstractRegistrator registrar, String id) {
-        this.registrar = registrar;
+    protected EntryBuilder(AbstractRegistrator registrator, String id) {
+        this.registrator = registrator;
         this.id = id;
     }
 
@@ -19,6 +19,6 @@ public abstract class EntryBuilder<T> {
     public abstract RegistryEntry<T> register();
 
     public ResourceLocation getId() {
-        return this.registrar.of(this.id);
+        return this.registrator.of(this.id);
     }
 }

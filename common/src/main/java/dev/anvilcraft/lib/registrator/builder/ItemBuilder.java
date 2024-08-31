@@ -7,7 +7,6 @@ import dev.anvilcraft.lib.mixin.ItemPropertiesAccessor;
 import dev.anvilcraft.lib.registrator.AbstractRegistrator;
 import dev.anvilcraft.lib.registrator.entry.ItemEntry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -23,14 +22,14 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
     private final Item.Properties properties = new Item.Properties();
     private final Function<Item.Properties, T> factory;
 
-    public ItemBuilder(AbstractRegistrator registrar, String id, Function<Item.Properties, T> factory) {
-        super(registrar, id);
+    public ItemBuilder(AbstractRegistrator registrator, String id, Function<Item.Properties, T> factory) {
+        super(registrator, id);
         this.factory = factory;
         this.entry = new ItemEntry<>(this);
     }
 
     public ItemBuilder<T> model(BiConsumer<ItemEntry<T>, AnvilLibItemModelProvider> consumer) {
-        this.registrar.data(DataProviderType.ITEM_MODEL, p -> consumer.accept(this.entry, p));
+        this.registrator.data(DataProviderType.ITEM_MODEL, p -> consumer.accept(this.entry, p));
         return this;
     }
 
@@ -45,7 +44,7 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
     }
 
     public ItemBuilder<T> recipe(BiConsumer<ItemEntry<T>, RegistratorRecipeProvider> consumer) {
-        this.registrar.data(DataProviderType.RECIPE, p -> consumer.accept(this.entry, p));
+        this.registrator.data(DataProviderType.RECIPE, p -> consumer.accept(this.entry, p));
         return this;
     }
 
@@ -138,7 +137,7 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
     }
 
     public ItemEntry<T> register() {
-        this.registrar.addBuilder(BuiltInRegistries.ITEM, this);
+        this.registrator.addBuilder(BuiltInRegistries.ITEM, this);
         return this.entry;
     }
 }
