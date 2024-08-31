@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "anvil-lib-test",
+  "version": "1.0.0",
+  "name": "AnvilLib Test",
+  "description": "AnvilLib Test",
+  "authors": ["Anvil Dev"],
+  "contact": {},
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.anvilcraft.lib.test.AnvilLibTest"
+    ],
+    "fabric-datagen": []
+  },
+  "mixins": [
+    "anvil-lib-test.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "fabric-api": ">=0.92.0",
+    "minecraft": "1.20.1"
+  }
+}

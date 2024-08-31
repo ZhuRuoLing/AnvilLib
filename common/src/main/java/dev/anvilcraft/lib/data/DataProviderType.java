@@ -11,7 +11,7 @@ public interface DataProviderType<P extends DataProvider> {
     };
     DataProviderType<AnvilLibBlockModelProvider> BLOCK_MODEL = new DataProviderType<>() {
     };
-    DataProviderType<RecipeProvider> RECIPE = new DataProviderType<>() {
+    DataProviderType<RegistratorRecipeProvider> RECIPE = new DataProviderType<>() {
     };
     DataProviderType<TagsProvider<Item>> ITEM_TAG = new DataProviderType<>() {
     };

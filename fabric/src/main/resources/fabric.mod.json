@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "${mod_name}",
   "description": "${mod_description}",
-  "authors": [],
+  "authors": ["Anvil Dev"],
   "contact": {},
   "license": "${mod_license}",
   "icon": "icon.png",

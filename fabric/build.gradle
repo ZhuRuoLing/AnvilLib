@@ -19,6 +19,19 @@ architectury {
     fabric()
 }
 
+sourceSets {
+    test {
+        compileClasspath += main.compileClasspath
+        compileClasspath += main.output
+        runtimeClasspath += main.runtimeClasspath
+        runtimeClasspath += main.output
+        resources {
+            srcDir("src/test/generated/resources")
+            exclude("src/test/generated/resources/.cache")
+        }
+    }
+}
+
 loom {
     accessWidenerPath = common_project.file("src/main/resources/${mod_id}.accesswidener")
 
@@ -43,6 +56,27 @@ loom {
             property("fabric-api.gametest.command", "true")
         }
 
+        create("fabricTestClient") {
+            client()
+            name "Testmod Client"
+            source sourceSets.test
+            runDir "run/test"
+        }
+        create("fabricTestServer") {
+            server()
+            name "Testmod Server"
+            source sourceSets.test
+            runDir "run/test_server"
+        }
+        create("fabricTestDatagen") {
+            client()
+            name "Testmod Data Generation"
+            vmArg "-Dfabric-api.datagen"
+            vmArg "-Dfabric-api.datagen.output-dir=${file("src/test/generated/resources")}"
+            vmArg "-Dfabric-api.datagen.modid=anvil-lib-test"
+            vmArg "-Dporting_lib.datagen.existing_resources=${file("src/test/resources")}"
+            source sourceSets.test
+        }
     }
 }
 
