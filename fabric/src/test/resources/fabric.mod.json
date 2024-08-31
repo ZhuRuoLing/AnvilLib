@@ -12,7 +12,9 @@
     "main": [
       "dev.anvilcraft.lib.test.AnvilLibTest"
     ],
-    "fabric-datagen": []
+    "fabric-datagen": [
+      "dev.anvilcraft.lib.test.AnvilLibTestDataGenerator"
+    ]
   },
   "mixins": [
     "anvil-lib-test.mixins.json"
