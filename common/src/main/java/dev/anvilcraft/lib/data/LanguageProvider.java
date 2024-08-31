@@ -8,12 +8,16 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public abstract class LanguageProvider implements DataProvider {
+public class LanguageProvider implements DataProvider {
     protected final String namespace;
     protected final String languageCode;
     protected final PackOutput dataOutput;
+    protected final Map<String, String> translations = Collections.synchronizedMap(new HashMap<>());
 
     protected LanguageProvider(PackOutput dataOutput, String namespace, String languageCode) {
         this.namespace = namespace;
@@ -21,7 +25,20 @@ public abstract class LanguageProvider implements DataProvider {
         this.dataOutput = dataOutput;
     }
 
-    public abstract void add(TranslationBuilder builder);
+    public static @NotNull LanguageProvider create(PackOutput dataOutput, String namespace, @NotNull String languageCode) {
+        if (languageCode.equals("en_ud")) {
+            return new UpsideDownLanguageProvider(dataOutput, namespace);
+        }
+        return new LanguageProvider(dataOutput, namespace, languageCode);
+    }
+
+    protected void add(@NotNull TranslationBuilder builder) {
+        this.translations.forEach(builder::add);
+    }
+
+    public void add(String translationKey, String value) {
+        this.translations.put(translationKey, value);
+    }
 
     public LanguageProvider(PackOutput dataOutput, String namespace) {
         this(dataOutput, namespace, "en_us");
@@ -36,8 +53,8 @@ public abstract class LanguageProvider implements DataProvider {
 
     protected @NotNull Path getLangFilePath(String code) {
         return this.dataOutput
-            .createPathProvider(PackOutput.Target.RESOURCE_PACK, "lang")
-            .json(new ResourceLocation(this.namespace, code));
+                .createPathProvider(PackOutput.Target.RESOURCE_PACK, "lang")
+                .json(new ResourceLocation(this.namespace, code));
     }
 
     @Override

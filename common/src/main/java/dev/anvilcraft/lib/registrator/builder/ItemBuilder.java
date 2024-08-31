@@ -6,6 +6,7 @@ import dev.anvilcraft.lib.data.RegistratorRecipeProvider;
 import dev.anvilcraft.lib.mixin.ItemPropertiesAccessor;
 import dev.anvilcraft.lib.registrator.AbstractRegistrator;
 import dev.anvilcraft.lib.registrator.entry.ItemEntry;
+import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -26,6 +27,7 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
         super(registrator, id);
         this.factory = factory;
         this.entry = new ItemEntry<>(this);
+        this.lang(toTitleCase(this.id));
     }
 
     public ItemBuilder<T> model(BiConsumer<ItemEntry<T>, AnvilLibItemModelProvider> consumer) {
@@ -48,7 +50,9 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
         return this;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public ItemBuilder<T> lang(String name) {
+        this.registrator.lang(Util.makeDescriptionId("item", this.registrator.of(this.id)), name);
         return this;
     }
 
@@ -63,14 +67,14 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
         if (supplier instanceof ItemEntry<?> itemEntry) {
             ItemPropertiesAccessor accessor = (ItemPropertiesAccessor) itemEntry.getItemBuilder().properties;
             if (
-                accessor.getMaxStackSize() != defaultProperties.getMaxStackSize()
-                    && thisAccessor.getMaxStackSize() == defaultProperties.getMaxStackSize()
+                    accessor.getMaxStackSize() != defaultProperties.getMaxStackSize()
+                            && thisAccessor.getMaxStackSize() == defaultProperties.getMaxStackSize()
             ) {
                 this.properties.stacksTo(accessor.getMaxStackSize());
             }
             if (
-                accessor.getMaxDamage() != defaultProperties.getMaxDamage()
-                    && thisAccessor.getMaxDamage() == defaultProperties.getMaxDamage()
+                    accessor.getMaxDamage() != defaultProperties.getMaxDamage()
+                            && thisAccessor.getMaxDamage() == defaultProperties.getMaxDamage()
             ) {
                 this.properties.durability(accessor.getMaxDamage());
             }
@@ -78,8 +82,8 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
                 this.properties.craftRemainder(accessor.getCraftingRemainingItem());
             }
             if (
-                accessor.getRarity() != defaultProperties.getRarity()
-                    && thisAccessor.getRarity() == defaultProperties.getRarity()
+                    accessor.getRarity() != defaultProperties.getRarity()
+                            && thisAccessor.getRarity() == defaultProperties.getRarity()
             ) {
                 this.properties.rarity(accessor.getRarity());
             }
@@ -93,8 +97,8 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
             Item item = supplier.get();
             if (item != null) {
                 if (
-                    item.getMaxDamage() != defaultProperties.getMaxDamage()
-                        && thisAccessor.getMaxDamage() == defaultProperties.getMaxDamage()
+                        item.getMaxDamage() != defaultProperties.getMaxDamage()
+                                && thisAccessor.getMaxDamage() == defaultProperties.getMaxDamage()
                 ) {
                     this.properties.durability(item.getMaxDamage());
                 }
@@ -102,25 +106,25 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
                     this.properties.craftRemainder(item.getCraftingRemainingItem());
                 }
                 if (
-                    item.getRarity(new ItemStack(item)) != defaultProperties.getRarity()
-                        && thisAccessor.getRarity() == defaultProperties.getRarity()
+                        item.getRarity(new ItemStack(item)) != defaultProperties.getRarity()
+                                && thisAccessor.getRarity() == defaultProperties.getRarity()
                 ) {
                     this.properties.rarity(item.getRarity(new ItemStack(item)));
                 }
                 if (
-                    item.getMaxStackSize() != defaultProperties.getMaxStackSize()
-                        && thisAccessor.getMaxStackSize() == defaultProperties.getMaxStackSize()
+                        item.getMaxStackSize() != defaultProperties.getMaxStackSize()
+                                && thisAccessor.getMaxStackSize() == defaultProperties.getMaxStackSize()
                 ) {
                     this.properties.stacksTo(item.getMaxStackSize());
                 }
                 if (
-                    item.getFoodProperties() != null
-                        && thisAccessor.getFoodProperties() == null
+                        item.getFoodProperties() != null
+                                && thisAccessor.getFoodProperties() == null
                 ) {
                     this.properties.food(item.getFoodProperties());
                 }
                 if (
-                    item.isFireResistant() && !thisAccessor.isFireResistant()
+                        item.isFireResistant() && !thisAccessor.isFireResistant()
                 ) {
                     this.properties.fireResistant();
                 }

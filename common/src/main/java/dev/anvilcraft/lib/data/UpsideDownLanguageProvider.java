@@ -11,9 +11,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class UpsideDownLanguageProvider extends LanguageProvider {
+public class UpsideDownLanguageProvider extends LanguageProvider {
     protected UpsideDownLanguageProvider(PackOutput dataOutput, String namespace) {
         super(dataOutput, namespace, "en_ud");
+    }
+
+    @Override
+    public @NotNull String getName() {
+        return "UpsideDownLanguage";
     }
 
     @Override

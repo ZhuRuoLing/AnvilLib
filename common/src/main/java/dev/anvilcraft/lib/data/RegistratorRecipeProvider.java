@@ -5,10 +5,14 @@ import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeProvider;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class RegistratorRecipeProvider extends RecipeProvider implements Consumer<FinishedRecipe> {
-    Consumer<FinishedRecipe> writer;
+    private final List<FinishedRecipe> recipes = Collections.synchronizedList(new ArrayList<>());
+    private Consumer<FinishedRecipe> writer;
 
     public RegistratorRecipeProvider(PackOutput output) {
         super(output);
@@ -17,7 +21,7 @@ public class RegistratorRecipeProvider extends RecipeProvider implements Consume
     @Override
     public void accept(FinishedRecipe finishedRecipe) {
         if (this.writer == null) {
-            /*TODO log error*/
+            this.recipes.add(finishedRecipe);
             return;
         }
         this.writer.accept(finishedRecipe);
@@ -26,5 +30,6 @@ public class RegistratorRecipeProvider extends RecipeProvider implements Consume
     @Override
     public void buildRecipes(@NotNull Consumer<FinishedRecipe> writer) {
         this.writer = writer;
+        this.recipes.forEach(writer);
     }
 }

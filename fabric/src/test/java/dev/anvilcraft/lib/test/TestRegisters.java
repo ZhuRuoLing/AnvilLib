@@ -5,6 +5,7 @@ import dev.anvilcraft.lib.registrator.entry.ItemEntry;
 import dev.anvilcraft.lib.registrator.entry.TagKeyEntry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -27,6 +28,7 @@ public class TestRegisters {
                     .pattern("xxx")
                     .pattern("xxx")
                     .define('x', Items.APPLE)
+                    .unlockedBy("has_apple", RecipeProvider.has(Items.APPLE))
                     .save(provider))
             .register();
 

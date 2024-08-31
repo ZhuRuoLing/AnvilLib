@@ -26,7 +26,7 @@ import java.util.function.Function;
 @SuppressWarnings("unused")
 public abstract class AbstractRegistrator {
     protected final BuilderManager manager = new BuilderManager();
-    protected final Map<DataProviderType<?>, List<Consumer<? extends DataProvider>>> dataProviders = Collections.synchronizedMap(new HashMap<>());
+    protected final Map<DataProviderType<? extends DataProvider>, List<Consumer<? extends DataProvider>>> dataProviders = Collections.synchronizedMap(new HashMap<>());
     private final String modid;
 
     protected AbstractRegistrator(String modid) {
@@ -70,13 +70,12 @@ public abstract class AbstractRegistrator {
     public void init() {
     }
 
-    @SuppressWarnings("unchecked")
-    protected <P extends DataProvider> List<Consumer<P>> getDataProviders(DataProviderType<P> type) {
-        return (List<Consumer<P>>) (List<?>) this.dataProviders.getOrDefault(type, Collections.emptyList());
-    }
-
     @SuppressWarnings("UnusedReturnValue")
-    public <T extends DataProvider> AbstractRegistrator initDatagen(DataGenerator generator) {
+    public <T extends DataProvider> AbstractRegistrator initDatagen(DataGenerator.PackGenerator generator) {
+        for (Map.Entry<DataProviderType<? extends DataProvider>, List<Consumer<? extends DataProvider>>> entry : this.dataProviders.entrySet()) {
+            entry.getKey().create(this.modid, generator, entry.getValue());
+        }
+
         return this;
     }
 
@@ -88,5 +87,9 @@ public abstract class AbstractRegistrator {
 
     protected <V, T extends V> List<EntryBuilder<T>> getBuilders(Registry<V> registry) {
         return this.manager.getBuilders(registry);
+    }
+
+    public void lang(String key, String name) {
+        this.data(DataProviderType.LANG, provider -> provider.add(key, name));
     }
 }
