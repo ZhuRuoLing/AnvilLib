@@ -1,4 +1,4 @@
-package dev.anvilcraft.lib.data;
+package dev.anvilcraft.lib.data.provider;
 
 import com.google.gson.JsonObject;
 import net.minecraft.data.CachedOutput;

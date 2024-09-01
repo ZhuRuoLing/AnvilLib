@@ -1,7 +1,8 @@
-package dev.anvilcraft.lib.data;
+package dev.anvilcraft.lib.data.provider;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dev.anvilcraft.lib.data.file.ModelFile;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
@@ -14,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-public abstract class ModelProvider<T extends ModelFileBuilder<T>> implements DataProvider {
+public abstract class ModelProvider<T extends ModelFile<T>> implements DataProvider {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     public static final String BLOCK_FOLDER = "block";
     public static final String ITEM_FOLDER = "item";
@@ -350,10 +351,10 @@ public abstract class ModelProvider<T extends ModelFileBuilder<T>> implements Da
         int i = 0;
         for (T model : this.models.values()) {
             Path target = this.output.getOutputFolder(PackOutput.Target.RESOURCE_PACK)
-                    .resolve(model.location.getNamespace())
+                    .resolve(model.getLocation().getNamespace())
                     .resolve("models")
-                    .resolve(model.location.getPath() + ".json");
-            futures[i++] = DataProvider.saveStable(output, model.finish(), target);
+                    .resolve(model.getLocation().getPath() + ".json");
+            futures[i++] = DataProvider.saveStable(output, model.toJsonElement(), target);
         }
         return CompletableFuture.allOf(futures);
     }

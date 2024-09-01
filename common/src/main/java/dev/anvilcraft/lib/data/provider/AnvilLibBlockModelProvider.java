@@ -1,5 +1,6 @@
-package dev.anvilcraft.lib.data;
+package dev.anvilcraft.lib.data.provider;
 
+import dev.anvilcraft.lib.data.file.BlockModelFile;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;

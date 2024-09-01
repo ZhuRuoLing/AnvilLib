@@ -1,4 +1,4 @@
-package dev.anvilcraft.lib.data;
+package dev.anvilcraft.lib.data.provider;
 
 import com.google.gson.JsonObject;
 import net.minecraft.data.CachedOutput;
@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class UpsideDownLanguageProvider extends LanguageProvider {
-    protected UpsideDownLanguageProvider(PackOutput dataOutput, String namespace) {
+    public UpsideDownLanguageProvider(PackOutput dataOutput, String namespace) {
         super(dataOutput, namespace, "en_ud");
     }
 

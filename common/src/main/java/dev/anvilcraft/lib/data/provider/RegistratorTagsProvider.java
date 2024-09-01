@@ -1,4 +1,4 @@
-package dev.anvilcraft.lib.data;
+package dev.anvilcraft.lib.data.provider;
 
 import dev.anvilcraft.lib.registrator.entry.RegistryEntry;
 import net.minecraft.Util;

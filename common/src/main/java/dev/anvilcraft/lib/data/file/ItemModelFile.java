@@ -1,8 +1,8 @@
-package dev.anvilcraft.lib.data;
+package dev.anvilcraft.lib.data.file;
 
 import net.minecraft.resources.ResourceLocation;
 
-public class ItemModelFile extends ModelFileBuilder<ItemModelFile>{
+public class ItemModelFile extends ModelFile<ItemModelFile> {
     public ItemModelFile(ResourceLocation location) {
         super(location);
     }

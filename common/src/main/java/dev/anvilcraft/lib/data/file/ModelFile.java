@@ -1,8 +1,9 @@
-package dev.anvilcraft.lib.data;
+package dev.anvilcraft.lib.data.file;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import lombok.Getter;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;
@@ -12,13 +13,14 @@ import java.util.Map;
  * simple implementation for block/item model file
  */
 @SuppressWarnings("unchecked")
-public class ModelFileBuilder<T extends ModelFileBuilder<T>> {
+@Getter
+public class ModelFile<T extends ModelFile<T>> implements ResourceFile {
     final ResourceLocation location;
     final Map<String, String> textures = new HashMap<>();
     String parent;
     String renderType;
 
-    public ModelFileBuilder(ResourceLocation location) {
+    public ModelFile(ResourceLocation location) {
         this.location = location;
     }
 
@@ -48,7 +50,8 @@ public class ModelFileBuilder<T extends ModelFileBuilder<T>> {
         return (T) this;
     }
 
-    public JsonElement finish(){
+    @Override
+    public JsonElement toJsonElement(){
         JsonObject jsonObject = new JsonObject();
         if (!textures.isEmpty()){
             JsonObject jTextures = new JsonObject();

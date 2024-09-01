@@ -1,6 +1,6 @@
 package dev.anvilcraft.lib.registrator.builder;
 
-import dev.anvilcraft.lib.data.AnvilLibBlockModelProvider;
+import dev.anvilcraft.lib.data.provider.AnvilLibBlockModelProvider;
 import dev.anvilcraft.lib.data.DataProviderType;
 import dev.anvilcraft.lib.registrator.AbstractRegistrator;
 import dev.anvilcraft.lib.registrator.entry.BlockEntry;
