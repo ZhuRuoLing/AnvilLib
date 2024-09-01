@@ -1,12 +1,24 @@
 package dev.anvilcraft.lib.data;
 
 import net.minecraft.data.CachedOutput;
-import net.minecraft.data.DataProvider;
+import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
-public class AnvilLibBlockModelProvider implements DataProvider {
+public class AnvilLibBlockModelProvider extends ModelProvider<BlockModelFile> {
+
+    public AnvilLibBlockModelProvider(
+            Function<ResourceLocation, BlockModelFile> factory,
+            String categoryDirectory,
+            String modid,
+            PackOutput output
+    ) {
+        super(factory, categoryDirectory, modid, output);
+    }
+
     @Override
     public @NotNull CompletableFuture<?> run(@NotNull CachedOutput output) {
         return CompletableFuture.allOf();
@@ -14,6 +26,6 @@ public class AnvilLibBlockModelProvider implements DataProvider {
 
     @Override
     public @NotNull String getName() {
-        return "BlockModel";
+        return modid + "->BlockModel";
     }
 }
