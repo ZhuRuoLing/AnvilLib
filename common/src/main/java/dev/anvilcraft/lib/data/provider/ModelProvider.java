@@ -1,60 +1,16 @@
 package dev.anvilcraft.lib.data.provider;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import dev.anvilcraft.lib.data.file.BlockModelFile;
 import dev.anvilcraft.lib.data.file.ModelFile;
-import net.minecraft.data.CachedOutput;
-import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.NotNull;
 
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-public abstract class ModelProvider<T extends ModelFile<T>> implements DataProvider {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    public static final String BLOCK_FOLDER = "block";
-    public static final String ITEM_FOLDER = "item";
-
-    protected final Function<ResourceLocation, T> factory;
-    protected final Map<ResourceLocation, T> models = new HashMap<>();
-    protected final String categoryDirectory;
-    protected final String modid;
-    protected final PackOutput output;
+public abstract class ModelProvider<T extends ModelFile<T>> extends ResourceFileProvider<T> {
 
     public ModelProvider(Function<ResourceLocation, T> factory, String categoryDirectory, String modid, PackOutput output) {
-        this.factory = factory;
-        this.categoryDirectory = categoryDirectory;
-        this.modid = modid;
-        this.output = output;
-    }
-
-    private ResourceLocation extendLocation(ResourceLocation rl) {
-        if (rl.getPath().contains("/")) {
-            return rl;
-        }
-        return new ResourceLocation(rl.getNamespace(), categoryDirectory + "/" + rl.getPath());
-    }
-
-    protected T getBuilder(ResourceLocation location){
-        return models.computeIfAbsent(location, factory);
-    }
-
-    protected T getBuilder(String path){
-        ResourceLocation location = extendLocation(path.contains(":") ? new ResourceLocation(path) : new ResourceLocation(modid, path));
-        return getBuilder(location);
-    }
-
-    public ResourceLocation modLocation(String name) {
-        return new ResourceLocation(modid, name);
-    }
-
-    public ResourceLocation mcLocation(String name) {
-        return new ResourceLocation(name);
+        super(factory, categoryDirectory, modid, output);
     }
 
     public T getBuilderWithParent(String name, String parent) {
@@ -345,22 +301,7 @@ public abstract class ModelProvider<T extends ModelFile<T>> implements DataProvi
                 .texture("west", west);
     }
 
-    @Override
-    public @NotNull CompletableFuture<?> run(@NotNull CachedOutput output) {
-        CompletableFuture<?>[] futures = new CompletableFuture[this.models.size()];
-        int i = 0;
-        for (T model : this.models.values()) {
-            Path target = this.output.getOutputFolder(PackOutput.Target.RESOURCE_PACK)
-                    .resolve(model.getLocation().getNamespace())
-                    .resolve("models")
-                    .resolve(model.getLocation().getPath() + ".json");
-            futures[i++] = DataProvider.saveStable(output, model.toJsonElement(), target);
-        }
-        return CompletableFuture.allOf(futures);
-    }
-
-    @Override
-    public @NotNull String getName() {
-        return getClass().getSimpleName();
+    public BlockModelFile existing(ResourceLocation e) {
+        return new BlockModelFile(e);
     }
 }

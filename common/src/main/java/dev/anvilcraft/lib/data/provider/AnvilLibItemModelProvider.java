@@ -5,18 +5,21 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
 public class AnvilLibItemModelProvider extends ModelProvider<ItemModelFile> {
     public AnvilLibItemModelProvider(
-            Function<ResourceLocation, ItemModelFile> factory,
             String categoryDirectory,
             String modid,
             PackOutput output
     ) {
-        super(factory, categoryDirectory, modid, output);
+        super(ItemModelFile::new, categoryDirectory, modid, output);
+    }
+
+    @Override
+    String getProviderName() {
+        return "ItemModel";
     }
 
     public ItemModelFile simple(Item item) {
@@ -27,10 +30,5 @@ public class AnvilLibItemModelProvider extends ModelProvider<ItemModelFile> {
         return getBuilder(location)
                 .parent(new ResourceLocation("item/generated"))
                 .texture("layer0", new ResourceLocation(location.getNamespace(), "item/" + location.getPath()));
-    }
-
-    @Override
-    public @NotNull String getName() {
-        return modid + "->ItemModel";
     }
 }

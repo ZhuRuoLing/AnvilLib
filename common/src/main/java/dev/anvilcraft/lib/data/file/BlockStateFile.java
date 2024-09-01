@@ -2,16 +2,29 @@ package dev.anvilcraft.lib.data.file;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class BlockStateFile implements ResourceFile {
+public class BlockStateFile extends ResourceFile {
 
     private final Map<BlockStateVariantKey, BlockStateVariant> variants = new HashMap<>();
 
-    public BlockStateFile single(BlockStateVariant v){
+    public BlockStateFile(ResourceLocation location) {
+        super(location);
+    }
+
+    public BlockStateFile single(BlockStateVariant v) {
         variants.put(new BlockStateVariantKey(), v);
+        return this;
+    }
+
+    public BlockStateFile variant(
+            BlockStateVariantKey key,
+            BlockStateVariant variant
+    ) {
+        this.variants.put(key, variant);
         return this;
     }
 

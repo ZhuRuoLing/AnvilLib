@@ -1,7 +1,15 @@
 package dev.anvilcraft.lib.data.file;
 
 import com.google.gson.JsonElement;
+import dev.anvilcraft.lib.data.JsonSerializable;
+import lombok.Getter;
+import net.minecraft.resources.ResourceLocation;
 
-public interface ResourceFile {
-    JsonElement toJsonElement();
+@Getter
+public abstract class ResourceFile implements JsonSerializable {
+    protected final ResourceLocation location;
+
+    public ResourceFile(ResourceLocation location) {
+        this.location = location;
+    }
 }

@@ -12,12 +12,11 @@ import java.util.function.Function;
 public class AnvilLibBlockModelProvider extends ModelProvider<BlockModelFile> {
 
     public AnvilLibBlockModelProvider(
-            Function<ResourceLocation, BlockModelFile> factory,
             String categoryDirectory,
             String modid,
             PackOutput output
     ) {
-        super(factory, categoryDirectory, modid, output);
+        super(BlockModelFile::new, categoryDirectory, modid, output);
     }
 
     @Override
@@ -26,7 +25,7 @@ public class AnvilLibBlockModelProvider extends ModelProvider<BlockModelFile> {
     }
 
     @Override
-    public @NotNull String getName() {
-        return modid + "->BlockModel";
+    String getProviderName() {
+        return "BlockModel";
     }
 }

@@ -1,6 +1,7 @@
 package dev.anvilcraft.lib.data;
 
 import dev.anvilcraft.lib.data.file.BlockModelFile;
+import dev.anvilcraft.lib.data.file.BlockStateFile;
 import dev.anvilcraft.lib.data.file.ItemModelFile;
 import dev.anvilcraft.lib.data.provider.AnvilLibBlockModelProvider;
 import dev.anvilcraft.lib.data.provider.AnvilLibBlockStateProvider;
@@ -23,7 +24,6 @@ public interface DataProviderType<P extends DataProvider> {
         @Override
         public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<AnvilLibItemModelProvider>> consumer) {
             generator.addProvider(packOutput -> new AnvilLibItemModelProvider(
-                    ItemModelFile::new,
                     "models/item",
                     namespace,
                     packOutput
@@ -34,7 +34,6 @@ public interface DataProviderType<P extends DataProvider> {
         @Override
         public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<AnvilLibBlockModelProvider>> consumer) {
             generator.addProvider(packOutput -> new AnvilLibBlockModelProvider(
-                    BlockModelFile::new,
                     "models/block",
                     namespace,
                     packOutput
@@ -44,7 +43,11 @@ public interface DataProviderType<P extends DataProvider> {
     DataProviderType<AnvilLibBlockStateProvider> BLOCK_STATE = new DataProviderType<AnvilLibBlockStateProvider>() {
         @Override
         public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<AnvilLibBlockStateProvider>> consumer) {
-
+            generator.addProvider(packOutput -> new AnvilLibBlockStateProvider(
+                    "blockstates",
+                    namespace,
+                    packOutput
+            ));
         }
     };
     DataProviderType<RegistratorRecipeProvider> RECIPE = new DataProviderType<>() {

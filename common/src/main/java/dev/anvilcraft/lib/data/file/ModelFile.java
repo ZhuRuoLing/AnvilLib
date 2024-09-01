@@ -14,14 +14,13 @@ import java.util.Map;
  */
 @SuppressWarnings("unchecked")
 @Getter
-public class ModelFile<T extends ModelFile<T>> implements ResourceFile {
-    final ResourceLocation location;
-    final Map<String, String> textures = new HashMap<>();
-    String parent;
-    String renderType;
+public class ModelFile<T extends ModelFile<T>> extends ResourceFile {
+    protected final Map<String, String> textures = new HashMap<>();
+    protected String parent;
+    protected String renderType;
 
     public ModelFile(ResourceLocation location) {
-        this.location = location;
+        super(location);
     }
 
     public T texture(String key, String texture){
