@@ -1,8 +1,5 @@
 package dev.anvilcraft.lib.data;
 
-import dev.anvilcraft.lib.data.file.BlockModelFile;
-import dev.anvilcraft.lib.data.file.BlockStateFile;
-import dev.anvilcraft.lib.data.file.ItemModelFile;
 import dev.anvilcraft.lib.data.provider.AnvilLibBlockModelProvider;
 import dev.anvilcraft.lib.data.provider.AnvilLibBlockStateProvider;
 import dev.anvilcraft.lib.data.provider.AnvilLibItemModelProvider;

@@ -1,6 +1,5 @@
 package dev.anvilcraft.lib.data.file;
 
-import com.google.gson.JsonElement;
 import dev.anvilcraft.lib.data.JsonSerializable;
 import lombok.Getter;
 import net.minecraft.resources.ResourceLocation;

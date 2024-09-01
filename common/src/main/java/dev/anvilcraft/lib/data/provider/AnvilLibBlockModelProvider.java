@@ -3,11 +3,9 @@ package dev.anvilcraft.lib.data.provider;
 import dev.anvilcraft.lib.data.file.BlockModelFile;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 
 public class AnvilLibBlockModelProvider extends ModelProvider<BlockModelFile> {
 
