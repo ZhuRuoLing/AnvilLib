@@ -8,6 +8,7 @@ import net.minecraft.world.level.block.Block;
 import java.util.function.BiFunction;
 
 public class BlockItemBuilder<T extends BlockItem, B extends Block> extends ItemBuilder<T> {
+    //TODO
     protected final BlockBuilder<B> blockBuilder;
 
     public BlockItemBuilder(AbstractRegistrator registrator, BlockBuilder<B> builder, String id, BiFunction<Block, Item.Properties, T> factory) {

@@ -61,6 +61,22 @@ public abstract class AbstractRegistrator {
         return new BlockBuilder<>(this, id, factory);
     }
 
+    public void entity() {
+        //TODO
+    }
+
+    public void blockEntity() {
+        //TODO
+    }
+
+    public void tab() {
+        //TODO
+    }
+
+    public void menu() {
+        //TODO
+    }
+
     public <P extends DataProvider> void data(DataProviderType<P> type, Consumer<P> consumer) {
         List<Consumer<? extends DataProvider>> list = this.dataProviders.getOrDefault(type, Collections.synchronizedList(new ArrayList<>()));
         list.add(consumer);

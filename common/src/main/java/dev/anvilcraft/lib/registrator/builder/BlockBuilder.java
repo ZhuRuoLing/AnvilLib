@@ -29,6 +29,7 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
     }
 
     public <I extends BlockItem> BlockItemBuilder<I, T> item() {
+        //TODO
         return (BlockItemBuilder<I, T>) new BlockItemBuilder<>(this.registrator, this, this.id, BlockItem::new);
     }
 
