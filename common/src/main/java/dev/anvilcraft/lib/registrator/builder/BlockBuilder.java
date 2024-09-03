@@ -6,10 +6,12 @@ import dev.anvilcraft.lib.registrator.AbstractRegistrator;
 import dev.anvilcraft.lib.registrator.entry.BlockEntry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
@@ -28,9 +30,12 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
         return this;
     }
 
-    public <I extends BlockItem> BlockItemBuilder<I, T> item() {
-        //TODO
-        return (BlockItemBuilder<I, T>) new BlockItemBuilder<>(this.registrator, this, this.id, BlockItem::new);
+    public BlockItemBuilder<BlockItem, T> item() {
+        return new BlockItemBuilder<>(this.registrator, this, this.id, BlockItem::new);
+    }
+
+    public <I extends BlockItem> BlockItemBuilder<I, T> item(BiFunction<Block, Item.Properties, I> factory) {
+        return new BlockItemBuilder<>(this.registrator, this, this.id, factory);
     }
 
     public T build() {
