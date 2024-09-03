@@ -10,8 +10,12 @@ import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.NotNull;
 
@@ -61,20 +65,24 @@ public abstract class AbstractRegistrator {
         return new BlockBuilder<>(this, id, factory);
     }
 
-    public void entity() {
+    public <T extends Entity> EntryBuilder<T> entity(String id) {
         //TODO
+        return null;
     }
 
-    public void blockEntity() {
+    public <T extends BlockEntity> EntryBuilder<T> blockEntity(String id) {
         //TODO
+        return null;
     }
 
-    public void tab() {
+    public EntryBuilder<CreativeModeTab> tab(String id, Consumer<CreativeModeTab.Builder> consumer) {
         //TODO
+        return null;
     }
 
-    public void menu() {
+    public <T extends AbstractContainerMenu> EntryBuilder<T> menu(String id) {
         //TODO
+        return null;
     }
 
     public <P extends DataProvider> void data(DataProviderType<P> type, Consumer<P> consumer) {
