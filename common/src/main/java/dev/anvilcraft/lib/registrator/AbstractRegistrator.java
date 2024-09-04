@@ -1,13 +1,12 @@
 package dev.anvilcraft.lib.registrator;
 
 import dev.anvilcraft.lib.data.DataProviderType;
+import dev.anvilcraft.lib.registrator.builder.CreativeModeTabBuilder;
 import dev.anvilcraft.lib.registrator.builder.EntryBuilder;
 import dev.anvilcraft.lib.registrator.builder.ItemBuilder;
 import dev.anvilcraft.lib.registrator.builder.BlockBuilder;
-import dev.anvilcraft.lib.registrator.entry.RegistryEntry;
 import dev.anvilcraft.lib.registrator.entry.TagKeyEntry;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.resources.ResourceKey;
@@ -78,17 +77,7 @@ public abstract class AbstractRegistrator {
     }
 
     public EntryBuilder<CreativeModeTab> tab(String id, Consumer<CreativeModeTab.Builder> consumer) {
-        return new EntryBuilder<>(AbstractRegistrator.this, id) {
-            public CreativeModeTab build() {
-                return null;
-            }
-
-            @Override
-            public RegistryEntry<CreativeModeTab> register() {
-                this.registrator.addBuilder(BuiltInRegistries.CREATIVE_MODE_TAB, this);
-                return null;
-            }
-        };
+        return CreativeModeTabBuilder.create(this, id, consumer);
     }
 
     public <T extends AbstractContainerMenu> EntryBuilder<T> menu(String id) {
