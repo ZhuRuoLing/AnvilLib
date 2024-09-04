@@ -20,31 +20,44 @@ public interface DataProviderType<P extends DataProvider> {
     DataProviderType<AnvilLibItemModelProvider> ITEM_MODEL = new DataProviderType<>() {
         @Override
         public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<AnvilLibItemModelProvider>> consumer) {
-            generator.addProvider(packOutput -> new AnvilLibItemModelProvider(
+            generator.addProvider(packOutput -> {
+                AnvilLibItemModelProvider provider = new AnvilLibItemModelProvider(
                     "models/item",
                     namespace,
                     packOutput
-            ));
+                );
+                consumer.forEach(c -> c.accept(provider));
+                return provider;
+            });
         }
     };
     DataProviderType<AnvilLibBlockModelProvider> BLOCK_MODEL = new DataProviderType<>() {
         @Override
         public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<AnvilLibBlockModelProvider>> consumer) {
-            generator.addProvider(packOutput -> new AnvilLibBlockModelProvider(
-                    "models/block",
-                    namespace,
-                    packOutput
-            ));
+            generator.addProvider(packOutput -> {
+                AnvilLibBlockModelProvider provider =
+                    new AnvilLibBlockModelProvider(
+                        "models/block",
+                        namespace,
+                        packOutput
+                    );
+                consumer.forEach(c -> c.accept(provider));
+                return provider;
+            });
         }
     };
     DataProviderType<AnvilLibBlockStateProvider> BLOCK_STATE = new DataProviderType<AnvilLibBlockStateProvider>() {
         @Override
         public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<AnvilLibBlockStateProvider>> consumer) {
-            generator.addProvider(packOutput -> new AnvilLibBlockStateProvider(
+            generator.addProvider(packOutput -> {
+                AnvilLibBlockStateProvider provider = new AnvilLibBlockStateProvider(
                     "blockstates",
                     namespace,
                     packOutput
-            ));
+                );
+                consumer.forEach(c -> c.accept(provider));
+                return provider;
+            });
         }
     };
     DataProviderType<RegistratorRecipeProvider> RECIPE = new DataProviderType<>() {

@@ -110,7 +110,7 @@ gradle-app.setting
 .gradletasknamecache
 
 **/build/
-**/.cahce/
+**/src/**/generated/resources/.cahce/
 
 # Common working directory
 run/
