@@ -1,11 +1,14 @@
 package dev.anvilcraft.lib.registrator;
 
 import dev.anvilcraft.lib.data.DataProviderType;
+import dev.anvilcraft.lib.registrator.builder.BlockEntityBuilder;
 import dev.anvilcraft.lib.registrator.builder.CreativeModeTabBuilder;
 import dev.anvilcraft.lib.registrator.builder.EntryBuilder;
 import dev.anvilcraft.lib.registrator.builder.ItemBuilder;
 import dev.anvilcraft.lib.registrator.builder.BlockBuilder;
 import dev.anvilcraft.lib.registrator.entry.TagKeyEntry;
+import dev.anvilcraft.lib.util.TripleFunction;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
@@ -17,7 +20,9 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -71,9 +76,8 @@ public abstract class AbstractRegistrator {
         return null;
     }
 
-    public <T extends BlockEntity> EntryBuilder<T> blockEntity(String id) {
-        //TODO
-        return null;
+    public <T extends BlockEntity> BlockEntityBuilder<T> blockEntity(String id, TripleFunction<BlockEntityType<T>, BlockPos, BlockState, T> factory) {
+        return new BlockEntityBuilder<>(this, id, factory);
     }
 
     public EntryBuilder<CreativeModeTab> tab(String id, Consumer<CreativeModeTab.Builder> consumer) {
@@ -99,7 +103,6 @@ public abstract class AbstractRegistrator {
         for (Map.Entry<DataProviderType<? extends DataProvider>, List<Consumer<? extends DataProvider>>> entry : this.dataProviders.entrySet()) {
             entry.getKey().create(this.modid, generator, entry.getValue());
         }
-
         return this;
     }
 

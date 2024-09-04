@@ -7,6 +7,7 @@
     "ItemPropertiesAccessor"
   ],
   "client": [
+    "BlockEntityRenderersAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
