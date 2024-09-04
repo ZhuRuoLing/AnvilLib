@@ -1,7 +1,7 @@
 package dev.anvilcraft.lib.registrator.builder;
 
-import dev.anvilcraft.lib.data.provider.AnvilLibBlockModelProvider;
 import dev.anvilcraft.lib.data.DataProviderType;
+import dev.anvilcraft.lib.data.provider.AnvilLibBlockStateProvider;
 import dev.anvilcraft.lib.registrator.AbstractRegistrator;
 import dev.anvilcraft.lib.registrator.entry.BlockEntry;
 import dev.anvilcraft.lib.registrator.entry.ItemEntry;
@@ -35,8 +35,8 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
         this.entry.setBlockItem(entry);
     }
 
-    public BlockBuilder<T> model(BiConsumer<BlockEntry<T>, AnvilLibBlockModelProvider> consumer) {
-        this.registrator.data(DataProviderType.BLOCK_MODEL, p -> consumer.accept(this.entry, p));
+    public BlockBuilder<T> state(BiConsumer<BlockEntry<T>, AnvilLibBlockStateProvider> consumer) {
+        this.registrator.data(DataProviderType.BLOCK_STATE, p -> consumer.accept(this.entry, p));
         return this;
     }
 
