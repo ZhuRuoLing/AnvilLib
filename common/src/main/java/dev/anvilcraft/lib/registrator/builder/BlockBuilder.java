@@ -4,6 +4,7 @@ import dev.anvilcraft.lib.data.AnvilLibBlockModelProvider;
 import dev.anvilcraft.lib.data.DataProviderType;
 import dev.anvilcraft.lib.registrator.AbstractRegistrator;
 import dev.anvilcraft.lib.registrator.entry.BlockEntry;
+import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -23,10 +24,17 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
         super(registrator, id);
         this.factory = factory;
         this.entry = new BlockEntry<>(this);
+        this.lang(toTitleCase(this.id));
     }
 
     public BlockBuilder<T> model(BiConsumer<BlockEntry<T>, AnvilLibBlockModelProvider> consumer) {
         this.registrator.data(DataProviderType.BLOCK_MODEL, p -> consumer.accept(this.entry, p));
+        return this;
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public BlockBuilder<T> lang(String name) {
+        this.registrator.lang(Util.makeDescriptionId("block", this.registrator.of(this.id)), name);
         return this;
     }
 

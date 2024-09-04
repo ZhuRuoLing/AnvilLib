@@ -3,6 +3,7 @@ package dev.anvilcraft.lib.registrator.builder;
 import dev.anvilcraft.lib.registrator.AbstractRegistrator;
 import dev.anvilcraft.lib.registrator.entry.RegistryEntry;
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -19,11 +20,18 @@ public abstract class CreativeModeTabBuilder extends EntryBuilder<CreativeModeTa
     protected CreativeModeTabBuilder(AbstractRegistrator registrator, String id, CreativeModeTab.Builder builder) {
         super(registrator, id);
         this.builder = builder;
+        this.lang(toTitleCase(this.id));
     }
 
     @ExpectPlatform
     public static CreativeModeTabBuilder create(AbstractRegistrator registrator, String id, Consumer<CreativeModeTab.Builder> consumer) {
         throw new AssertionError();
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public CreativeModeTabBuilder lang(String name) {
+        this.registrator.lang(Util.makeDescriptionId("itemGroup", this.registrator.of(this.id)), name);
+        return this;
     }
 
     public CreativeModeTabBuilder title(Component title) {
