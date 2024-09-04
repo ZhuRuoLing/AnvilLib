@@ -87,6 +87,7 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
 
     public void simpleBlock(Block block) {
         ResourceLocation blockId = key(block);
+        System.out.println("blockId = " + blockId);
         BlockModelFile simpleModel = blockModelProvider.cubeAll(
             blockId.getPath(),
             new ResourceLocation(blockId.getNamespace(), "block/" + blockId.getPath())

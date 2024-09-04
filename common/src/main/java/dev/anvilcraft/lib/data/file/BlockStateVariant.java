@@ -31,7 +31,7 @@ public class BlockStateVariant implements JsonSerializable {
         return this;
     }
 
-    public BlockStateVariant uvLock(boolean l){
+    public BlockStateVariant uvLock(boolean l) {
         this.uvLock = l;
         return this;
     }
@@ -41,16 +41,16 @@ public class BlockStateVariant implements JsonSerializable {
         return this;
     }
 
-    public static BlockStateVariant build(Consumer<BlockStateVariant> builder){
+    public static BlockStateVariant build(Consumer<BlockStateVariant> builder) {
         BlockStateVariant key = new BlockStateVariant();
         builder.accept(key);
         return key;
     }
 
-    public static BlockStateVariant fromModel(ResourceLocation resourceLocation){
+    public static BlockStateVariant fromModel(ResourceLocation resourceLocation) {
         String ns = resourceLocation.getNamespace();
         String path = resourceLocation.getPath();
-        if (path.startsWith("models/")){
+        if (path.startsWith("models/")) {
             path = path.replaceFirst("models/", "");
         }
         return new BlockStateVariant().model(new ResourceLocation(ns, path));
@@ -60,9 +60,15 @@ public class BlockStateVariant implements JsonSerializable {
     public JsonElement toJsonElement() {
         JsonObject root = new JsonObject();
         root.add("model", new JsonPrimitive(model));
-        root.add("x", new JsonPrimitive(rotationX));
-        root.add("y", new JsonPrimitive(rotationY));
-        root.add("uvlock", new JsonPrimitive(uvLock));
+        if (rotationX != 0) {
+            root.add("x", new JsonPrimitive(rotationX));
+        }
+        if (rotationY != 0) {
+            root.add("y", new JsonPrimitive(rotationY));
+        }
+        if (uvLock) {
+            root.add("uvlock", new JsonPrimitive(uvLock));
+        }
         return root;
     }
 }

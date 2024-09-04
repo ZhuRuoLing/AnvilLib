@@ -1,10 +1,7 @@
 {
   "variants": {
     "": {
-      "model": "anvil-lib-test:blockstates/test_block",
-      "uvlock": false,
-      "x": 0,
-      "y": 0
+      "model": "anvil-lib-test:block/test_block"
     }
   }
 }
