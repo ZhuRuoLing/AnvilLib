@@ -3,17 +3,21 @@ package dev.anvilcraft.lib.registrator;
 import dev.anvilcraft.lib.data.DataProviderType;
 import dev.anvilcraft.lib.registrator.builder.BlockEntityBuilder;
 import dev.anvilcraft.lib.registrator.builder.CreativeModeTabBuilder;
+import dev.anvilcraft.lib.registrator.builder.EnchantmentBuilder;
 import dev.anvilcraft.lib.registrator.builder.EntityBuilder;
 import dev.anvilcraft.lib.registrator.builder.EntryBuilder;
 import dev.anvilcraft.lib.registrator.builder.ItemBuilder;
 import dev.anvilcraft.lib.registrator.builder.BlockBuilder;
 import dev.anvilcraft.lib.registrator.builder.MenuBuilder;
+import dev.anvilcraft.lib.registrator.builder.RegistratorItemBuilder;
 import dev.anvilcraft.lib.registrator.entry.TagKeyEntry;
 import dev.anvilcraft.lib.util.TripleFunction;
+import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -22,6 +26,8 @@ import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentCategory;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -43,6 +49,7 @@ import java.util.function.Function;
 public abstract class AbstractRegistrator {
     protected final BuilderManager manager = new BuilderManager();
     protected final Map<DataProviderType<? extends DataProvider>, List<Consumer<? extends DataProvider>>> dataProviders = Collections.synchronizedMap(new HashMap<>());
+    @Getter
     private final String modid;
 
     protected AbstractRegistrator(String modid) {
@@ -51,6 +58,14 @@ public abstract class AbstractRegistrator {
 
     public ResourceLocation of(String path) {
         return new ResourceLocation(modid, path);
+    }
+
+    public <T extends Enchantment> EnchantmentBuilder<T> enchantment(
+        String id,
+        EnchantmentCategory category,
+        EnchantmentBuilder.EnchantmentFactory<T> factory
+    ) {
+        return new EnchantmentBuilder<>(this, id, category, factory);
     }
 
     public <T> TagKeyEntry<T> tag(ResourceKey<? extends Registry<T>> registry, @NotNull String path) {
@@ -69,8 +84,8 @@ public abstract class AbstractRegistrator {
         return TagKeyEntry.create(null, registry, fabricPath, forgePath);
     }
 
-    public <T extends Item> ItemBuilder<T> item(String id, Function<Item.Properties, T> factory) {
-        return new ItemBuilder<>(this, id, factory);
+    public <T extends Item> RegistratorItemBuilder<T> item(String id, Function<Item.Properties, T> factory) {
+        return new RegistratorItemBuilder<>(this, id, factory);
     }
 
     public <T extends Block> BlockBuilder<T> block(String id, Function<BlockBehaviour.Properties, T> factory) {
@@ -122,6 +137,12 @@ public abstract class AbstractRegistrator {
 
     protected <V, T extends V> List<EntryBuilder<T>> getBuilders(Registry<V> registry) {
         return this.manager.getBuilders(registry);
+    }
+
+    public Component component(String category, ResourceLocation id, String content) {
+        String key = category + "." + id.getNamespace() + "." + id.getPath();
+        lang(key, content);
+        return Component.translatable(key);
     }
 
     public void lang(String key, String name) {

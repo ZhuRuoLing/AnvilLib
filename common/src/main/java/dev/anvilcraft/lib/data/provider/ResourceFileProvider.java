@@ -40,12 +40,12 @@ public abstract class ResourceFileProvider<T extends ResourceFile> implements Da
         return new ResourceLocation(rl.getNamespace(), categoryDirectory + "/" + rl.getPath());
     }
 
-    protected T getBuilder(ResourceLocation location) {
+    public T getBuilder(ResourceLocation location) {
         System.out.println("location = " + location);
         return files.computeIfAbsent(location, factory);
     }
 
-    protected T getBuilder(String path) {
+    public T getBuilder(String path) {
         ResourceLocation location = extendLocation(path.contains(":") ? new ResourceLocation(path) : new ResourceLocation(modid, path));
         return getBuilder(location);
     }

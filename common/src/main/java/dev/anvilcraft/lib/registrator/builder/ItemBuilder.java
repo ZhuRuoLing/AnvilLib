@@ -12,17 +12,23 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
+@SuppressWarnings("unchecked")
+public class ItemBuilder<T extends Item, B extends ItemBuilder<T, B>> extends EntryBuilder<T> {
     private final ItemEntry<T> entry;
-    private final Item.Properties properties = new Item.Properties();
+    private Item.Properties properties = new Item.Properties();
     private final Function<Item.Properties, T> factory;
+
+    private Supplier<Item.Properties> propertiesSupplier = Item.Properties::new;
+    private Consumer<Item.Properties> propertiesBuilder = properties -> {
+    };
 
     public ItemBuilder(AbstractRegistrator registrator, String id, Function<Item.Properties, T> factory) {
         super(registrator, id);
@@ -31,48 +37,53 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
         this.lang(toTitleCase(this.id));
     }
 
-    public ItemBuilder<T> model(BiConsumer<ItemEntry<T>, AnvilLibItemModelProvider> consumer) {
+    public B model(BiConsumer<ItemEntry<T>, AnvilLibItemModelProvider> consumer) {
         this.registrator.data(DataProviderType.ITEM_MODEL, p -> consumer.accept(this.entry, p));
-        return this;
+        return (B) this;
     }
 
     @SafeVarargs
-    public final ItemBuilder<T> tag(Supplier<TagKey<Item>>... tags) {
+    public final B tag(Supplier<TagKey<Item>>... tags) {
         this.registrator.data(DataProviderType.ITEM_TAG, p -> {
             for (Supplier<TagKey<Item>> tag : tags) {
                 p.add(tag.get(), this.entry);
             }
         });
-        return this;
+        return (B) this;
     }
 
     @SafeVarargs
-    public final ItemBuilder<T> tag(TagKey<Item>... tags) {
+    public final B tag(TagKey<Item>... tags) {
         this.registrator.data(DataProviderType.ITEM_TAG, p -> {
             for (TagKey<Item> tag : tags) {
                 p.add(tag, this.entry);
             }
         });
-        return this;
+        return (B) this;
     }
 
-    public ItemBuilder<T> recipe(BiConsumer<ItemEntry<T>, RegistratorRecipeProvider> consumer) {
+    public B recipe(BiConsumer<ItemEntry<T>, RegistratorRecipeProvider> consumer) {
         this.registrator.data(DataProviderType.RECIPE, p -> consumer.accept(this.entry, p));
-        return this;
+        return (B) this;
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public ItemBuilder<T> lang(String name) {
+    public B lang(String name) {
         this.registrator.lang(Util.makeDescriptionId("item", this.getId()), name);
-        return this;
+        return (B) this;
     }
 
-    public ItemBuilder<T> properties(@NotNull Consumer<Item.Properties> properties) {
+    public B properties(@NotNull Consumer<Item.Properties> properties) {
         properties.accept(this.properties);
-        return this;
+        return (B) this;
     }
 
-    public ItemBuilder<T> initProperties(Supplier<Item> supplier) {
+    public B properties(@NotNull Supplier<Item.Properties> properties){
+        this.properties = properties.get();
+        return (B) this;
+    }
+
+    public B initProperties(Supplier<Item> supplier) {
         ItemPropertiesAccessor defaultProperties = (ItemPropertiesAccessor) new Item.Properties();
         ItemPropertiesAccessor thisAccessor = (ItemPropertiesAccessor) this.properties;
         if (supplier instanceof ItemEntry<?> itemEntry) {
@@ -141,7 +152,7 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
                 }
             }
         }
-        return this;
+        return (B) this;
     }
 
     @SuppressWarnings("UnusedReturnValue")

@@ -1,8 +1,11 @@
 package dev.anvilcraft.lib.registrator.entry;
 
 import dev.anvilcraft.lib.registrator.builder.BlockBuilder;
+import dev.anvilcraft.lib.registrator.builder.ItemBuilder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
@@ -16,10 +19,22 @@ public class BlockEntry<T extends Block> extends RegistryEntry<T> implements Ite
         this.blockBuilder = blockBuilder;
     }
 
+    public ResourceLocation getId(){
+        return blockBuilder.getId();
+    }
+
+    public String getName(){
+        return blockBuilder.getId().getPath();
+    }
+
+    public ItemStack asStack(){
+        return get().asItem().getDefaultInstance();
+    }
+
     @Override
     public @NotNull Item asItem() {
         if (blockItem == null) {
-            throw new RuntimeException("Block %s is not has item!".formatted(blockBuilder.getId()));
+            throw new RuntimeException("Block %s has no item".formatted(blockBuilder.getId()));
         }
         return blockItem.asItem();
     }

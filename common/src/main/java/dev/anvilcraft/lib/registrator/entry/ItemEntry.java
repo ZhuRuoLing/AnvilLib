@@ -8,9 +8,9 @@ import org.jetbrains.annotations.NotNull;
 
 @Getter
 public class ItemEntry<T extends Item> extends RegistryEntry<T> implements ItemLike {
-    private final ItemBuilder<T> itemBuilder;
+    private final ItemBuilder<T, ?> itemBuilder;
 
-    public ItemEntry(ItemBuilder<T> itemBuilder) {
+    public ItemEntry(ItemBuilder<T, ?> itemBuilder) {
         this.itemBuilder = itemBuilder;
     }
 

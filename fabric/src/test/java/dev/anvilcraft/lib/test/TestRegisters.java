@@ -38,7 +38,7 @@ public class TestRegisters {
     public static final BlockEntry<Block> TEST_BLOCK = REGISTRATOR
         .block("test_block", Block::new)
         .tag(TEST_BLOCK_TAG)
-        .item()
+        .defaultItem()
         .state((entry, provider)-> provider.simpleBlock(entry.get()))
         .register();
 

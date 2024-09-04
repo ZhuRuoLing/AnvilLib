@@ -58,19 +58,19 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
         return key(block).getPath();
     }
 
-    private BlockStateFile getBuilder(Block block) {
+    public BlockStateFile getBuilder(Block block) {
         return getBuilder(BuiltInRegistries.BLOCK.getKey(block));
     }
 
-    private MultiPartModelFile getMultiPartBuilder(Block block) {
+    public MultiPartModelFile getMultiPartBuilder(Block block) {
         return getMultiPartBuilder(BuiltInRegistries.BLOCK.getKey(block));
     }
 
-    protected MultiPartModelFile getMultiPartBuilder(ResourceLocation location) {
+    public MultiPartModelFile getMultiPartBuilder(ResourceLocation location) {
         return multiPartModelFiles.computeIfAbsent(location, MultiPartModelFile::new);
     }
 
-    protected MultiPartModelFile getMultiPartBuilder(@NotNull String path) {
+    public MultiPartModelFile getMultiPartBuilder(@NotNull String path) {
         ResourceLocation location = extendLocation(path.contains(":") ? new ResourceLocation(path) : new ResourceLocation(modid, path));
         return getMultiPartBuilder(location);
     }

@@ -1,7 +1,7 @@
 package dev.anvilcraft.lib.registrator.builder;
 
-import dev.anvilcraft.lib.mixin.BlockEntityRenderersAccessor;
 import dev.anvilcraft.lib.registrator.AbstractRegistrator;
+import dev.anvilcraft.lib.registrator.entry.BlockEntityEntry;
 import dev.anvilcraft.lib.registrator.entry.RegistryEntry;
 import dev.anvilcraft.lib.util.Side;
 import dev.anvilcraft.lib.util.SideExecutor;
@@ -23,8 +23,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class BlockEntityBuilder<T extends BlockEntity> extends EntryBuilder<BlockEntityType<T>> {
-    protected final RegistryEntry<BlockEntityType<T>> entry = new RegistryEntry<>() {
-    };
+    protected final BlockEntityEntry<T> entry = new BlockEntityEntry<>();
     protected final TripleFunction<BlockEntityType<T>, BlockPos, BlockState, T> factory;
     protected Consumer<BlockEntityType<T>> onRegister = t -> {
     };
@@ -76,7 +75,7 @@ public abstract class BlockEntityBuilder<T extends BlockEntity> extends EntryBui
     }
 
     @Override
-    public RegistryEntry<BlockEntityType<T>> register() {
+    public BlockEntityEntry<T> register() {
         this.registrator.addBuilder(BuiltInRegistries.BLOCK_ENTITY_TYPE, this);
         return this.entry;
     }
