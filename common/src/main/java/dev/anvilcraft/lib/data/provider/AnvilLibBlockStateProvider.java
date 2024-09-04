@@ -46,8 +46,8 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
 
     public AnvilLibBlockStateProvider(String categoryDirectory, String modid, PackOutput output) {
         super(BlockStateFile::new, categoryDirectory, modid, output);
-        blockModelProvider = new AnvilLibBlockModelProvider(categoryDirectory, modid, output);
-        itemModelProvider = new AnvilLibItemModelProvider(categoryDirectory, modid, output);
+        blockModelProvider = new AnvilLibBlockModelProvider("models/block", modid, output);
+        itemModelProvider = new AnvilLibItemModelProvider("models/item", modid, output);
     }
 
     private @NotNull ResourceLocation key(Block block) {
@@ -87,6 +87,7 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
 
     public void simpleBlock(Block block) {
         ResourceLocation blockId = key(block);
+        System.out.println("blockId = " + blockId);
         BlockModelFile simpleModel = blockModelProvider.cubeAll(
             blockId.getPath(),
             new ResourceLocation(blockId.getNamespace(), "block/" + blockId.getPath())
