@@ -1,6 +1,7 @@
 package dev.anvilcraft.lib.registrator;
 
 import dev.anvilcraft.lib.data.DataProviderType;
+import dev.anvilcraft.lib.registrator.builder.CreativeModeTabBuilder;
 import dev.anvilcraft.lib.registrator.builder.EntryBuilder;
 import dev.anvilcraft.lib.registrator.builder.ItemBuilder;
 import dev.anvilcraft.lib.registrator.builder.BlockBuilder;
@@ -10,8 +11,12 @@ import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,6 +64,25 @@ public abstract class AbstractRegistrator {
 
     public <T extends Block> BlockBuilder<T> block(String id, Function<BlockBehaviour.Properties, T> factory) {
         return new BlockBuilder<>(this, id, factory);
+    }
+
+    public <T extends Entity> EntryBuilder<T> entity(String id) {
+        //TODO
+        return null;
+    }
+
+    public <T extends BlockEntity> EntryBuilder<T> blockEntity(String id) {
+        //TODO
+        return null;
+    }
+
+    public EntryBuilder<CreativeModeTab> tab(String id, Consumer<CreativeModeTab.Builder> consumer) {
+        return CreativeModeTabBuilder.create(this, id, consumer);
+    }
+
+    public <T extends AbstractContainerMenu> EntryBuilder<T> menu(String id) {
+        //TODO
+        return null;
     }
 
     public <P extends DataProvider> void data(DataProviderType<P> type, Consumer<P> consumer) {

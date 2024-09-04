@@ -47,6 +47,11 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
 
     @SafeVarargs
     public final ItemBuilder<T> tag(TagKey<Item>... tags) {
+        this.registrator.data(DataProviderType.ITEM_TAG, p -> {
+            for (TagKey<Item> tag : tags) {
+                p.add(tag, this.entry);
+            }
+        });
         return this;
     }
 
