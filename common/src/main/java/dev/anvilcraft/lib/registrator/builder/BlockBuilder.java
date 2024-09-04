@@ -62,7 +62,7 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
 
     @SuppressWarnings("UnusedReturnValue")
     public BlockBuilder<T> lang(String name) {
-        this.registrator.lang(Util.makeDescriptionId("block", this.registrator.of(this.id)), name);
+        this.registrator.lang(Util.makeDescriptionId("block", this.getId()), name);
         return this;
     }
 

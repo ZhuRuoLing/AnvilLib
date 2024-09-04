@@ -3,6 +3,7 @@ package dev.anvilcraft.lib.registrator;
 import dev.anvilcraft.lib.data.DataProviderType;
 import dev.anvilcraft.lib.registrator.builder.BlockEntityBuilder;
 import dev.anvilcraft.lib.registrator.builder.CreativeModeTabBuilder;
+import dev.anvilcraft.lib.registrator.builder.EntityBuilder;
 import dev.anvilcraft.lib.registrator.builder.EntryBuilder;
 import dev.anvilcraft.lib.registrator.builder.ItemBuilder;
 import dev.anvilcraft.lib.registrator.builder.BlockBuilder;
@@ -16,9 +17,12 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -31,6 +35,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -72,13 +77,12 @@ public abstract class AbstractRegistrator {
         return new BlockBuilder<>(this, id, factory);
     }
 
-    public <T extends Entity> EntryBuilder<T> entity(String id) {
-        //TODO
-        return null;
+    public <T extends Entity> EntityBuilder<T> entity(String id, BiFunction<EntityType<T>, Level, T> factory, MobCategory category) {
+        return EntityBuilder.create(this, id, factory, category);
     }
 
     public <T extends BlockEntity> BlockEntityBuilder<T> blockEntity(String id, TripleFunction<BlockEntityType<T>, BlockPos, BlockState, T> factory) {
-        return new BlockEntityBuilder<>(this, id, factory);
+        return BlockEntityBuilder.create(this, id, factory);
     }
 
     public EntryBuilder<CreativeModeTab> tab(String id, Consumer<CreativeModeTab.Builder> consumer) {

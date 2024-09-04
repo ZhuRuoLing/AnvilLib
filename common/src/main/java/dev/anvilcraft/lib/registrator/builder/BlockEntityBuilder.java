@@ -6,6 +6,7 @@ import dev.anvilcraft.lib.registrator.entry.RegistryEntry;
 import dev.anvilcraft.lib.util.Side;
 import dev.anvilcraft.lib.util.SideExecutor;
 import dev.anvilcraft.lib.util.TripleFunction;
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
@@ -21,7 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class BlockEntityBuilder<T extends BlockEntity> extends EntryBuilder<BlockEntityType<T>> {
+public abstract class BlockEntityBuilder<T extends BlockEntity> extends EntryBuilder<BlockEntityType<T>> {
     protected final RegistryEntry<BlockEntityType<T>> entry = new RegistryEntry<>() {
     };
     protected final TripleFunction<BlockEntityType<T>, BlockPos, BlockState, T> factory;
@@ -30,9 +31,14 @@ public class BlockEntityBuilder<T extends BlockEntity> extends EntryBuilder<Bloc
     protected List<Supplier<? extends Block>> blocks = new ArrayList<>();
     protected Supplier<Function<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T>>> renderer = null;
 
-    public BlockEntityBuilder(AbstractRegistrator registrator, String id, TripleFunction<BlockEntityType<T>, BlockPos, BlockState, T> factory) {
+    protected BlockEntityBuilder(AbstractRegistrator registrator, String id, TripleFunction<BlockEntityType<T>, BlockPos, BlockState, T> factory) {
         super(registrator, id);
         this.factory = factory;
+    }
+
+    @ExpectPlatform
+    public static <T extends BlockEntity> BlockEntityBuilder<T> create(AbstractRegistrator registrator, String id, TripleFunction<BlockEntityType<T>, BlockPos, BlockState, T> factory) {
+        throw new AssertionError();
     }
 
     @SuppressWarnings("UnusedReturnValue")
@@ -53,9 +59,7 @@ public class BlockEntityBuilder<T extends BlockEntity> extends EntryBuilder<Bloc
         return this;
     }
 
-    protected void registerRenderer() {
-        this.onRegister(entry -> BlockEntityRenderersAccessor.invokeRegister(entry, renderer.get()::apply));
-    }
+    protected abstract void registerRenderer();
 
     @Override
     public BlockEntityType<T> build() {

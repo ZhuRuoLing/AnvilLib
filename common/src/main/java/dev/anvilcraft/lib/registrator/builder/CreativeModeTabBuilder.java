@@ -30,7 +30,7 @@ public abstract class CreativeModeTabBuilder extends EntryBuilder<CreativeModeTa
 
     @SuppressWarnings("UnusedReturnValue")
     public CreativeModeTabBuilder lang(String name) {
-        this.registrator.lang(Util.makeDescriptionId("itemGroup", this.registrator.of(this.id)), name);
+        this.registrator.lang(Util.makeDescriptionId("itemGroup", this.getId()), name);
         return this;
     }
 

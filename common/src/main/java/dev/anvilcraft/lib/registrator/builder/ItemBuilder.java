@@ -63,7 +63,7 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
 
     @SuppressWarnings("UnusedReturnValue")
     public ItemBuilder<T> lang(String name) {
-        this.registrator.lang(Util.makeDescriptionId("item", this.registrator.of(this.id)), name);
+        this.registrator.lang(Util.makeDescriptionId("item", this.getId()), name);
         return this;
     }
 
