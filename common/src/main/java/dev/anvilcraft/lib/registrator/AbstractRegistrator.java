@@ -86,7 +86,11 @@ public abstract class AbstractRegistrator {
     }
 
     public <T extends AbstractContainerMenu> MenuBuilder<T> menu(String id, MenuBuilder.MenuFactory<T> menuFactory, MenuBuilder.ScreenFactory<T> screenFactory) {
-        return new MenuBuilder<>(this, id, menuFactory, screenFactory);
+        return MenuBuilder.create(this, id, menuFactory, screenFactory);
+    }
+
+    public <T extends AbstractContainerMenu> MenuBuilder<T> menu(String id, MenuBuilder.ForgeMenuFactory<T> menuFactory, MenuBuilder.ScreenFactory<T> screenFactory) {
+        return MenuBuilder.create(this, id, menuFactory, screenFactory);
     }
 
     public <P extends DataProvider> void data(DataProviderType<P> type, Consumer<P> consumer) {
