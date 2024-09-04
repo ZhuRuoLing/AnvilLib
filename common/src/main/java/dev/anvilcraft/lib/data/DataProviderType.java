@@ -1,5 +1,12 @@
 package dev.anvilcraft.lib.data;
 
+import dev.anvilcraft.lib.data.provider.AnvilLibBlockModelProvider;
+import dev.anvilcraft.lib.data.provider.AnvilLibBlockStateProvider;
+import dev.anvilcraft.lib.data.provider.AnvilLibItemModelProvider;
+import dev.anvilcraft.lib.data.provider.LanguageProvider;
+import dev.anvilcraft.lib.data.provider.RegistratorRecipeProvider;
+import dev.anvilcraft.lib.data.provider.RegistratorTagsProvider;
+import dev.anvilcraft.lib.data.provider.UpsideDownLanguageProvider;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.world.item.Item;
@@ -11,8 +18,34 @@ import java.util.function.Consumer;
 
 public interface DataProviderType<P extends DataProvider> {
     DataProviderType<AnvilLibItemModelProvider> ITEM_MODEL = new DataProviderType<>() {
+        @Override
+        public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<AnvilLibItemModelProvider>> consumer) {
+            generator.addProvider(packOutput -> new AnvilLibItemModelProvider(
+                    "models/item",
+                    namespace,
+                    packOutput
+            ));
+        }
     };
     DataProviderType<AnvilLibBlockModelProvider> BLOCK_MODEL = new DataProviderType<>() {
+        @Override
+        public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<AnvilLibBlockModelProvider>> consumer) {
+            generator.addProvider(packOutput -> new AnvilLibBlockModelProvider(
+                    "models/block",
+                    namespace,
+                    packOutput
+            ));
+        }
+    };
+    DataProviderType<AnvilLibBlockStateProvider> BLOCK_STATE = new DataProviderType<AnvilLibBlockStateProvider>() {
+        @Override
+        public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<AnvilLibBlockStateProvider>> consumer) {
+            generator.addProvider(packOutput -> new AnvilLibBlockStateProvider(
+                    "blockstates",
+                    namespace,
+                    packOutput
+            ));
+        }
     };
     DataProviderType<RegistratorRecipeProvider> RECIPE = new DataProviderType<>() {
         @Override
