@@ -284,6 +284,10 @@ public abstract class ModelProvider<T extends ModelFile<T>> extends ResourceFile
         return singleTexture(name, BLOCK_FOLDER + "/carpet", "wool", wool);
     }
 
+    public T cubeAll(String name, ResourceLocation texture){
+        return getBuilderWithParent(name, mcLocation(BLOCK_FOLDER + "/cube_all")).texture("all", texture);
+    }
+
     public T cube(String name,
                   ResourceLocation up,
                   ResourceLocation down,
@@ -292,7 +296,7 @@ public abstract class ModelProvider<T extends ModelFile<T>> extends ResourceFile
                   ResourceLocation east,
                   ResourceLocation west
     ) {
-        return getBuilderWithParent(name, "cube")
+        return getBuilderWithParent(name, mcLocation(BLOCK_FOLDER + "/cube_all"))
                 .texture("down", down)
                 .texture("up", up)
                 .texture("north", north)
