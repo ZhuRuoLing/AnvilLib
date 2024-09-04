@@ -6,6 +6,7 @@ import dev.anvilcraft.lib.registrator.builder.CreativeModeTabBuilder;
 import dev.anvilcraft.lib.registrator.builder.EntryBuilder;
 import dev.anvilcraft.lib.registrator.builder.ItemBuilder;
 import dev.anvilcraft.lib.registrator.builder.BlockBuilder;
+import dev.anvilcraft.lib.registrator.builder.MenuBuilder;
 import dev.anvilcraft.lib.registrator.entry.TagKeyEntry;
 import dev.anvilcraft.lib.util.TripleFunction;
 import net.minecraft.core.BlockPos;
@@ -84,9 +85,8 @@ public abstract class AbstractRegistrator {
         return CreativeModeTabBuilder.create(this, id, consumer);
     }
 
-    public <T extends AbstractContainerMenu> EntryBuilder<T> menu(String id) {
-        //TODO
-        return null;
+    public <T extends AbstractContainerMenu> MenuBuilder<T> menu(String id, MenuBuilder.MenuFactory<T> menuFactory, MenuBuilder.ScreenFactory<T> screenFactory) {
+        return new MenuBuilder<>(this, id, menuFactory, screenFactory);
     }
 
     public <P extends DataProvider> void data(DataProviderType<P> type, Consumer<P> consumer) {
