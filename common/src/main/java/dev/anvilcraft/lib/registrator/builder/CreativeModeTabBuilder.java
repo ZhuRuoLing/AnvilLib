@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class CreativeModeTabBuilder extends EntryBuilder<CreativeModeTab> {
-    protected final RegistryEntry<CreativeModeTab> tab = new RegistryEntry<>() {
+    protected final RegistryEntry<CreativeModeTab> entry = new RegistryEntry<>() {
     };
     protected final CreativeModeTab.Builder builder;
 
@@ -71,13 +71,18 @@ public abstract class CreativeModeTabBuilder extends EntryBuilder<CreativeModeTa
 
     @Override
     public CreativeModeTab build() {
-        this.tab.set(this.builder.build());
-        return this.tab.get();
+        this.entry.set(this.builder.build());
+        return this.entry.get();
     }
 
     @Override
     public RegistryEntry<CreativeModeTab> register() {
         this.registrator.addBuilder(BuiltInRegistries.CREATIVE_MODE_TAB, this);
-        return this.tab;
+        return this.entry;
+    }
+
+    @Override
+    public RegistryEntry<CreativeModeTab> entry() {
+        return this.entry;
     }
 }

@@ -11,7 +11,7 @@ public class BlockItemBuilder<T extends BlockItem, B extends Block> extends Item
     protected final BlockBuilder<B> blockBuilder;
 
     public BlockItemBuilder(AbstractRegistrator registrator, BlockBuilder<B> builder, String id, BiFunction<Block, Item.Properties, T> factory) {
-        super(registrator, id, (properties) -> factory.apply(null, properties));
+        super(registrator, id, (properties) -> factory.apply(builder.entry().get(), properties));
         this.blockBuilder = builder;
         this.lang(null);
     }

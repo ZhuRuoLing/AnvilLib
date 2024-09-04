@@ -39,6 +39,7 @@ public class TestRegisters {
     public static final BlockEntry<Block> TEST_BLOCK = REGISTRATOR
         .block("test_block", Block::new)
         .tag(TEST_BLOCK_TAG)
+        .item()
         .model((entry, provider) -> {
         })
         .register();
@@ -48,7 +49,7 @@ public class TestRegisters {
             .icon(() -> new ItemStack(Items.APPLE))
             .displayItems((parameters, output) -> {
                 output.accept(new ItemStack(TEST_ITEM));
-                // output.accept(new ItemStack(TEST_BLOCK));
+                output.accept(new ItemStack(TEST_BLOCK));
             }))
         .register();
 

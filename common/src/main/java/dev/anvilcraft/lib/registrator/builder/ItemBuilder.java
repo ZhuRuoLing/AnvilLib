@@ -6,6 +6,7 @@ import dev.anvilcraft.lib.data.provider.RegistratorRecipeProvider;
 import dev.anvilcraft.lib.mixin.ItemPropertiesAccessor;
 import dev.anvilcraft.lib.registrator.AbstractRegistrator;
 import dev.anvilcraft.lib.registrator.entry.ItemEntry;
+import dev.anvilcraft.lib.registrator.entry.RegistryEntry;
 import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
@@ -152,6 +153,11 @@ public class ItemBuilder<T extends Item> extends EntryBuilder<T> {
 
     public ItemEntry<T> register() {
         this.registrator.addBuilder(BuiltInRegistries.ITEM, this);
+        return this.entry;
+    }
+
+    @Override
+    public RegistryEntry<T> entry() {
         return this.entry;
     }
 }

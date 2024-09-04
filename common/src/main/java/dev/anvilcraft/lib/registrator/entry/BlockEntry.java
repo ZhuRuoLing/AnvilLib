@@ -18,7 +18,9 @@ public class BlockEntry<T extends Block> extends RegistryEntry<T> implements Ite
 
     @Override
     public @NotNull Item asItem() {
-        if (blockItem == null) return Items.AIR;
+        if (blockItem == null) {
+            throw new RuntimeException("Block %s is not has item!".formatted(blockBuilder.getId()));
+        }
         return blockItem.asItem();
     }
 

@@ -19,6 +19,8 @@ public abstract class EntryBuilder<T> {
     @SuppressWarnings("UnusedReturnValue")
     public abstract RegistryEntry<T> register();
 
+    public abstract RegistryEntry<T> entry();
+
     public ResourceLocation getId() {
         return this.registrator.of(this.id);
     }

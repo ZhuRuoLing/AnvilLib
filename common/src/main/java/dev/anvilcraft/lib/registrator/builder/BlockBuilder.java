@@ -5,6 +5,7 @@ import dev.anvilcraft.lib.data.DataProviderType;
 import dev.anvilcraft.lib.registrator.AbstractRegistrator;
 import dev.anvilcraft.lib.registrator.entry.BlockEntry;
 import dev.anvilcraft.lib.registrator.entry.ItemEntry;
+import dev.anvilcraft.lib.registrator.entry.RegistryEntry;
 import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
@@ -65,8 +66,8 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
         return this;
     }
 
-    public BlockItemBuilder<BlockItem, T> item() {
-        return new BlockItemBuilder<>(this.registrator, this, this.id, BlockItem::new);
+    public BlockBuilder<T> item() {
+        return new BlockItemBuilder<>(this.registrator, this, this.id, BlockItem::new).builder();
     }
 
     public <I extends BlockItem> BlockItemBuilder<I, T> item(BiFunction<Block, Item.Properties, I> factory) {
@@ -82,6 +83,11 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
     @Override
     public BlockEntry<T> register() {
         this.registrator.addBuilder(BuiltInRegistries.BLOCK, this);
+        return this.entry;
+    }
+
+    @Override
+    public RegistryEntry<T> entry() {
         return this.entry;
     }
 }
