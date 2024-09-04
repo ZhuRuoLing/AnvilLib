@@ -64,7 +64,7 @@ public abstract class ResourceFileProvider<T extends ResourceFile> implements Da
         for (T model : this.files.values()) {
             Path target = this.output.getOutputFolder(PackOutput.Target.RESOURCE_PACK)
                     .resolve(model.getLocation().getNamespace())
-                    .resolve("models")
+                    .resolve(categoryDirectory)
                     .resolve(model.getLocation().getPath() + ".json");
             futures[i++] = DataProvider.saveStable(output, model.toJsonElement(), target);
         }
