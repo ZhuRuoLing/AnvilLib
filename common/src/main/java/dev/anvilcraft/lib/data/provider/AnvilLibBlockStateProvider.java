@@ -80,6 +80,15 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
         pressurePlateBlock(block, pressurePlate, pressurePlateDown);
     }
 
+    public void simpleBlock(Block block) {
+        ResourceLocation blockId = key(block);
+        BlockModelFile simpleModel = blockModelProvider.cubeAll(
+                blockId.getPath(),
+                new ResourceLocation(blockId.getNamespace(), "block/" + blockId.getPath())
+        );
+        simpleBlock(block, simpleModel.getLocation());
+    }
+
     public void simpleBlock(Block block, ResourceLocation model) {
         getBuilder(block).single(BlockStateVariant.fromModel(model));
     }
