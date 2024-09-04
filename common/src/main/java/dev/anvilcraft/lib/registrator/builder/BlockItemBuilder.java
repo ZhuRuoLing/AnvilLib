@@ -13,10 +13,11 @@ public class BlockItemBuilder<T extends BlockItem, B extends Block> extends Item
     public BlockItemBuilder(AbstractRegistrator registrator, BlockBuilder<B> builder, String id, BiFunction<Block, Item.Properties, T> factory) {
         super(registrator, id, (properties) -> factory.apply(null, properties));
         this.blockBuilder = builder;
+        this.lang(null);
     }
 
     public BlockBuilder<B> builder() {
-        this.register();
+        this.blockBuilder.setEntryBlockItem(this.register());
         return this.blockBuilder;
     }
 }

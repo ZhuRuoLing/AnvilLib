@@ -37,6 +37,7 @@ public class LanguageProvider implements DataProvider {
     }
 
     public void add(String translationKey, String value) {
+        if (value == null) this.translations.remove(translationKey);
         this.translations.put(translationKey, value);
     }
 
@@ -53,8 +54,8 @@ public class LanguageProvider implements DataProvider {
 
     protected @NotNull Path getLangFilePath(String code) {
         return this.dataOutput
-                .createPathProvider(PackOutput.Target.RESOURCE_PACK, "lang")
-                .json(new ResourceLocation(this.namespace, code));
+            .createPathProvider(PackOutput.Target.RESOURCE_PACK, "lang")
+            .json(new ResourceLocation(this.namespace, code));
     }
 
     @Override

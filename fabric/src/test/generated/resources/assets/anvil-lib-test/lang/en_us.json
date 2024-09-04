@@ -1,3 +1,5 @@
 {
-  "item.anvil-lib-test.test": "Test"
+  "block.anvil-lib-test.test_block": "Test Block",
+  "item.anvil-lib-test.test": "Test",
+  "itemGroup.anvil-lib-test.test": "Test"
 }
