@@ -5,6 +5,8 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.ItemLike;
+import org.jetbrains.annotations.NotNull;
 
 public class AnvilLibItemModelProvider extends ModelProvider<ItemModelFile> {
     public AnvilLibItemModelProvider(
@@ -20,8 +22,8 @@ public class AnvilLibItemModelProvider extends ModelProvider<ItemModelFile> {
         return "ItemModel";
     }
 
-    public ItemModelFile simple(Item item) {
-        return simple(BuiltInRegistries.ITEM.getKey(item));
+    public ItemModelFile simple(@NotNull ItemLike item) {
+        return simple(BuiltInRegistries.ITEM.getKey(item.asItem()));
     }
 
     public ItemModelFile simple(ResourceLocation location) {

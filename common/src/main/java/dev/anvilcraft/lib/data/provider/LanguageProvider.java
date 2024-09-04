@@ -37,8 +37,8 @@ public class LanguageProvider implements DataProvider {
     }
 
     public void add(String translationKey, String value) {
-        if (value == null) this.translations.remove(translationKey);
         this.translations.put(translationKey, value);
+        if (value == null) this.translations.remove(translationKey);
     }
 
     public LanguageProvider(PackOutput dataOutput, String namespace) {
