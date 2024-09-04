@@ -39,9 +39,7 @@ public class TestRegisters {
         .block("test_block", Block::new)
         .tag(TEST_BLOCK_TAG)
         .item()
-        .state((entry, provider)->{
-            provider.simpleBlock(entry);
-        })
+        .state((entry, provider)-> provider.simpleBlock(entry.get()))
         .register();
 
     public static final RegistryEntry<CreativeModeTab> TEST_TAB = REGISTRATOR.tab("test", builder -> builder
