@@ -39,7 +39,8 @@ public class TestRegisters {
         .block("test_block", Block::new)
         .tag(TEST_BLOCK_TAG)
         .item()
-        .model((entry, provider) -> {
+        .state((entry, provider)->{
+            provider.simpleBlock(entry);
         })
         .register();
 

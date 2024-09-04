@@ -30,14 +30,15 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateFile> {
     private static final ImmutableMap<Direction, Property<WallSide>> WALL_PROPS = ImmutableMap.<Direction, Property<WallSide>>builder()
-            .put(Direction.EAST, BlockStateProperties.EAST_WALL)
-            .put(Direction.NORTH, BlockStateProperties.NORTH_WALL)
-            .put(Direction.SOUTH, BlockStateProperties.SOUTH_WALL)
-            .put(Direction.WEST, BlockStateProperties.WEST_WALL)
-            .build();
+        .put(Direction.EAST, BlockStateProperties.EAST_WALL)
+        .put(Direction.NORTH, BlockStateProperties.NORTH_WALL)
+        .put(Direction.SOUTH, BlockStateProperties.SOUTH_WALL)
+        .put(Direction.WEST, BlockStateProperties.WEST_WALL)
+        .build();
 
     private final AnvilLibBlockModelProvider blockModelProvider;
     private final AnvilLibItemModelProvider itemModelProvider;
@@ -49,11 +50,11 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
         itemModelProvider = new AnvilLibItemModelProvider(categoryDirectory, modid, output);
     }
 
-    private ResourceLocation key(Block block) {
+    private @NotNull ResourceLocation key(Block block) {
         return BuiltInRegistries.BLOCK.getKey(block);
     }
 
-    private String name(Block block) {
+    private @NotNull String name(Block block) {
         return key(block).getPath();
     }
 
@@ -69,7 +70,7 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
         return multiPartModelFiles.computeIfAbsent(location, MultiPartModelFile::new);
     }
 
-    protected MultiPartModelFile getMultiPartBuilder(String path) {
+    protected MultiPartModelFile getMultiPartBuilder(@NotNull String path) {
         ResourceLocation location = extendLocation(path.contains(":") ? new ResourceLocation(path) : new ResourceLocation(modid, path));
         return getMultiPartBuilder(location);
     }
@@ -80,11 +81,15 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
         pressurePlateBlock(block, pressurePlate, pressurePlateDown);
     }
 
+    public void simpleBlock(@NotNull Supplier<Block> block, ResourceLocation model) {
+        this.simpleBlock(block.get(), model);
+    }
+
     public void simpleBlock(Block block) {
         ResourceLocation blockId = key(block);
         BlockModelFile simpleModel = blockModelProvider.cubeAll(
-                blockId.getPath(),
-                new ResourceLocation(blockId.getNamespace(), "block/" + blockId.getPath())
+            blockId.getPath(),
+            new ResourceLocation(blockId.getNamespace(), "block/" + blockId.getPath())
         );
         simpleBlock(block, simpleModel.getLocation());
     }
@@ -93,15 +98,15 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
         getBuilder(block).single(BlockStateVariant.fromModel(model));
     }
 
-    public void pressurePlateBlock(PressurePlateBlock block, BlockModelFile up, BlockModelFile down) {
+    public void pressurePlateBlock(PressurePlateBlock block, @NotNull BlockModelFile up, @NotNull BlockModelFile down) {
         getBuilder(block)
-                .variant(
-                        BlockStateVariantKey.with(PressurePlateBlock.POWERED, true),
-                        BlockStateVariant.fromModel(down.getLocation())
-                ).variant(
-                        BlockStateVariantKey.with(PressurePlateBlock.POWERED, true),
-                        BlockStateVariant.fromModel(up.getLocation())
-                );
+            .variant(
+                BlockStateVariantKey.with(PressurePlateBlock.POWERED, true),
+                BlockStateVariant.fromModel(down.getLocation())
+            ).variant(
+                BlockStateVariantKey.with(PressurePlateBlock.POWERED, true),
+                BlockStateVariant.fromModel(up.getLocation())
+            );
     }
 
     public void stairsBlock(StairBlock block, ResourceLocation texture) {
@@ -129,24 +134,24 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
 
     public void slabBlock(SlabBlock block, ResourceLocation doubleslab, ResourceLocation side, ResourceLocation bottom, ResourceLocation top) {
         slabBlock(block,
-                models().slab(name(block), side, bottom, top),
-                models().slabTop(name(block) + "_top", side, bottom, top),
-                models().existing(doubleslab)
+            models().slab(name(block), side, bottom, top),
+            models().slabTop(name(block) + "_top", side, bottom, top),
+            models().existing(doubleslab)
         );
     }
 
-    public void slabBlock(SlabBlock block, BlockModelFile bottom, BlockModelFile top, BlockModelFile doubleslab) {
+    public void slabBlock(SlabBlock block, @NotNull BlockModelFile bottom, @NotNull BlockModelFile top, @NotNull BlockModelFile doubleslab) {
         getBuilder(block)
-                .variant(
-                        BlockStateVariantKey.with(SlabBlock.TYPE, SlabType.BOTTOM),
-                        BlockStateVariant.fromModel(bottom.getLocation())
-                ).variant(
-                        BlockStateVariantKey.with(SlabBlock.TYPE, SlabType.TOP),
-                        BlockStateVariant.fromModel(top.getLocation())
-                ).variant(
-                        BlockStateVariantKey.with(SlabBlock.TYPE, SlabType.DOUBLE),
-                        BlockStateVariant.fromModel(doubleslab.getLocation())
-                );
+            .variant(
+                BlockStateVariantKey.with(SlabBlock.TYPE, SlabType.BOTTOM),
+                BlockStateVariant.fromModel(bottom.getLocation())
+            ).variant(
+                BlockStateVariantKey.with(SlabBlock.TYPE, SlabType.TOP),
+                BlockStateVariant.fromModel(top.getLocation())
+            ).variant(
+                BlockStateVariantKey.with(SlabBlock.TYPE, SlabType.DOUBLE),
+                BlockStateVariant.fromModel(doubleslab.getLocation())
+            );
     }
 
     public void stairsBlock(StairBlock block, BlockModelFile stairs, BlockModelFile stairsInner, BlockModelFile stairsOuter) {
@@ -173,13 +178,13 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
                 blockModel = stairsInner;
             }
             file.variant(
-                    BlockStateVariantKey.with(StairBlock.FACING, facing)
-                            .then(StairBlock.HALF, half)
-                            .then(StairBlock.SHAPE, shape),
-                    BlockStateVariant.fromModel(blockModel.getLocation())
-                            .uvLock(uvLock)
-                            .rotationX(xRotation)
-                            .rotationY(yRotation)
+                BlockStateVariantKey.with(StairBlock.FACING, facing)
+                    .then(StairBlock.HALF, half)
+                    .then(StairBlock.SHAPE, shape),
+                BlockStateVariant.fromModel(blockModel.getLocation())
+                    .uvLock(uvLock)
+                    .rotationX(xRotation)
+                    .rotationY(yRotation)
             );
         }
     }
@@ -190,28 +195,28 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
 
     private void wallBlockInternal(WallBlock block, String baseName, ResourceLocation texture) {
         wallBlock(block, models().wallPost(baseName + "_post", texture),
-                models().wallSide(baseName + "_side", texture),
-                models().wallSideTall(baseName + "_side_tall", texture));
+            models().wallSide(baseName + "_side", texture),
+            models().wallSideTall(baseName + "_side_tall", texture));
     }
 
-    public void wallBlock(WallBlock block, BlockModelFile post, BlockModelFile side, BlockModelFile sideTall) {
+    public void wallBlock(WallBlock block, @NotNull BlockModelFile post, BlockModelFile side, BlockModelFile sideTall) {
         MultiPartModelFile modelFile = getMultiPartBuilder(block);
         modelFile.element(
-                BlockStateVariant.fromModel(post.getLocation()),
-                BlockStateVariantKey.with(WallBlock.UP, true)
+            BlockStateVariant.fromModel(post.getLocation()),
+            BlockStateVariantKey.with(WallBlock.UP, true)
         );
         WALL_PROPS.forEach((key, value) -> {
             modelFile.element(
-                    BlockStateVariant.fromModel(side.getLocation())
-                            .rotationY((((int) key.toYRot()) + 180) % 360)
-                            .uvLock(true),
-                    BlockStateVariantKey.with(value, WallSide.LOW)
+                BlockStateVariant.fromModel(side.getLocation())
+                    .rotationY((((int) key.toYRot()) + 180) % 360)
+                    .uvLock(true),
+                BlockStateVariantKey.with(value, WallSide.LOW)
             );
             modelFile.element(
-                    BlockStateVariant.fromModel(sideTall.getLocation())
-                            .rotationY((((int) key.toYRot()) + 180) % 360)
-                            .uvLock(true),
-                    BlockStateVariantKey.with(value, WallSide.TALL)
+                BlockStateVariant.fromModel(sideTall.getLocation())
+                    .rotationY((((int) key.toYRot()) + 180) % 360)
+                    .uvLock(true),
+                BlockStateVariantKey.with(value, WallSide.TALL)
             );
         });
     }
@@ -225,9 +230,9 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
         futures[i++] = itemModelProvider.run(output);
         for (MultiPartModelFile model : this.multiPartModelFiles.values()) {
             Path target = this.output.getOutputFolder(PackOutput.Target.RESOURCE_PACK)
-                    .resolve(model.getLocation().getNamespace())
-                    .resolve("models")
-                    .resolve(model.getLocation().getPath() + ".json");
+                .resolve(model.getLocation().getNamespace())
+                .resolve("models")
+                .resolve(model.getLocation().getPath() + ".json");
             futures[i++] = DataProvider.saveStable(output, model.toJsonElement(), target);
         }
         return CompletableFuture.allOf(futures);
