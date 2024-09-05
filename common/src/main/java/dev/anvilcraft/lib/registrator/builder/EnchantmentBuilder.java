@@ -34,14 +34,14 @@ public class EnchantmentBuilder<T extends Enchantment> extends EntryBuilder<T> {
     public T build() {
         T enc = this.factory.create(rarity, category, slots.toArray(new EquipmentSlot[0]));
         entry.set(enc);
-        return null;
+        return enc;
     }
 
     @Override
     public RegistryEntry<T> register() {
         this.registrator.addBuilder(BuiltInRegistries.ENCHANTMENT, this);
         this.registrator.lang("enchantment." + registrator.getModid() + "." + id, name);
-        return null;
+        return entry;
     }
 
     @Override

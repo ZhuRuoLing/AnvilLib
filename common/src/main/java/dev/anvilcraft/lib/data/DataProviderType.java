@@ -12,7 +12,6 @@ import dev.anvilcraft.lib.data.provider.RegistratorTagsProvider;
 import dev.anvilcraft.lib.data.provider.UpsideDownLanguageProvider;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
-import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
