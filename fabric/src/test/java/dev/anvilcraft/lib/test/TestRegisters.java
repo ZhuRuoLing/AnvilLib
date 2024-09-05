@@ -25,7 +25,7 @@ public class TestRegisters {
         .item("test", Item::new)
         .tag(TEST_ITEM_TAG)
         .initProperties(() -> Items.APPLE)
-        .model((entry, provider) -> provider.simple(entry))
+        .model((entry, provider) -> provider.handheld(entry))
         .recipe((entry, provider) -> ShapedRecipeBuilder.shaped(RecipeCategory.MISC, entry)
             .pattern("xxx")
             .pattern("xxx")

@@ -33,20 +33,20 @@ import java.util.function.BiConsumer;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class LootTableProvider extends BlockLootSubProvider implements LootTableSubProvider, DataProvider {
+public class BlockLootTableProvider extends BlockLootSubProvider implements LootTableSubProvider, DataProvider {
     private final String modid;
     private final PackOutput output;
     @Setter
     private boolean strictValidation = false;
-    private final List<Callback<LootTableProvider>> callbacks = new ArrayList<>();
+    private final List<Callback<BlockLootTableProvider>> callbacks = new ArrayList<>();
 
-    public LootTableProvider(String modid, PackOutput output) {
+    public BlockLootTableProvider(String modid, PackOutput output) {
         super(Collections.emptySet(), FeatureFlags.REGISTRY.allFlags());
         this.modid = modid;
         this.output = output;
     }
 
-    public void addCallback(Callback<LootTableProvider> callback) {
+    public void addCallback(Callback<BlockLootTableProvider> callback) {
         callbacks.add(callback);
     }
 

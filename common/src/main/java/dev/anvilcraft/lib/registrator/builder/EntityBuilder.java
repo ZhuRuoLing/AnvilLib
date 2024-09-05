@@ -1,6 +1,7 @@
 package dev.anvilcraft.lib.registrator.builder;
 
 import dev.anvilcraft.lib.registrator.AbstractRegistrator;
+import dev.anvilcraft.lib.registrator.entry.EntityEntry;
 import dev.anvilcraft.lib.registrator.entry.RegistryEntry;
 import dev.anvilcraft.lib.util.Side;
 import dev.anvilcraft.lib.util.SideExecutor;
@@ -24,8 +25,7 @@ import java.util.function.Supplier;
 public abstract class EntityBuilder<T extends Entity> extends EntryBuilder<EntityType<T>> {
     protected final BiFunction<EntityType<T>, Level, T> factory;
     protected final MobCategory category;
-    protected final RegistryEntry<EntityType<T>> entry = new RegistryEntry<>() {
-    };
+    protected final EntityEntry<T> entry = new EntityEntry<>();
     protected Consumer<EntityType<T>> onRegister = t -> {
     };
     protected Supplier<Function<EntityRendererProvider.Context, EntityRenderer<? super T>>> renderer = null;
@@ -66,7 +66,7 @@ public abstract class EntityBuilder<T extends Entity> extends EntryBuilder<Entit
     public abstract EntityType<T> build();
 
     @Override
-    public RegistryEntry<EntityType<T>> register() {
+    public EntityEntry<T> register() {
         this.registrator.addBuilder(BuiltInRegistries.ENTITY_TYPE, this);
         return this.entry;
     }

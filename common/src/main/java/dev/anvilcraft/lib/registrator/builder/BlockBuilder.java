@@ -1,9 +1,8 @@
 package dev.anvilcraft.lib.registrator.builder;
 
 import dev.anvilcraft.lib.data.DataProviderType;
-import dev.anvilcraft.lib.data.provider.AnvilLibBlockModelProvider;
 import dev.anvilcraft.lib.data.provider.AnvilLibBlockStateProvider;
-import dev.anvilcraft.lib.data.provider.LootTableProvider;
+import dev.anvilcraft.lib.data.provider.BlockLootTableProvider;
 import dev.anvilcraft.lib.data.provider.RegistratorRecipeProvider;
 import dev.anvilcraft.lib.registrator.AbstractRegistrator;
 import dev.anvilcraft.lib.registrator.entry.BlockEntry;
@@ -86,7 +85,7 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
     }
 
     public BlockBuilder<T> defaultLoot() {
-        return loot(LootTableProvider::dropSelf);
+        return loot(BlockLootTableProvider::dropSelf);
     }
 
     public BlockBuilder<T> dropOther(Item item) {
@@ -94,8 +93,8 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
         return loot((prov, t) -> prov.dropOther(this.entry.get(), item));
     }
 
-    public BlockBuilder<T> loot(BiConsumer<LootTableProvider, T> cons) {
-        this.registrator.data(DataProviderType.LOOT_TABLE, lt -> cons.accept(lt, this.entry.get()));
+    public BlockBuilder<T> loot(BiConsumer<BlockLootTableProvider, T> cons) {
+        this.registrator.data(DataProviderType.BLOCK_LOOT_TABLE, lt -> cons.accept(lt, this.entry.get()));
         return this;
     }
 
@@ -142,7 +141,7 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
         this.entry.setBlockItem((ItemEntry<? extends BlockItem>) itemEntry);
         this.registrator.addBuilder(BuiltInRegistries.BLOCK, this);
         if (dropOther != null) {
-            this.loot((lootTableProvider, t) -> lootTableProvider.dropOther(this.entry.get(), dropOther.get()));
+            this.loot((blockLootTableProvider, t) -> blockLootTableProvider.dropOther(this.entry.get(), dropOther.get()));
         }
         return this.entry;
     }

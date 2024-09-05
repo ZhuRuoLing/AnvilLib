@@ -8,6 +8,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Supplier;
+
 public class AnvilLibItemModelProvider extends ModelProvider<ItemModelFile> {
     public AnvilLibItemModelProvider(
             String categoryDirectory,
@@ -20,6 +22,10 @@ public class AnvilLibItemModelProvider extends ModelProvider<ItemModelFile> {
     @Override
     String getProviderName() {
         return "ItemModel";
+    }
+
+    public ResourceLocation itemTexture(Supplier<? extends ItemLike> item) {
+        return modLocation("item/" + name(item.get()));
     }
 
     public ItemModelFile simple(@NotNull ItemLike item) {
@@ -48,5 +54,15 @@ public class AnvilLibItemModelProvider extends ModelProvider<ItemModelFile> {
         if (item.asItem() == null) return null;
         return getBuilder(BuiltInRegistries.ITEM.getKey(item.asItem()))
                 .parent(new ResourceLocation(modid(item), "block/" + name(item) + suffix));
+    }
+
+    public ItemModelFile handheld(Supplier<? extends ItemLike> itemSupplier){
+        return handheld(itemSupplier, itemTexture(itemSupplier));
+    }
+
+    public ItemModelFile handheld(Supplier<? extends ItemLike> item, ResourceLocation texture) {
+        return getBuilder(name(item.get()))
+            .parent(mcLocation("item/handheld"))
+            .texture("layer0", texture);
     }
 }

@@ -10,10 +10,12 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagBuilder;
 import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Fluid;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -28,6 +30,10 @@ public abstract class RegistratorTagsProvider<T> extends TagsProvider<T> {
 
     protected RegistratorTagsProvider(PackOutput output, ResourceKey<? extends Registry<T>> registryKey) {
         super(output, registryKey, CompletableFuture.supplyAsync(VanillaRegistries::createLookup, Util.backgroundExecutor()));
+    }
+
+    public final TagBuilder create(TagKey<T> tag){
+        return this.getOrCreateRawBuilder(tag);
     }
 
     @SafeVarargs
@@ -64,6 +70,22 @@ public abstract class RegistratorTagsProvider<T> extends TagsProvider<T> {
                 var builder = this.getOrCreateRawBuilder(entry.getKey());
                 for (RegistryEntry<? extends Block> block : entry.getValue()) {
                     builder.add(TagEntry.optionalElement(BuiltInRegistries.BLOCK.getKey(block.get())));
+                }
+            }
+        }
+    }
+
+    public static class FluidProvider extends RegistratorTagsProvider<Fluid> {
+        public FluidProvider(PackOutput output) {
+            super(output, Registries.FLUID);
+        }
+
+        @Override
+        protected void addTags(@NotNull HolderLookup.Provider provider) {
+            for (var entry : this.tags.entrySet()) {
+                var builder = this.getOrCreateRawBuilder(entry.getKey());
+                for (RegistryEntry<? extends Fluid> fluid : entry.getValue()) {
+                    builder.add(TagEntry.optionalElement(BuiltInRegistries.FLUID.getKey(fluid.get())));
                 }
             }
         }

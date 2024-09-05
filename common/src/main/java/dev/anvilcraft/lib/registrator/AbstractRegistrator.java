@@ -51,6 +51,7 @@ public abstract class AbstractRegistrator {
     protected final Map<DataProviderType<? extends DataProvider>, List<Consumer<? extends DataProvider>>> dataProviders = Collections.synchronizedMap(new HashMap<>());
     @Getter
     private final String modid;
+    private boolean shouldDoDataGen = false;
 
     protected AbstractRegistrator(String modid) {
         this.modid = modid;
@@ -126,6 +127,7 @@ public abstract class AbstractRegistrator {
         for (Map.Entry<DataProviderType<? extends DataProvider>, List<Consumer<? extends DataProvider>>> entry : this.dataProviders.entrySet()) {
             entry.getKey().create(this.modid, generator, entry.getValue());
         }
+        shouldDoDataGen = true;
         return this;
     }
 
