@@ -28,7 +28,6 @@ public class TagBuilder<T> {
     @SuppressWarnings({"rawtypes", "unchecked"})
     protected ResourceKey<T> key(T element) {
         Registry registry = BuiltInRegistries.REGISTRY.get((ResourceKey) resourceKey);
-
         if (registry != null) {
             Optional<Holder<T>> key = registry.getResourceKey(element);
 
@@ -39,6 +38,12 @@ public class TagBuilder<T> {
 
         throw new UnsupportedOperationException(getClass().toString());
     }
+
+    public TagBuilder<T> addTag(TagKey<T> tagKey){
+        this.parent.addTag(tagKey.location());
+        return this;
+    }
+
 
     public TagBuilder<T> setReplace(boolean r) {
         this.replace = r;

@@ -39,8 +39,9 @@ public abstract class RegistratorTagsProvider<T> extends TagsProvider<T> {
         super(output, registryKey, CompletableFuture.supplyAsync(VanillaRegistries::createLookup, Util.backgroundExecutor()));
     }
 
-    public final TagBuilder<? extends T> create(TagKey<T> tag){
-        return tagBuilders.computeIfAbsent(
+    @SuppressWarnings("unchecked")
+    public final TagBuilder<T> create(TagKey<T> tag){
+        return (TagBuilder<T>) tagBuilders.computeIfAbsent(
             tag.location(),
             (t) -> new TagBuilder<>(new net.minecraft.tags.TagBuilder(), this.registryKey)
         );
