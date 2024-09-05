@@ -1,5 +1,6 @@
 package dev.anvilcraft.lib.data;
 
+import dev.anvilcraft.lib.data.provider.AdvancementProvider;
 import dev.anvilcraft.lib.data.provider.AnvilLibBlockModelProvider;
 import dev.anvilcraft.lib.data.provider.AnvilLibBlockStateProvider;
 import dev.anvilcraft.lib.data.provider.AnvilLibItemModelProvider;
@@ -127,6 +128,16 @@ public interface DataProviderType<P extends DataProvider> {
                 BlockLootTableProvider lt = new BlockLootTableProvider(namespace, o);
                 consumer.forEach(it -> it.accept(lt));
                 return lt;
+            });
+        }
+    };
+
+    DataProviderType<AdvancementProvider> ADVANCEMENT = new DataProviderType<>() {
+        @Override
+        public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<AdvancementProvider>> consumer) {
+            generator.addProvider(o -> {
+                AdvancementProvider advancementProvider = new AdvancementProvider(o, namespace);
+                return advancementProvider;
             });
         }
     };

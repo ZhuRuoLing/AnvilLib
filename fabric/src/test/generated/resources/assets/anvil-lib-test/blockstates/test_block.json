@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "anvil-lib-test:block/test_block"
+    }
+  }
+}

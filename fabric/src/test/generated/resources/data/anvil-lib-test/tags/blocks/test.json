@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "anvil-lib-test:test_block",
+      "required": false
+    }
+  ]
+}
