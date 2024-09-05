@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockEntry<T extends Block> extends RegistryEntry<T> implements ItemLike {
@@ -21,6 +22,10 @@ public class BlockEntry<T extends Block> extends RegistryEntry<T> implements Ite
 
     public ResourceLocation getId(){
         return blockBuilder.getId();
+    }
+
+    public BlockState getDefaultState(){
+        return get().defaultBlockState();
     }
 
     public String getName(){
