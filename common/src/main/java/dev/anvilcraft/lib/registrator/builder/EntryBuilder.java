@@ -2,6 +2,7 @@ package dev.anvilcraft.lib.registrator.builder;
 
 import dev.anvilcraft.lib.registrator.AbstractRegistrator;
 import dev.anvilcraft.lib.registrator.entry.RegistryEntry;
+import dev.anvilcraft.lib.util.Callback;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 

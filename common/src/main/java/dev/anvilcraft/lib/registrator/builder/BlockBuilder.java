@@ -1,7 +1,9 @@
 package dev.anvilcraft.lib.registrator.builder;
 
 import dev.anvilcraft.lib.data.DataProviderType;
+import dev.anvilcraft.lib.data.provider.AnvilLibBlockModelProvider;
 import dev.anvilcraft.lib.data.provider.AnvilLibBlockStateProvider;
+import dev.anvilcraft.lib.data.provider.LootTableProvider;
 import dev.anvilcraft.lib.data.provider.RegistratorRecipeProvider;
 import dev.anvilcraft.lib.registrator.AbstractRegistrator;
 import dev.anvilcraft.lib.registrator.entry.BlockEntry;
@@ -27,13 +29,15 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
     private Supplier<BlockBehaviour.Properties> propertiesSupplier = BlockBehaviour.Properties::of;
     private Consumer<BlockBehaviour.Properties> propertiesBuilder = properties -> {
     };
-    private ItemBuilder<? extends BlockItem, ?> itemBuilder = new BlockItemBuilder<>(this.registrator, this, this.id, BlockItem::new);;
+    private ItemBuilder<? extends BlockItem, ?> itemBuilder = new BlockItemBuilder<>(this.registrator, this, this.id, BlockItem::new);
+    private Supplier<ItemEntry<?>> dropOther = null;
+    private ItemEntry<?> itemEntry = null;
 
     public BlockBuilder(AbstractRegistrator registrator, String id, Function<BlockBehaviour.Properties, T> factory) {
         super(registrator, id);
         this.factory = factory;
         this.entry = new BlockEntry<>(this);
-        this.lang(toTitleCase(this.id));
+        this.defaultBlockState().lang(toTitleCase(this.id));
     }
 
     public BlockBuilder<T> state(BiConsumer<BlockEntry<T>, AnvilLibBlockStateProvider> consumer) {
@@ -41,8 +45,14 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
         return this;
     }
 
-    public BlockBuilder<T> initialProperties(BlockEntry<? extends Block> entry){
+    public BlockBuilder<T> initialProperties(BlockEntry<? extends Block> entry) {
         return initialProperties(entry::get);
+    }
+
+    public BlockBuilder<T> defaultBlockState(){
+        return state((tBlockEntry, provider) -> {
+            provider.simpleBlock(tBlockEntry.get());
+        });
     }
 
     public BlockBuilder<T> initialProperties(Supplier<Block> supplier) {
@@ -75,26 +85,42 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
         return this;
     }
 
+    public BlockBuilder<T> defaultLoot() {
+        return loot(LootTableProvider::dropSelf);
+    }
+
+    public BlockBuilder<T> dropOther(Item item) {
+        this.dropOther = null;
+        return loot((prov, t) -> prov.dropOther(this.entry.get(), item));
+    }
+
+    public BlockBuilder<T> loot(BiConsumer<LootTableProvider, T> cons) {
+        this.registrator.data(DataProviderType.LOOT_TABLE, lt -> cons.accept(lt, this.entry.get()));
+        return this;
+    }
+
     @SuppressWarnings("UnusedReturnValue")
     public BlockBuilder<T> lang(String name) {
         this.registrator.lang(Util.makeDescriptionId("block", this.getId()), name);
         return this;
     }
-
     public BlockBuilder<T> defaultItem() {
         this.itemBuilder = new BlockItemBuilder<>(this.registrator, this, this.id, BlockItem::new);
+        this.defaultLoot();
         return this;
     }
 
     public BlockItemBuilder<BlockItem, T> blockItem() {
         BlockItemBuilder<BlockItem, T> itemBuilder = item(BlockItem::new);
         this.itemBuilder = itemBuilder;
+        this.defaultLoot();
         return itemBuilder;
     }
 
     public <I extends BlockItem> BlockItemBuilder<I, T> item(BiFunction<Block, Item.Properties, I> factory) {
         BlockItemBuilder<I, T> itemBuilder = new BlockItemBuilder<>(this.registrator, this, this.id, factory);
         this.itemBuilder = itemBuilder;
+        dropOther = () -> itemEntry;
         return itemBuilder;
     }
 
@@ -112,19 +138,20 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
 
     @Override
     public BlockEntry<T> register() {
-        this.entry.setBlockItem(itemBuilder.register());
+        this.itemEntry = itemBuilder.register();
+        this.entry.setBlockItem((ItemEntry<? extends BlockItem>) itemEntry);
         this.registrator.addBuilder(BuiltInRegistries.BLOCK, this);
+        if (dropOther != null) {
+            this.loot((lootTableProvider, t) -> lootTableProvider.dropOther(this.entry.get(), dropOther.get()));
+        }
         return this.entry;
     }
 
-    public BlockBuilder<T> recipe(BiConsumer<ItemEntry<? extends BlockItem>, RegistratorRecipeProvider> fn){
+    public BlockBuilder<T> recipe(BiConsumer<ItemEntry<? extends BlockItem>, RegistratorRecipeProvider> fn) {
         itemBuilder.recipe(fn::accept);
         return this;
     }
 
-    public BlockBuilder<T> defaultLoot(){
-        return this;
-    }
 
     @Override
     public RegistryEntry<T> entry() {

@@ -7,6 +7,7 @@ import dev.anvilcraft.lib.mixin.ItemPropertiesAccessor;
 import dev.anvilcraft.lib.registrator.AbstractRegistrator;
 import dev.anvilcraft.lib.registrator.entry.ItemEntry;
 import dev.anvilcraft.lib.registrator.entry.RegistryEntry;
+import dev.anvilcraft.lib.util.Callback;
 import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
@@ -20,6 +21,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
 @SuppressWarnings("unchecked")
 public class ItemBuilder<T extends Item, B extends ItemBuilder<T, B>> extends EntryBuilder<T> {
     private final ItemEntry<T> entry;
@@ -39,6 +41,11 @@ public class ItemBuilder<T extends Item, B extends ItemBuilder<T, B>> extends En
 
     public B model(BiConsumer<ItemEntry<T>, AnvilLibItemModelProvider> consumer) {
         this.registrator.data(DataProviderType.ITEM_MODEL, p -> consumer.accept(this.entry, p));
+        return (B) this;
+    }
+
+    public B onRegister(Callback<T> callback){
+        this.entry.setOnRegisterCallback(callback);
         return (B) this;
     }
 
@@ -78,7 +85,7 @@ public class ItemBuilder<T extends Item, B extends ItemBuilder<T, B>> extends En
         return (B) this;
     }
 
-    public B properties(@NotNull Supplier<Item.Properties> properties){
+    public B properties(@NotNull Supplier<Item.Properties> properties) {
         this.properties = properties.get();
         return (B) this;
     }
@@ -89,14 +96,14 @@ public class ItemBuilder<T extends Item, B extends ItemBuilder<T, B>> extends En
         if (supplier instanceof ItemEntry<?> itemEntry) {
             ItemPropertiesAccessor accessor = (ItemPropertiesAccessor) itemEntry.getItemBuilder().properties;
             if (
-                    accessor.getMaxStackSize() != defaultProperties.getMaxStackSize()
-                            && thisAccessor.getMaxStackSize() == defaultProperties.getMaxStackSize()
+                accessor.getMaxStackSize() != defaultProperties.getMaxStackSize()
+                    && thisAccessor.getMaxStackSize() == defaultProperties.getMaxStackSize()
             ) {
                 this.properties.stacksTo(accessor.getMaxStackSize());
             }
             if (
-                    accessor.getMaxDamage() != defaultProperties.getMaxDamage()
-                            && thisAccessor.getMaxDamage() == defaultProperties.getMaxDamage()
+                accessor.getMaxDamage() != defaultProperties.getMaxDamage()
+                    && thisAccessor.getMaxDamage() == defaultProperties.getMaxDamage()
             ) {
                 this.properties.durability(accessor.getMaxDamage());
             }
@@ -104,8 +111,8 @@ public class ItemBuilder<T extends Item, B extends ItemBuilder<T, B>> extends En
                 this.properties.craftRemainder(accessor.getCraftingRemainingItem());
             }
             if (
-                    accessor.getRarity() != defaultProperties.getRarity()
-                            && thisAccessor.getRarity() == defaultProperties.getRarity()
+                accessor.getRarity() != defaultProperties.getRarity()
+                    && thisAccessor.getRarity() == defaultProperties.getRarity()
             ) {
                 this.properties.rarity(accessor.getRarity());
             }
@@ -119,8 +126,8 @@ public class ItemBuilder<T extends Item, B extends ItemBuilder<T, B>> extends En
             Item item = supplier.get();
             if (item != null) {
                 if (
-                        item.getMaxDamage() != defaultProperties.getMaxDamage()
-                                && thisAccessor.getMaxDamage() == defaultProperties.getMaxDamage()
+                    item.getMaxDamage() != defaultProperties.getMaxDamage()
+                        && thisAccessor.getMaxDamage() == defaultProperties.getMaxDamage()
                 ) {
                     this.properties.durability(item.getMaxDamage());
                 }
@@ -128,25 +135,25 @@ public class ItemBuilder<T extends Item, B extends ItemBuilder<T, B>> extends En
                     this.properties.craftRemainder(item.getCraftingRemainingItem());
                 }
                 if (
-                        item.getRarity(new ItemStack(item)) != defaultProperties.getRarity()
-                                && thisAccessor.getRarity() == defaultProperties.getRarity()
+                    item.getRarity(new ItemStack(item)) != defaultProperties.getRarity()
+                        && thisAccessor.getRarity() == defaultProperties.getRarity()
                 ) {
                     this.properties.rarity(item.getRarity(new ItemStack(item)));
                 }
                 if (
-                        item.getMaxStackSize() != defaultProperties.getMaxStackSize()
-                                && thisAccessor.getMaxStackSize() == defaultProperties.getMaxStackSize()
+                    item.getMaxStackSize() != defaultProperties.getMaxStackSize()
+                        && thisAccessor.getMaxStackSize() == defaultProperties.getMaxStackSize()
                 ) {
                     this.properties.stacksTo(item.getMaxStackSize());
                 }
                 if (
-                        item.getFoodProperties() != null
-                                && thisAccessor.getFoodProperties() == null
+                    item.getFoodProperties() != null
+                        && thisAccessor.getFoodProperties() == null
                 ) {
                     this.properties.food(item.getFoodProperties());
                 }
                 if (
-                        item.isFireResistant() && !thisAccessor.isFireResistant()
+                    item.isFireResistant() && !thisAccessor.isFireResistant()
                 ) {
                     this.properties.fireResistant();
                 }
@@ -159,6 +166,7 @@ public class ItemBuilder<T extends Item, B extends ItemBuilder<T, B>> extends En
     public T build() {
         T item = this.factory.apply(this.properties);
         this.entry.set(item);
+        this.entry.onRegister();
         return item;
     }
 

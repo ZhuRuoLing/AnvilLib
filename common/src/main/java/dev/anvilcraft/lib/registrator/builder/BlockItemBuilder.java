@@ -15,6 +15,11 @@ public class BlockItemBuilder<T extends BlockItem, B extends Block> extends Item
         super(registrator, id, (properties) -> factory.apply(builder.entry().get(), properties));
         this.blockBuilder = builder;
         this.lang(null);
+        this.defaultBlockItemModel();
+    }
+
+    public BlockItemBuilder<T,B> defaultBlockItemModel(){
+        return model((itemEntry1, modelProvider) -> modelProvider.blockItem(itemEntry1));
     }
 
     public BlockBuilder<B> builder() {

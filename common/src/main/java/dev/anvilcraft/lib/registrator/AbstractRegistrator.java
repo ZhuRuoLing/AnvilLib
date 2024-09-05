@@ -100,7 +100,7 @@ public abstract class AbstractRegistrator {
         return BlockEntityBuilder.create(this, id, factory);
     }
 
-    public EntryBuilder<CreativeModeTab> tab(String id, Consumer<CreativeModeTab.Builder> consumer) {
+    public CreativeModeTabBuilder tab(String id, Consumer<CreativeModeTab.Builder> consumer) {
         return CreativeModeTabBuilder.create(this, id, consumer);
     }
 

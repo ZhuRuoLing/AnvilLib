@@ -1,6 +1,7 @@
 package dev.anvilcraft.lib.data.provider;
 
 import dev.anvilcraft.lib.data.file.ItemModelFile;
+import dev.anvilcraft.lib.registrator.entry.ItemEntry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -44,6 +45,7 @@ public class AnvilLibItemModelProvider extends ModelProvider<ItemModelFile> {
     }
 
     public ItemModelFile blockItem(@NotNull ItemLike item, String suffix){
+        if (item.asItem() == null) return null;
         return getBuilder(BuiltInRegistries.ITEM.getKey(item.asItem()))
                 .parent(new ResourceLocation(modid(item), "block/" + name(item) + suffix));
     }

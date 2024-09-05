@@ -41,7 +41,6 @@ public abstract class ResourceFileProvider<T extends ResourceFile> implements Da
     }
 
     public T getBuilder(ResourceLocation location) {
-        System.out.println("location = " + location);
         return files.computeIfAbsent(location, factory);
     }
 

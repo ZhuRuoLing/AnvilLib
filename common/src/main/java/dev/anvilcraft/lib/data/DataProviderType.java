@@ -4,6 +4,7 @@ import dev.anvilcraft.lib.data.provider.AnvilLibBlockModelProvider;
 import dev.anvilcraft.lib.data.provider.AnvilLibBlockStateProvider;
 import dev.anvilcraft.lib.data.provider.AnvilLibItemModelProvider;
 import dev.anvilcraft.lib.data.provider.LanguageProvider;
+import dev.anvilcraft.lib.data.provider.LootTableProvider;
 import dev.anvilcraft.lib.data.provider.RegistratorRecipeProvider;
 import dev.anvilcraft.lib.data.provider.RegistratorTagsProvider;
 import dev.anvilcraft.lib.data.provider.UpsideDownLanguageProvider;
@@ -102,6 +103,17 @@ public interface DataProviderType<P extends DataProvider> {
                 LanguageProvider provider = new UpsideDownLanguageProvider(output, namespace);
                 consumer.forEach(c -> c.accept(provider));
                 return provider;
+            });
+        }
+    };
+
+    DataProviderType<LootTableProvider> LOOT_TABLE = new DataProviderType<>() {
+        @Override
+        public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<LootTableProvider>> consumer) {
+            generator.addProvider(o -> {
+                LootTableProvider lt = new LootTableProvider(namespace, o);
+                consumer.forEach(it -> it.accept(lt));
+                return lt;
             });
         }
     };
