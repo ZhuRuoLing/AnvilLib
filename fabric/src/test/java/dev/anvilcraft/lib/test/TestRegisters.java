@@ -38,6 +38,15 @@ public class TestRegisters {
     public static final BlockEntry<Block> TEST_BLOCK = REGISTRATOR
         .block("test_block", Block::new)
         .tag(TEST_BLOCK_TAG)
+        .recipe((e, p) -> {
+            ShapedRecipeBuilder.shaped(RecipeCategory.MISC, e)
+                .pattern("xxx")
+                .pattern("xxx")
+                .pattern("xxx")
+                .define('x', TEST_ITEM.asItem())
+                .unlockedBy("has_apple", RecipeProvider.has(Items.APPLE))
+                .save(p);
+        })
         .defaultItem()
         .register();
 
@@ -51,5 +60,6 @@ public class TestRegisters {
         .register();
 
     public static void register() {
+        System.out.println("TEST_BLOCK.getBlockItem().builder() = " + TEST_BLOCK.getBlockItem().getItemBuilder());
     }
 }
