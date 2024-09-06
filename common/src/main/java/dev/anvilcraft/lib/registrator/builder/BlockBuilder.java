@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@SuppressWarnings("unused")
 public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
     private final BlockEntry<T> entry;
     private final Function<BlockBehaviour.Properties, T> factory;
@@ -30,7 +31,7 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
     };
     private ItemBuilder<? extends BlockItem, ?> itemBuilder = new BlockItemBuilder<>(this.registrator, this, this.id, BlockItem::new);
     private Supplier<ItemEntry<?>> dropOther = null;
-    private ItemEntry<?> itemEntry = null;
+    private ItemEntry<? extends BlockItem> itemEntry = null;
 
     public BlockBuilder(AbstractRegistrator registrator, String id, Function<BlockBehaviour.Properties, T> factory) {
         super(registrator, id);
@@ -49,9 +50,7 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
     }
 
     public BlockBuilder<T> defaultBlockState(){
-        return state((tBlockEntry, provider) -> {
-            provider.simpleBlock(tBlockEntry.get());
-        });
+        return state((tBlockEntry, provider) -> provider.simpleBlock(tBlockEntry.get()));
     }
 
     public BlockBuilder<T> initialProperties(Supplier<Block> supplier) {
@@ -84,6 +83,7 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
         return this;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public BlockBuilder<T> defaultLoot() {
         return loot(BlockLootTableProvider::dropSelf);
     }
@@ -138,7 +138,7 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
     @Override
     public BlockEntry<T> register() {
         this.itemEntry = itemBuilder.register();
-        this.entry.setBlockItem((ItemEntry<? extends BlockItem>) itemEntry);
+        this.entry.setBlockItem(itemEntry);
         this.registrator.addBuilder(BuiltInRegistries.BLOCK, this);
         if (dropOther != null) {
             this.loot((blockLootTableProvider, t) -> blockLootTableProvider.dropOther(this.entry.get(), dropOther.get()));
