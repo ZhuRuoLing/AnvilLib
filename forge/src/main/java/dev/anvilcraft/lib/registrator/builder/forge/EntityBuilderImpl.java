@@ -8,6 +8,7 @@ import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
@@ -24,7 +25,7 @@ public class EntityBuilderImpl<T extends Entity> extends EntityBuilder<T> {
 
     @Override
     protected void registerRenderer() {
-        MinecraftForge.EVENT_BUS.addListener(this::registerRenderers);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::registerRenderers);
     }
 
     private void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {

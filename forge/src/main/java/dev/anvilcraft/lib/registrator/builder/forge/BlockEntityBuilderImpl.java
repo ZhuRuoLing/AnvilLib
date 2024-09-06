@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockEntityBuilderImpl<T extends BlockEntity> extends BlockEntityBuilder<T> {
@@ -24,7 +25,7 @@ public class BlockEntityBuilderImpl<T extends BlockEntity> extends BlockEntityBu
 
     @Override
     protected void registerRenderer() {
-        MinecraftForge.EVENT_BUS.addListener(this::registerRenderers);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::registerRenderers);
     }
 
     private void registerRenderers(FMLClientSetupEvent event) {
