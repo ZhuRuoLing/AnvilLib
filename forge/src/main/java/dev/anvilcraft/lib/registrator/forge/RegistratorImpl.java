@@ -5,6 +5,7 @@ import dev.anvilcraft.lib.registrator.Registrator;
 import dev.anvilcraft.lib.registrator.builder.EntryBuilder;
 import net.minecraft.core.Registry;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.registries.RegisterEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,6 +19,7 @@ public class RegistratorImpl extends Registrator {
         MinecraftForge.EVENT_BUS.addListener(this::register);
     }
 
+    @SubscribeEvent
     public void register(RegisterEvent event) {
         for (Registry<?> registry : this.manager) {
             this.init(event, registry);
