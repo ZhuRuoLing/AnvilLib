@@ -1,78 +1,11 @@
 pluginManagement {
     repositories {
-        maven { url "https://maven.fabricmc.net/" }
-        maven { url "https://maven.architectury.dev/" }
-        maven { url "https://maven.minecraftforge.net/" }
+        mavenLocal()
         gradlePluginPortal()
+        maven { url = 'https://maven.neoforged.net/releases' }
     }
 }
 
-dependencyResolutionManagement {
-    repositories {
-        mavenCentral()
-    }
-    versionCatalogs {
-        // Minecraft Version
-        def minecraftVersion = "${minecraft_version}"
-
-        // Fabric
-        def fabricLoaderVersion = "${fabric_loader_version}" // https://fabricmc.net/develop/
-        def fabricApiVersion = "${fabric_api_version}" // https://fabricmc.net/develop/
-        def modMenuFabricVersion = "${mod_menu_fabric_version}"
-
-        // Libs
-        def quiltMappingsVersion = "${quilt_mappings_version}"  // https://lambdaurora.dev/tools/import_quilt.html
-        def parchmentVersion = "${parchment_version}" // https://parchmentmc.org/docs/getting-started
-        def shadowVersion = "${shadow_version}"
-        def architecturyPluginVersion = "${architectury_plugin_version}"
-        def architecturyLoomVersion = "${architectury_loom_version}"
-        def mixinextrasVersion = "${mixinextras_version}"
-
-        fabric {
-            def fabricLoader = version("fabricLoader", fabricLoaderVersion)
-            library("fabricLoader", "net.fabricmc", "fabric-loader").versionRef(fabricLoader)
-
-            def fabricApi = version("fabricApi", "${fabricApiVersion}+${minecraftVersion}")
-            library("fabricApi", "net.fabricmc.fabric-api", "fabric-api").versionRef(fabricApi)
-
-            def modMenu = version("modmenu", modMenuFabricVersion)
-            library("modmenu", "com.terraformersmc", "modmenu").versionRef(modMenu)
-
-            def mixinextras = version("mixinextras", mixinextrasVersion)
-            library("mixinextras", "io.github.llamalad7", "mixinextras-fabric").versionRef(mixinextras)
-            library("mixinextras-common", "io.github.llamalad7", "mixinextras-common").versionRef(mixinextras)
-        }
-
-        forge {
-            def mixinextras = version("mixinextras", mixinextrasVersion)
-            library("mixinextras-forge", "io.github.llamalad7", "mixinextras-forge").versionRef(mixinextras)
-        }
-
-        libs {
-            version("quiltMappings", quiltMappingsVersion)
-            version("parchment", parchmentVersion)
-
-            def minecraft = version("minecraft", minecraftVersion)
-            library("minecraft", "com.mojang", "minecraft").versionRef(minecraft)
-
-            def shadow = version("shadow", shadowVersion)
-            plugin("shadow", "com.github.johnrengelman.shadow").versionRef(shadow)
-
-            def architecturyPlugin = version("architectury", architecturyPluginVersion)
-            plugin("architectury", "architectury-plugin").versionRef(architecturyPlugin)
-
-            def architecturyLoom = version("architectury-loom", architecturyLoomVersion)
-            plugin("architectury-loom", "dev.architectury.loom").versionRef(architecturyLoom)
-        }
-    }
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
 }
-
-include("${mod_id}-common")
-include("${mod_id}-fabric")
-include("${mod_id}-neoforge")
-
-project(":${mod_id}-common").setProjectDir(new File("common"))
-project(":${mod_id}-neoforge").setProjectDir(new File("neoforge"))
-project(":${mod_id}-fabric").setProjectDir(new File("fabric"))
-
-rootProject.name = "${mod_name}"

@@ -1,0 +1,162 @@
+package dev.anvilcraft.lib.data;
+
+import dev.anvilcraft.lib.data.provider.AdvancementProvider;
+import dev.anvilcraft.lib.data.provider.AnvilLibBlockModelProvider;
+import dev.anvilcraft.lib.data.provider.AnvilLibBlockStateProvider;
+import dev.anvilcraft.lib.data.provider.AnvilLibItemModelProvider;
+import dev.anvilcraft.lib.data.provider.BlockLootTableProvider;
+import dev.anvilcraft.lib.data.provider.LanguageProvider;
+import dev.anvilcraft.lib.data.provider.RegistratorLootTableProvider;
+import dev.anvilcraft.lib.data.provider.RegistratorRecipeProvider;
+import dev.anvilcraft.lib.data.provider.RegistratorTagsProvider;
+import dev.anvilcraft.lib.data.provider.UpsideDownLanguageProvider;
+import net.minecraft.data.DataGenerator;
+import net.minecraft.data.DataProvider;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Fluid;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.function.Consumer;
+
+public interface DataProviderType<P extends DataProvider> {
+    DataProviderType<AnvilLibItemModelProvider> ITEM_MODEL = new DataProviderType<>() {
+        @Override
+        public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<AnvilLibItemModelProvider>> consumer) {
+            generator.addProvider(packOutput -> {
+                AnvilLibItemModelProvider provider = new AnvilLibItemModelProvider(
+                    "models/item",
+                    namespace,
+                    packOutput
+                );
+                consumer.forEach(c -> c.accept(provider));
+                return provider;
+            });
+        }
+    };
+    DataProviderType<AnvilLibBlockModelProvider> BLOCK_MODEL = new DataProviderType<>() {
+        @Override
+        public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<AnvilLibBlockModelProvider>> consumer) {
+            generator.addProvider(packOutput -> {
+                AnvilLibBlockModelProvider provider =
+                    new AnvilLibBlockModelProvider(
+                        "models/block",
+                        namespace,
+                        packOutput
+                    );
+                consumer.forEach(c -> c.accept(provider));
+                return provider;
+            });
+        }
+    };
+    DataProviderType<AnvilLibBlockStateProvider> BLOCK_STATE = new DataProviderType<AnvilLibBlockStateProvider>() {
+        @Override
+        public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<AnvilLibBlockStateProvider>> consumer) {
+            generator.addProvider(packOutput -> {
+                AnvilLibBlockStateProvider provider = new AnvilLibBlockStateProvider(
+                    "blockstates",
+                    namespace,
+                    packOutput
+                );
+                consumer.forEach(c -> c.accept(provider));
+                return provider;
+            });
+        }
+    };
+    DataProviderType<RegistratorRecipeProvider> RECIPE = new DataProviderType<>() {
+        @Override
+        public void create(@NotNull DataGenerator.PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<RegistratorRecipeProvider>> consumer) {
+            generator.addProvider(output -> {
+                RegistratorRecipeProvider provider = new RegistratorRecipeProvider(output);
+                consumer.forEach(c -> c.accept(provider));
+                return provider;
+            });
+        }
+    };
+    DataProviderType<RegistratorTagsProvider<Item>> ITEM_TAG = new DataProviderType<>() {
+        @Override
+        public void create(@NotNull DataGenerator.PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<RegistratorTagsProvider<Item>>> consumer) {
+            generator.addProvider(output -> {
+                RegistratorTagsProvider<Item> provider = new RegistratorTagsProvider.ItemProvider(output);
+                consumer.forEach(c -> c.accept(provider));
+                return provider;
+            });
+        }
+    };
+    DataProviderType<RegistratorTagsProvider<Block>> BLOCK_TAG = new DataProviderType<>() {
+        @Override
+        public void create(@NotNull DataGenerator.PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<RegistratorTagsProvider<Block>>> consumer) {
+            generator.addProvider(output -> {
+                RegistratorTagsProvider<Block> provider = new RegistratorTagsProvider.BlockProvider(output);
+                consumer.forEach(c -> c.accept(provider));
+                return provider;
+            });
+        }
+    };
+    DataProviderType<RegistratorTagsProvider<Fluid>> FLUID_TAG = new DataProviderType<>() {
+        @Override
+        public void create(@NotNull DataGenerator.PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<RegistratorTagsProvider<Fluid>>> consumer) {
+            generator.addProvider(output -> {
+                RegistratorTagsProvider<Fluid> provider = new RegistratorTagsProvider.FluidProvider(output);
+                consumer.forEach(c -> c.accept(provider));
+                return provider;
+            });
+        }
+    };
+    DataProviderType<LanguageProvider> LANG = new DataProviderType<>() {
+        @Override
+        public void create(@NotNull DataGenerator.PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<LanguageProvider>> consumer) {
+            generator.addProvider(output -> {
+                LanguageProvider provider = new LanguageProvider(output, namespace);
+                consumer.forEach(c -> c.accept(provider));
+                return provider;
+            });
+            generator.addProvider(output -> {
+                LanguageProvider provider = new UpsideDownLanguageProvider(output, namespace);
+                consumer.forEach(c -> c.accept(provider));
+                return provider;
+            });
+        }
+    };
+
+    DataProviderType<BlockLootTableProvider> BLOCK_LOOT_TABLE = new DataProviderType<>() {
+        @Override
+        public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<BlockLootTableProvider>> consumer) {
+            generator.addProvider(o -> {
+                BlockLootTableProvider lt = new BlockLootTableProvider(namespace, o);
+                consumer.forEach(it -> it.accept(lt));
+                return lt;
+            });
+        }
+    };
+
+    DataProviderType<AdvancementProvider> ADVANCEMENT = new DataProviderType<>() {
+        @Override
+        public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<AdvancementProvider>> consumer) {
+            generator.addProvider(o -> {
+                AdvancementProvider advancementProvider = new AdvancementProvider(o, namespace);
+                return advancementProvider;
+            });
+        }
+    };
+
+    DataProviderType<RegistratorLootTableProvider> LOOT_TABLE = new DataProviderType<>() {
+        @Override
+        public void create(DataGenerator.@NotNull PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<RegistratorLootTableProvider>> consumer) {
+            generator.addProvider(o -> {
+                RegistratorLootTableProvider lt = new RegistratorLootTableProvider(o);
+                consumer.forEach(it -> it.accept(lt));
+                return lt;
+            });
+        }
+    };
+
+    default void create(@NotNull DataGenerator.PackGenerator generator, @NotNull String namespace, @NotNull List<Consumer<P>> consumer) {
+    }
+
+    @SuppressWarnings("unchecked")
+    default void create(@NotNull String namespace, @NotNull DataGenerator.PackGenerator generator, @NotNull List<Consumer<? extends DataProvider>> consumer) {
+        this.create(generator, namespace, consumer.stream().map(c -> (Consumer<P>) c).toList());
+    }
+}
