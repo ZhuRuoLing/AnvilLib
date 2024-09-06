@@ -105,9 +105,7 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
         return this;
     }
     public BlockBuilder<T> defaultItem() {
-        this.itemBuilder = new BlockItemBuilder<>(this.registrator, this, this.id, BlockItem::new);
-        this.defaultLoot();
-        return this;
+        return this.blockItem().builder().defaultLoot();
     }
 
     public BlockItemBuilder<BlockItem, T> blockItem() {
