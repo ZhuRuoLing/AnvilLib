@@ -37,7 +37,7 @@ public abstract class ResourceFileProvider<T extends ResourceFile> implements Da
         if (rl.getPath().contains("/")) {
             return rl;
         }
-        return new ResourceLocation(rl.getNamespace(), categoryDirectory + "/" + rl.getPath());
+        return ResourceLocation.fromNamespaceAndPath(rl.getNamespace(), categoryDirectory + "/" + rl.getPath());
     }
 
     public T getBuilder(ResourceLocation location) {
@@ -45,16 +45,16 @@ public abstract class ResourceFileProvider<T extends ResourceFile> implements Da
     }
 
     public T getBuilder(String path) {
-        ResourceLocation location = extendLocation(path.contains(":") ? new ResourceLocation(path) : new ResourceLocation(modid, path));
+        ResourceLocation location = extendLocation(path.contains(":") ?  ResourceLocation.parse(path) : ResourceLocation.fromNamespaceAndPath(modid, path));
         return getBuilder(location);
     }
 
     public ResourceLocation modLocation(String name) {
-        return new ResourceLocation(modid, name);
+        return  ResourceLocation.fromNamespaceAndPath(modid, name);
     }
 
     public ResourceLocation mcLocation(String name) {
-        return new ResourceLocation(name);
+        return  ResourceLocation.withDefaultNamespace(name);
     }
 
     @Override

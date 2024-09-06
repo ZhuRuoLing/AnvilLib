@@ -57,7 +57,7 @@ public abstract class AbstractRegistrator {
     }
 
     public ResourceLocation of(String path) {
-        return new ResourceLocation(modid, path);
+        return ResourceLocation.fromNamespaceAndPath(modid, path);
     }
 
     public <T extends Enchantment> EnchantmentBuilder<T> enchantment(

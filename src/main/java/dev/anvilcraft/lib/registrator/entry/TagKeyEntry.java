@@ -39,8 +39,7 @@ public final class TagKeyEntry<T> extends RegistryEntry<TagKey<T>> {
         ResourceLocation location = this.registrator != null ?
             this.registrator.of(path) :
             switch (AnvilLib.getPlatform()) {
-                case FORGE -> new ResourceLocation("forge", path);
-                default -> new ResourceLocation("c", path);
+                default -> ResourceLocation.fromNamespaceAndPath("c", path);
             };
         return this.self = TagKey.create(this.registry, location);
     }

@@ -53,7 +53,7 @@ public class BlockStateVariant implements JsonSerializable {
         if (path.startsWith("models/")) {
             path = path.replaceFirst("models/", "");
         }
-        return new BlockStateVariant().model(new ResourceLocation(ns, path));
+        return new BlockStateVariant().model(ResourceLocation.fromNamespaceAndPath(ns, path));
     }
 
     @Override

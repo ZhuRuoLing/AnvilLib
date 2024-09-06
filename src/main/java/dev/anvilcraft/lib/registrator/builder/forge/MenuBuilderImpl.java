@@ -7,7 +7,6 @@ import dev.anvilcraft.lib.util.SideExecutor;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraftforge.common.extensions.IForgeMenuType;
 import org.jetbrains.annotations.NotNull;
 
 public class MenuBuilderImpl<T extends AbstractContainerMenu> extends MenuBuilder<T> {

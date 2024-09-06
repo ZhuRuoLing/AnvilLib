@@ -71,7 +71,7 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
     }
 
     public MultiPartModelFile getMultiPartBuilder(@NotNull String path) {
-        ResourceLocation location = extendLocation(path.contains(":") ? new ResourceLocation(path) : new ResourceLocation(modid, path));
+        ResourceLocation location = extendLocation(path.contains(":") ? ResourceLocation.parse(path) : ResourceLocation.fromNamespaceAndPath(modid, path));
         return getMultiPartBuilder(location);
     }
 
@@ -89,7 +89,7 @@ public class AnvilLibBlockStateProvider extends ResourceFileProvider<BlockStateF
         ResourceLocation blockId = key(block);
         BlockModelFile simpleModel = blockModelProvider.cubeAll(
             blockId.getPath(),
-            new ResourceLocation(blockId.getNamespace(), "block/" + blockId.getPath())
+            ResourceLocation.fromNamespaceAndPath(blockId.getNamespace(), "block/" + blockId.getPath())
         );
         simpleBlock(block, simpleModel.getLocation());
     }
