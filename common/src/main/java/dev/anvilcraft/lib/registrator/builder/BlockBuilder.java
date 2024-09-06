@@ -117,9 +117,6 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
 
     public <I extends BlockItem> BlockItemBuilder<I, T> item(BiFunction<Block, Item.Properties, I> factory) {
         BlockItemBuilder<I, T> itemBuilder = new BlockItemBuilder<>(this.registrator, this, this.id, factory);
-        if (recipeFunction != null){
-            itemBuilder.recipe(recipeFunction::accept);
-        }
         this.itemBuilder = itemBuilder;
         dropOther = () -> itemEntry;
         return itemBuilder;
@@ -139,8 +136,14 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
 
     @Override
     public BlockEntry<T> register() {
+        if (this.recipeFunction != null){
+            this.itemBuilder.recipe(
+                (itemEntry1, registratorRecipeProvider) -> recipeFunction.accept(itemEntry1, registratorRecipeProvider)
+            );
+        }
         this.itemEntry = itemBuilder.register();
         this.entry.setBlockItem(itemEntry);
+
         this.registrator.addBuilder(BuiltInRegistries.BLOCK, this);
         if (dropOther != null) {
             this.loot((blockLootTableProvider, t) -> blockLootTableProvider.dropOther(this.entry.get(), dropOther.get()));
