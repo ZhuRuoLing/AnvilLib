@@ -1,7 +1,7 @@
 package dev.anvilcraft.lib.util.forge;
 
 import dev.anvilcraft.lib.util.Side;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;

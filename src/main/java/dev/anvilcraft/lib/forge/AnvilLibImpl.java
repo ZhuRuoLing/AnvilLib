@@ -1,7 +1,7 @@
 package dev.anvilcraft.lib.forge;
 
 import dev.anvilcraft.lib.util.Platform;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 public class AnvilLibImpl {
     public static Platform getPlatform() {

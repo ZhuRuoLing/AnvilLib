@@ -8,8 +8,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockEntityBuilderImpl<T extends BlockEntity> extends BlockEntityBuilder<T> {
@@ -23,7 +23,7 @@ public class BlockEntityBuilderImpl<T extends BlockEntity> extends BlockEntityBu
 
     @Override
     protected void registerRenderer() {
-        MinecraftForge.EVENT_BUS.addListener(this::registerRenderers);
+        NeoForge.EVENT_BUS.addListener(this::registerRenderers);
     }
 
     private void registerRenderers(FMLClientSetupEvent event) {

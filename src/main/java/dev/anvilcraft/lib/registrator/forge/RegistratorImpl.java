@@ -4,8 +4,9 @@ import dev.anvilcraft.lib.AnvilLib;
 import dev.anvilcraft.lib.registrator.Registrator;
 import dev.anvilcraft.lib.registrator.builder.EntryBuilder;
 import net.minecraft.core.Registry;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.RegisterEvent;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class RegistratorImpl extends Registrator {
@@ -15,7 +16,8 @@ public class RegistratorImpl extends Registrator {
 
     @Override
     public void init() {
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::register);
+        IEventBus bus = ModLoadingContext.get().getActiveContainer().getEventBus();
+        if(bus != null) bus.addListener(this::register);
     }
     
     public void register(RegisterEvent event) {

@@ -4,15 +4,15 @@ import dev.anvilcraft.lib.registrator.ResourcePacksHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.PathPackResources;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
-import net.minecraftforge.event.AddPackFindersEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.forgespi.language.IModFileInfo;
-import net.minecraftforge.forgespi.locating.IModFile;
-import net.minecraftforge.resource.PathPackResources;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.neoforge.event.AddPackFindersEvent;
+import net.neoforged.neoforgespi.language.IModFileInfo;
+import net.neoforged.neoforgespi.locating.IModFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -25,8 +25,8 @@ public class ResourcePacksHelperImpl {
             throw new IllegalStateException("%s's ModContainer couldn't be found!".formatted(modid));
         }
         IModFile modFile = modFileInfo.getFile();
-        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-        bus.addListener((AddPackFindersEvent event) -> {
+        IEventBus bus = ModLoadingContext.get().getActiveContainer().getEventBus();
+        if(bus != null) bus.addListener((AddPackFindersEvent event) -> {
             if (event.getPackType() == PackType.SERVER_DATA && type.isServer()) {
                 registerPack(event, modFile, pack, PackType.SERVER_DATA);
             } else if (type.isClient()) {

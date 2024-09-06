@@ -3,9 +3,9 @@ package dev.anvilcraft.lib.forge;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import dev.anvilcraft.lib.AnvilLib;
 import dev.anvilcraft.lib.integration.AnvilLibIntegrations;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.forgespi.language.IModInfo;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforgespi.language.IModInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

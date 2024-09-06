@@ -11,9 +11,9 @@ import java.util.function.Supplier;
 
 public class AnvilLibItemModelProvider extends ModelProvider<ItemModelFile> {
     public AnvilLibItemModelProvider(
-            String categoryDirectory,
-            String modid,
-            PackOutput output
+        String categoryDirectory,
+        String modid,
+        PackOutput output
     ) {
         super(ItemModelFile::new, categoryDirectory, modid, output);
     }
@@ -33,8 +33,8 @@ public class AnvilLibItemModelProvider extends ModelProvider<ItemModelFile> {
 
     public ItemModelFile simple(ResourceLocation location) {
         return getBuilder(location)
-                .parent(new ResourceLocation("item/generated"))
-                .texture("layer0", new ResourceLocation(location.getNamespace(), "item/" + location.getPath()));
+            .parent(ResourceLocation.withDefaultNamespace("item/generated"))
+            .texture("layer0", ResourceLocation.fromNamespaceAndPath(location.getNamespace(), "item/" + location.getPath()));
     }
 
     public String modid(ItemLike item) {
@@ -45,17 +45,17 @@ public class AnvilLibItemModelProvider extends ModelProvider<ItemModelFile> {
         return BuiltInRegistries.ITEM.getKey(item.asItem()).getPath();
     }
 
-    public ItemModelFile blockItem(@NotNull ItemLike item){
+    public ItemModelFile blockItem(@NotNull ItemLike item) {
         return blockItem(item, "");
     }
 
-    public ItemModelFile blockItem(@NotNull ItemLike item, String suffix){
+    public ItemModelFile blockItem(@NotNull ItemLike item, String suffix) {
         if (item.asItem() == null) return null;
         return getBuilder(BuiltInRegistries.ITEM.getKey(item.asItem()))
-                .parent(new ResourceLocation(modid(item), "block/" + name(item) + suffix));
+            .parent(ResourceLocation.fromNamespaceAndPath(modid(item), "block/" + name(item) + suffix));
     }
 
-    public ItemModelFile handheld(Supplier<? extends ItemLike> itemSupplier){
+    public ItemModelFile handheld(Supplier<? extends ItemLike> itemSupplier) {
         return handheld(itemSupplier, itemTexture(itemSupplier));
     }
 
