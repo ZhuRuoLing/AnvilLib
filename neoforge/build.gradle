@@ -35,7 +35,7 @@ loom {
         convertAccessWideners = true
         extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
 
-        dataGen{
+        dataGen {
             mod(mod_id)
         }
     }

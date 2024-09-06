@@ -123,7 +123,6 @@ dependencies {
     shadowCommon(project(path: ":${mod_id}-common", configuration: "transformProductionFabric")) { transitive false }
 
     // Development QOL
-    modRuntimeOnly(fabric.lazydfu)
     modRuntimeOnly(fabric.modmenu)
 
     // Mixin Extras
