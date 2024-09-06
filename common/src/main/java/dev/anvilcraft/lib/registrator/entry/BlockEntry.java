@@ -2,6 +2,7 @@ package dev.anvilcraft.lib.registrator.entry;
 
 import dev.anvilcraft.lib.registrator.builder.BlockBuilder;
 import dev.anvilcraft.lib.registrator.builder.ItemBuilder;
+import lombok.Getter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class BlockEntry<T extends Block> extends RegistryEntry<T> implements ItemLike {
     private final BlockBuilder<T> blockBuilder;
+    @Getter
     private ItemEntry<? extends BlockItem> blockItem = null;
 
     public BlockEntry(BlockBuilder<T> blockBuilder) {

@@ -137,6 +137,7 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
     @Override
     public BlockEntry<T> register() {
         if (this.recipeFunction != null){
+            System.out.println("register itemBuilder = " + itemBuilder);
             this.itemBuilder.recipe(
                 (itemEntry1, registratorRecipeProvider) -> recipeFunction.accept(itemEntry1, registratorRecipeProvider)
             );
@@ -152,7 +153,7 @@ public class BlockBuilder<T extends Block> extends EntryBuilder<T> {
     }
 
     public BlockBuilder<T> recipe(BiConsumer<ItemEntry<? extends BlockItem>, RegistratorRecipeProvider> fn) {
-        itemBuilder.recipe(fn::accept);
+        System.out.println("itemBuilder = " + itemBuilder);
         this.recipeFunction = fn;
         return this;
     }
