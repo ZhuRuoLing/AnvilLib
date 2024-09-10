@@ -5,12 +5,8 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "anvillib.refmap.json",
   "mixins": [
-    "ItemPropertiesAccessor",
-    "LootContextParamSetsAccessor",
-    "LootTableProviderAccessor"
   ],
   "client": [
-    "BlockEntityRenderersAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
