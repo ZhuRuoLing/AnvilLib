@@ -11,6 +11,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
 import java.util.Set;
 
@@ -25,10 +26,11 @@ public class CodecAnnotationProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, @NotNull RoundEnvironment roundEnv) {
         for (Element element : roundEnv.getElementsAnnotatedWith(Codec.class)) {
-            TypeElement typeElem = (TypeElement) element;
-            String typeName = typeElem.getQualifiedName().toString();
-            Filer filer = processingEnv.getFiler();
-            log("Found @Codec annotation on " + typeName);
+            if (element instanceof VariableElement varElement) {
+                String typeName = varElement.getSimpleName().toString();
+                Filer filer = processingEnv.getFiler();
+                log("Found @Codec annotation on " + typeName);
+            }
         }
         return true;
     }
