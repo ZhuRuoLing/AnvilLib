@@ -28,6 +28,7 @@ public class CodecAnnotationProcessor extends AbstractProcessor {
             TypeElement typeElem = (TypeElement) element;
             String typeName = typeElem.getQualifiedName().toString();
             Filer filer = processingEnv.getFiler();
+            log("Found @Codec annotation on " + typeName);
         }
         return true;
     }
