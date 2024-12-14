@@ -7,6 +7,5 @@ import org.jetbrains.annotations.NotNull;
 public class AnvilLibTestDataGenerator implements DataGeneratorEntrypoint {
     @Override
     public void onInitializeDataGenerator(@NotNull FabricDataGenerator fabricDataGenerator) {
-        AnvilLibTest.REGISTRATOR.initDatagen(fabricDataGenerator.createPack());
     }
 }
