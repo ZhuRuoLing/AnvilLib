@@ -1,19 +1,19 @@
 name: Pull Request Check
 on:
+  workflow_dispatch:
   pull_request:
+    branches:
+      - releases/**
     paths:
+      - src/**
       - common/**
       - fabric/**
       - forge/**
-      - neoforge/**
       - build.gradle
       - gradle.properties
       - settings.gradle
 
 jobs:
-  gametest:
-    secrets: inherit
-    uses: ./.github/workflows/gametest.yml
   build:
     runs-on: ubuntu-latest
     env:
@@ -63,3 +63,15 @@ jobs:
             fabric/build/libs/${{ steps.properties.outputs.mod_id }}-fabric-${{ steps.version.outputs.version }}.jar
             forge/build/libs/${{ steps.properties.outputs.mod_id }}-forge-${{ steps.version.outputs.version }}.jar
             neoforge/build/libs/${{ steps.properties.outputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar
+
+      - name: Fabric Game Test
+        uses: Anvil-Dev/dedicated-server-launch-test@1.20.1-fabric
+        with:
+          mod: fabric/build/libs/${{ steps.properties.outputs.mod_id }}-fabric-${{ steps.version.outputs.version }}.jar
+          extra-mods: fabric-api:0.92.2+1.20.1 patchouli:1.20.1-84-fabric cloth-config:11.1.136+fabric
+
+      - name: Forge Game Test
+        uses: Anvil-Dev/dedicated-server-launch-test@1.20.1-forge
+        with:
+          mod: forge/build/libs/${{ steps.properties.outputs.mod_id }}-forge-${{ steps.version.outputs.version }}.jar
+          extra-mods: patchouli:1.20.1-84-forge cloth-config:11.1.136+forge

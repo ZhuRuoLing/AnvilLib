@@ -1,5 +1,6 @@
 name: CI for Mod
 on:
+  workflow_dispatch:
   push:
     branches:
       - releases/**
@@ -13,9 +14,6 @@ on:
       - settings.gradle
 
 jobs:
-  gametest:
-    secrets: inherit
-    uses: ./.github/workflows/gametest.yml
   build:
     runs-on: ubuntu-latest
     env:
@@ -73,3 +71,15 @@ jobs:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USER }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASS }}
         continue-on-error: true
+
+      - name: Fabric Game Test
+        uses: Anvil-Dev/dedicated-server-launch-test@1.20.1-fabric
+        with:
+          mod: fabric/build/libs/${{ steps.properties.outputs.mod_id }}-fabric-${{ steps.version.outputs.version }}.jar
+          extra-mods: fabric-api:0.92.2+1.20.1 patchouli:1.20.1-84-fabric cloth-config:11.1.136+fabric
+
+      - name: Forge Game Test
+        uses: Anvil-Dev/dedicated-server-launch-test@1.20.1-forge
+        with:
+          mod: forge/build/libs/${{ steps.properties.outputs.mod_id }}-forge-${{ steps.version.outputs.version }}.jar
+          extra-mods: patchouli:1.20.1-84-forge cloth-config:11.1.136+forge
