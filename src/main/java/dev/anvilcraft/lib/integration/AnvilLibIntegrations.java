@@ -25,6 +25,18 @@ public class AnvilLibIntegrations {
         }
     }
 
+    public static void applyClient() {
+        for (Map.Entry<String, List<String>> entry : AnvilLibIntegrations.INTEGRATIONS.entrySet()) {
+            String modid = entry.getKey();
+            if (AnvilLib.isLoaded(modid)) {
+                AnvilLib.LOGGER.info("{}'s client integrations is loading...", modid);
+                List<String> classes = entry.getValue();
+                classes.forEach(AnvilLibIntegrations::applyClient);
+                AnvilLib.LOGGER.info("{}'s client integrations is loaded!", modid);
+            }
+        }
+    }
+
     private static void apply(String name) {
         try {
             Class<?> clazz = Class.forName(name);
@@ -32,6 +44,18 @@ public class AnvilLibIntegrations {
             Class<? extends Integration> integrationClass = clazz.asSubclass(Integration.class);
             Integration integration = integrationClass.getDeclaredConstructor().newInstance();
             integration.apply();
+        } catch (Exception ex) {
+            AnvilLib.LOGGER.error(ex.getMessage(), ex);
+        }
+    }
+
+    private static void applyClient(String name) {
+        try {
+            Class<?> clazz = Class.forName(name);
+            if (!Integration.class.isAssignableFrom(clazz)) return;
+            Class<? extends Integration> integrationClass = clazz.asSubclass(Integration.class);
+            Integration integration = integrationClass.getDeclaredConstructor().newInstance();
+            integration.applyClient();
         } catch (Exception ex) {
             AnvilLib.LOGGER.error(ex.getMessage(), ex);
         }
