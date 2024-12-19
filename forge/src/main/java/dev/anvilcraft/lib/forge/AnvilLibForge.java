@@ -21,7 +21,7 @@ public class AnvilLibForge {
         for (IModInfo mod : ModList.get().getMods()) {
             Map<String, Object> modProperties = mod.getModProperties();
             for (Map.Entry<String, Object> entry : modProperties.entrySet()) {
-                if (!entry.getKey().equals("anvilcraft")) continue;
+                if (!entry.getKey().equals(AnvilLib.MOD_ID)) continue;
                 if (!(entry.getValue() instanceof UnmodifiableConfig anvilConfig)) return;
                 for (UnmodifiableConfig.Entry entry1 : anvilConfig.entrySet()) {
                     if (!entry1.getKey().equals("integrations")) continue;
