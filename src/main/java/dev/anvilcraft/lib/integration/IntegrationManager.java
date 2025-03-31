@@ -36,6 +36,7 @@ public class IntegrationManager {
                 if (annotation.annotationType().getDescriptor().equals(INTEGRATION_NAME) && annotation.targetType() == ElementType.TYPE) {
                     String modid = (String) annotation.annotationData().get("value");
                     String version = (String) annotation.annotationData().get("version");
+                    if (null == version) version = "*";
                     log.info("Considering integration {} for {}", annotation.memberName(), modid);
                     try {
                         IntegrationInstance instance = new IntegrationInstance(
