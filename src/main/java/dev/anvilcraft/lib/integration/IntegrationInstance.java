@@ -3,6 +3,8 @@ package dev.anvilcraft.lib.integration;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import net.neoforged.bus.api.Event;
+import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.MethodHandle;
@@ -16,29 +18,35 @@ public class IntegrationInstance {
     private final String modid;
     @Getter
     private final ModVersionRange version;
+    @Getter
+    private final Class<? extends Event> event;
     private final String className;
     private Class<?> clazz;
     private Object instance;
     private MethodHandle constructor;
     private MethodHandle loader;
     private MethodHandle clientLoader;
+    private boolean loaded = false;
+    private boolean clientLoaded = false;
 
     @SneakyThrows
     public IntegrationInstance(
         String modid,
         ModVersionRange version,
-        String className
+        String className,
+        Class<? extends Event> event
     ) {
         this.modid = modid;
         this.version = version;
         this.className = className;
+        this.event = event;
     }
 
     public static @NotNull IntegrationInstance of(
         String modid,
         String className
     ) {
-        return new IntegrationInstance(modid, ModVersionRange.ANY, className);
+        return new IntegrationInstance(modid, ModVersionRange.ANY, className, FMLLoadCompleteEvent.class);
     }
 
     @SneakyThrows
@@ -71,16 +79,20 @@ public class IntegrationInstance {
 
     @SneakyThrows
     public void invoke() {
+        if (loaded) return;
         if (loader != null) {
             loader.invoke(instance);
         }
+        loaded = true;
     }
 
     @SneakyThrows
     public void invokeClient() {
+        if (clientLoaded) return;
         if (clientLoader != null) {
             clientLoader.invoke(instance);
         }
+        clientLoaded = true;
     }
 
     public Object instance() {

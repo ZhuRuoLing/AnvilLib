@@ -5,12 +5,17 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import dev.anvilcraft.lib.AnvilLib;
 import lombok.extern.slf4j.Slf4j;
+import net.neoforged.bus.api.Event;
 import net.neoforged.fml.ModList;
+import net.neoforged.fml.event.IModBusEvent;
+import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.LoadingModList;
 import net.neoforged.fml.loading.moddiscovery.ModFileInfo;
 import net.neoforged.fml.loading.moddiscovery.ModInfo;
 import net.neoforged.fml.loading.progress.ProgressMeter;
 import net.neoforged.fml.loading.progress.StartupNotificationManager;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforgespi.language.IModInfo;
 import net.neoforged.neoforgespi.language.ModFileScanData;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
@@ -18,8 +23,10 @@ import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.ElementType;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 public class IntegrationManager {
@@ -36,13 +43,17 @@ public class IntegrationManager {
                 if (annotation.annotationType().getDescriptor().equals(INTEGRATION_NAME) && annotation.targetType() == ElementType.TYPE) {
                     String modid = (String) annotation.annotationData().get("value");
                     String version = (String) annotation.annotationData().get("version");
+                    //noinspection unchecked
+                    Class<? extends Event> event = (Class<? extends Event>) annotation.annotationData().get("event");
                     if (null == version) version = "*";
+                    if (null == event) event = FMLLoadCompleteEvent.class;
                     log.info("Considering integration {} for {}", annotation.memberName(), modid);
                     try {
                         IntegrationInstance instance = new IntegrationInstance(
                             modid,
                             ModVersionRange.of(version),
-                            annotation.memberName()
+                            annotation.memberName(),
+                            event
                         );
                         this.put(modid, instance);
                     } catch (InvalidVersionSpecificationException e) {
@@ -51,12 +62,32 @@ public class IntegrationManager {
                 }
             }
         }
+        this.loadEvent();
         this.loadOld();
         StartupNotificationManager.popBar(meter);
     }
 
     public void put(String modid, IntegrationInstance instance) {
         this.instances.put(modid, instance);
+    }
+
+    private void loadEvent() {
+        Set<Class<? extends Event>> events = new HashSet<>();
+        for (IntegrationInstance instance : instances.values()) {
+            events.add(instance.getEvent());
+        }
+        for (Class<?> event : events) {
+            if (!IModBusEvent.class.isAssignableFrom(event)) {
+                NeoForge.EVENT_BUS.addListener(this::loadEvent);
+            }
+        }
+    }
+
+    private <T extends Event> void loadEvent(@NotNull T event) {
+        this.loadAllIntegrations(event.getClass());
+        if (FMLLoader.getDist().isClient()) {
+            this.loadAllClientIntegrations(event.getClass());
+        }
     }
 
     private void loadOld() {
@@ -89,8 +120,9 @@ public class IntegrationManager {
         }
     }
 
-    public void load(String modid, ArtifactVersion version) {
+    public void load(String modid, ArtifactVersion version, Class<?> event) {
         for (IntegrationInstance instance : instances.get(modid)) {
+            if (!instance.getEvent().isAssignableFrom(event)) continue;
             if (!instance.getVersion().containsVersion(version)) continue;
             instance.newInstance();
             log.info("Loading integration {} for {}.", instance.instance(), modid);
@@ -98,8 +130,9 @@ public class IntegrationManager {
         }
     }
 
-    public void loadClient(String modid, ArtifactVersion version) {
+    public void loadClient(String modid, ArtifactVersion version, Class<?> event) {
         for (IntegrationInstance instance : instances.get(modid)) {
+            if (!instance.getEvent().isAssignableFrom(event)) continue;
             if (!instance.getVersion().containsVersion(version)) continue;
             instance.newInstance();
             log.info("Loading client integration {} for {}.", instance.instance(), modid);
@@ -107,18 +140,18 @@ public class IntegrationManager {
         }
     }
 
-    public void loadAllIntegrations() {
+    public void loadAllIntegrations(Class<?> event) {
         for (ModInfo mod : LoadingModList.get().getMods()) {
             if (instances.containsKey(mod.getModId())) {
-                load(mod.getModId(), mod.getVersion());
+                load(mod.getModId(), mod.getVersion(), event);
             }
         }
     }
 
-    public void loadAllClientIntegrations() {
+    public void loadAllClientIntegrations(Class<?> event) {
         for (ModInfo mod : LoadingModList.get().getMods()) {
             if (instances.containsKey(mod.getModId())) {
-                loadClient(mod.getModId(), mod.getVersion());
+                loadClient(mod.getModId(), mod.getVersion(), event);
             }
         }
     }

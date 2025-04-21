@@ -20,15 +20,18 @@ public class AnvilLib {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
     @Getter
     private static final IntegrationManager INTEGRATION_MANAGER = new IntegrationManager();
+    @Getter
+    private static IEventBus eventBus;
 
     public AnvilLib(@NotNull IEventBus modEventBus) {
+        AnvilLib.eventBus = modEventBus;
         modEventBus.register(this);
     }
 
     @SubscribeEvent
-    public void loadComplete(FMLLoadCompleteEvent event) {
+    public void loadComplete(@NotNull FMLLoadCompleteEvent event) {
         AnvilLib.INTEGRATION_MANAGER.compileContent();
-        AnvilLib.INTEGRATION_MANAGER.loadAllIntegrations();
+        AnvilLib.INTEGRATION_MANAGER.loadAllIntegrations(event.getClass());
     }
 
     public static boolean isLoaded(String modid) {
