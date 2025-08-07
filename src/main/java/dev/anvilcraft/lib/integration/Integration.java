@@ -1,15 +1,13 @@
 package dev.anvilcraft.lib.integration;
 
-/**
- * 集成
- */
-@Deprecated(
-    since = "1.3.0"
-)
-public interface Integration {
-    default void apply() {
-    }
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
 
-    default void applyClient() {
-    }
+@Target(ElementType.TYPE)
+public @interface Integration {
+    String value();
+
+    String version() default "*";
+
+    IntegrationType[] type() default {IntegrationType.CLIENT, IntegrationType.SERVER};
 }

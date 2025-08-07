@@ -1,52 +1,40 @@
 package dev.anvilcraft.lib.integration;
 
-import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import net.neoforged.bus.api.Event;
-import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.fml.loading.moddiscovery.ModInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.List;
 import java.util.Objects;
 
 @Slf4j
-public class IntegrationInstance {
-    @Getter
+public final class IntegrationInstance {
     private final String modid;
-    @Getter
-    private final ModVersionRange version;
-    @Getter
-    private final Class<? extends Event> event;
+    private final ModVersionRange versionRange;
     private final String className;
+    private final List<IntegrationType> type;
     private Class<?> clazz;
     private Object instance;
     private MethodHandle constructor;
     private MethodHandle loader;
     private MethodHandle clientLoader;
-    private boolean loaded = false;
-    private boolean clientLoaded = false;
+    private MethodHandle dataLoader;
 
     @SneakyThrows
     public IntegrationInstance(
         String modid,
-        ModVersionRange version,
+        ModVersionRange versionRange,
         String className,
-        Class<? extends Event> event
+        List<IntegrationType> type
     ) {
         this.modid = modid;
-        this.version = version;
+        this.versionRange = versionRange;
         this.className = className;
-        this.event = event;
-    }
-
-    public static @NotNull IntegrationInstance of(
-        String modid,
-        String className
-    ) {
-        return new IntegrationInstance(modid, ModVersionRange.ANY, className, FMLLoadCompleteEvent.class);
+        this.type = type;
     }
 
     @SneakyThrows
@@ -68,7 +56,13 @@ public class IntegrationInstance {
                 loader = null;
             }
             this.clientLoader = loader;
-            if (this.loader == null && this.clientLoader == null) {
+            try {
+                loader = lookup.findVirtual(clazz, "applyData", MethodType.methodType(void.class));
+            } catch (Throwable e) {
+                loader = null;
+            }
+            this.dataLoader = loader;
+            if (this.loader == null && this.clientLoader == null && this.dataLoader == null) {
                 log.warn("Integration {} does not declare any loader method.", className);
             }
         }
@@ -79,20 +73,35 @@ public class IntegrationInstance {
 
     @SneakyThrows
     public void invoke() {
-        if (loaded) return;
         if (loader != null) {
             loader.invoke(instance);
         }
-        loaded = true;
     }
 
     @SneakyThrows
     public void invokeClient() {
-        if (clientLoaded) return;
         if (clientLoader != null) {
             clientLoader.invoke(instance);
         }
-        clientLoaded = true;
+    }
+
+    @SneakyThrows
+    public void invokeData() {
+        if (dataLoader != null) {
+            dataLoader.invoke(instance);
+        }
+    }
+
+    public boolean containsType(IntegrationType type) {
+        return this.type.contains(type);
+    }
+
+    public boolean is(@NotNull ModInfo modInfo) {
+        return modid.equals(modInfo.getModId()) && versionRange.containsVersion(modInfo.getVersion());
+    }
+
+    public String modid() {
+        return modid;
     }
 
     public Object instance() {
@@ -119,10 +128,10 @@ public class IntegrationInstance {
     public String toString() {
         return "IntegrationInstance["
             + "modid=" + modid + ", "
-            + "version=" + version.toString() + ", "
             + "instance=" + instance + ", "
             + "loader=" + loader + ", "
             + "clientLoader=" + clientLoader
             + ']';
     }
+
 }
