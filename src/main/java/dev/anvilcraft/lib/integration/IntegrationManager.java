@@ -23,47 +23,56 @@ public class IntegrationManager {
 
     public static final String INTEGRATION_NAME = "L" + Integration.class.getName().replace(".", "/") + ";";
 
+    private final String modId;
+
+    public IntegrationManager(String modId) {
+        this.modId = modId;
+    }
+
     @SuppressWarnings("UnstableApiUsage")
     public void compileContent() {
-        ProgressMeter meter = StartupNotificationManager.addProgressBar("Load Integrations", LoadingModList.get().getModFiles().size());
-        for (ModFileInfo modFile : LoadingModList.get().getModFiles()) {
+        ModFileInfo fileInfo = LoadingModList.get().getModFileById(this.modId);
+        ModFileScanData scanData = fileInfo.getFile().getScanResult();
+        List<ModFileScanData.AnnotationData> list = scanData.getAnnotations()
+            .stream()
+            .filter(annotation -> annotation.annotationType().getDescriptor().equals(INTEGRATION_NAME) && annotation.targetType() == ElementType.TYPE)
+            .toList();
+        ProgressMeter meter = StartupNotificationManager.addProgressBar("Load Integrations", list.size());
+        for (ModFileScanData.AnnotationData annotation : scanData.getAnnotations()) {
             meter.increment();
-            ModFileScanData scanData = modFile.getFile().getScanResult();
-            for (ModFileScanData.AnnotationData annotation : scanData.getAnnotations()) {
-                if (annotation.annotationType().getDescriptor().equals(INTEGRATION_NAME) && annotation.targetType() == ElementType.TYPE) {
-                    String modid = (String) annotation.annotationData().get("value");
-                    String version = (String) annotation.annotationData().get("version");
-                    //noinspection unchecked
-                    List<ModAnnotation.EnumHolder> typeHolders = ((List<ModAnnotation.EnumHolder>) annotation.annotationData().get("type"));
-                    if (version == null) version = "*";
-                    List<IntegrationType> type = List.of(IntegrationType.SERVER, IntegrationType.CLIENT);
-                    if (typeHolders != null) {
-                        type = typeHolders.stream().map(
-                            holder -> switch (holder.value()) {
-                                case "SERVER" -> IntegrationType.SERVER;
-                                case "CLIENT" -> IntegrationType.CLIENT;
-                                case "DATA" -> IntegrationType.DATA;
-                                default -> throw new IllegalArgumentException("Unknown integration type: " + holder.value());
-                            }
-                        ).toList();
+            if (!annotation.annotationType().getDescriptor().equals(INTEGRATION_NAME) || annotation.targetType() != ElementType.TYPE)
+                continue;
+            String modid = (String) annotation.annotationData().get("value");
+            String version = (String) annotation.annotationData().get("version");
+            //noinspection unchecked
+            List<ModAnnotation.EnumHolder> typeHolders = ((List<ModAnnotation.EnumHolder>) annotation.annotationData().get("type"));
+            if (version == null) version = "*";
+            List<IntegrationType> type = List.of(IntegrationType.SERVER, IntegrationType.CLIENT);
+            if (typeHolders != null) {
+                type = typeHolders.stream().map(
+                    holder -> switch (holder.value()) {
+                        case "SERVER" -> IntegrationType.SERVER;
+                        case "CLIENT" -> IntegrationType.CLIENT;
+                        case "DATA" -> IntegrationType.DATA;
+                        default -> throw new IllegalArgumentException("Unknown integration type: " + holder.value());
                     }
-                    log.info("Considering integration {} for {id:{}, version:{}}", annotation.memberName(), modid, version);
-                    IntegrationInstance instance = new IntegrationInstance(
-                        modid,
-                        ModVersionRange.of(version),
-                        annotation.memberName(),
-                        type
-                    );
-                    if (instance.containsType(IntegrationType.SERVER)) {
-                        this.instances.put(modid, instance);
-                    }
-                    if (instance.containsType(IntegrationType.CLIENT)) {
-                        this.clientInstances.put(modid, instance);
-                    }
-                    if (instance.containsType(IntegrationType.DATA)) {
-                        this.dataInstances.put(modid, instance);
-                    }
-                }
+                ).toList();
+            }
+            log.info("Considering integration {} for {id:{}, version:{}}", annotation.memberName(), modid, version);
+            IntegrationInstance instance = new IntegrationInstance(
+                modid,
+                ModVersionRange.of(version),
+                annotation.memberName(),
+                type
+            );
+            if (instance.containsType(IntegrationType.SERVER)) {
+                this.instances.put(modid, instance);
+            }
+            if (instance.containsType(IntegrationType.CLIENT)) {
+                this.clientInstances.put(modid, instance);
+            }
+            if (instance.containsType(IntegrationType.DATA)) {
+                this.dataInstances.put(modid, instance);
             }
         }
         StartupNotificationManager.popBar(meter);
