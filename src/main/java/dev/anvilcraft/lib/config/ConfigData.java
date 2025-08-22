@@ -12,7 +12,7 @@ public class ConfigData {
     public static final String OPTION_STRING = "%s.configuration.%s";
     public static final String TOOLTIP_STRING = OPTION_STRING + ".tooltip";
 
-    private static void readConfigClass(LanguageProvider provider, Class<?> configClass) {
+    public static void readConfigClass(LanguageProvider provider, Class<?> configClass) {
         if (!configClass.isAnnotationPresent(Config.class)) return;
         Config config = configClass.getAnnotation(Config.class);
         ConfigData.readConfigClass(provider, config.name(), config.type(), configClass, null);

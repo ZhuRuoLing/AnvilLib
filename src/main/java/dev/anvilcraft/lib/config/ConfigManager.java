@@ -1,11 +1,15 @@
 package dev.anvilcraft.lib.config;
 
+import com.google.common.collect.ImmutableList;
 import dev.anvilcraft.lib.util.FormattingUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -17,7 +21,7 @@ import java.util.Map;
 
 @Slf4j
 public class ConfigManager {
-    private final Map<Object, Map.Entry<ModConfig.Type, ModConfigSpec>> configSpecMap = new HashMap<>();
+    private final Map<Object, ConfigRecord> configSpecMap = new HashMap<>();
 
     public <T> T register(T configObj) {
         Class<?> configClass = configObj.getClass();
@@ -26,21 +30,38 @@ public class ConfigManager {
             Config config = configClass.getAnnotation(Config.class);
             String name = config.name();
             ModConfig.Type type = config.type();
+            ImmutableList.Builder<ConfigField> valuesBuilder = ImmutableList.builder();
             try {
-                ConfigManager.register(builder, name, type, null, configObj);
+                ConfigManager.register(builder, name, null, configObj, valuesBuilder);
             } catch (IllegalAccessException e) {
                 log.error(e.getMessage(), e);
             }
             ModConfigSpec spec = builder.build();
-            this.configSpecMap.put(configObj, Map.entry(type, spec));
+            this.configSpecMap.put(configObj, new ConfigRecord(type, spec, configObj, valuesBuilder.build()));
         }
         return configObj;
     }
 
-    public void register(ModContainer container) {
-        for (Map.Entry<Object, Map.Entry<ModConfig.Type, ModConfigSpec>> entry : this.configSpecMap.entrySet()) {
-            container.registerConfig(entry.getValue().getKey(), entry.getValue().getValue());
+    public void register(IEventBus bus, ModContainer container) {
+        for (Map.Entry<Object, ConfigRecord> entry : this.configSpecMap.entrySet()) {
+            container.registerConfig(entry.getValue().type(), entry.getValue().spec());
         }
+        bus.register(this);
+    }
+
+    @SubscribeEvent
+    public void loading(ModConfigEvent.Loading event) {
+        this.configSpecMap.values().forEach(ConfigRecord::load);
+    }
+
+    @SubscribeEvent
+    public void reloading(ModConfigEvent.Reloading event) {
+        this.configSpecMap.values().forEach(ConfigRecord::load);
+    }
+
+    @SubscribeEvent
+    public void unloading(ModConfigEvent.Unloading event) {
+        this.configSpecMap.values().forEach(ConfigRecord::load);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -51,9 +72,9 @@ public class ConfigManager {
     private static void register(
         ModConfigSpec.Builder builder,
         String modId,
-        ModConfig.Type type,
         @Nullable String parent,
-        Object configObj
+        Object configObj,
+        ImmutableList.Builder<ConfigField> values
     ) throws IllegalAccessException {
         Class<?> configClass = configObj.getClass();
         Field[] fields = configClass.getDeclaredFields();
@@ -67,42 +88,35 @@ public class ConfigManager {
                 builder.translation(ConfigData.OPTION_STRING.formatted(modId, name));
                 builder.comment(comment.value());
             }
-            ConfigManager.define(builder, modId, type, fieldName, field, object);
+            if (field.isAnnotationPresent(CollapsibleObject.class)) {
+                builder.push(fieldName);
+                ConfigManager.register(builder, modId, fieldName, object, values);
+                builder.pop();
+                return;
+            }
+            ModConfigSpec.ConfigValue<?> value = ConfigManager.define(builder, fieldName, field, object);
+            values.add(new ConfigField(configObj, field, value));
         }
     }
 
-    public static void define(
-        ModConfigSpec.Builder builder,
-        String modId,
-        ModConfig.Type type,
-        String name,
-        Field field,
-        Object object
-    ) throws IllegalAccessException {
-        if (object instanceof Number num) {
-            ConfigManager.defineInRange(builder, name, field, num);
-        } else if (object instanceof Enum<?> enumValue) {
-            ConfigManager.defineEnum(builder, name, enumValue);
-        } else if (field.isAnnotationPresent(CollapsibleObject.class)) {
-            builder.push(name);
-            ConfigManager.register(builder, modId, type, name, object);
-            builder.pop();
-        } else if (object instanceof Boolean bool) {
-            builder.define(name, bool.booleanValue());
-        } else {
-            builder.define(name, object);
-        }
+    public static ModConfigSpec.ConfigValue<?> define(ModConfigSpec.Builder builder, String name, Field field, Object object) {
+        return switch (object) {
+            case Number num -> ConfigManager.defineInRange(builder, name, field, num);
+            case Enum<?> enumValue -> ConfigManager.defineEnum(builder, name, enumValue);
+            case Boolean bool -> builder.define(name, bool.booleanValue());
+            default -> builder.define(name, object);
+        };
     }
 
     @SuppressWarnings("unchecked")
-    public static <E extends Enum<E>> void defineEnum(ModConfigSpec.Builder builder, String name, Enum<?> enumValue) {
-        builder.defineEnum(name, (E) enumValue);
+    public static <E extends Enum<E>> ModConfigSpec.EnumValue<E> defineEnum(ModConfigSpec.Builder builder, String name, Enum<?> enumValue) {
+        return builder.defineEnum(name, (E) enumValue);
     }
 
-    public static void defineInRange(ModConfigSpec.Builder builder, String name, Field field, Number number) {
+    public static ModConfigSpec.ConfigValue<?> defineInRange(ModConfigSpec.Builder builder, String name, Field field, Number number) {
         if (field.isAnnotationPresent(BoundedDiscrete.class)) {
             BoundedDiscrete discrete = field.getAnnotation(BoundedDiscrete.class);
-            switch (number) {
+            return switch (number) {
                 case Byte value ->
                     builder.defineInRange(name, value, BoundedDiscrete.Util.minByte(discrete), BoundedDiscrete.Util.maxByte(discrete));
                 case Short value ->
@@ -116,9 +130,9 @@ public class ConfigManager {
                 case Double value ->
                     builder.defineInRange(name, value, BoundedDiscrete.Util.minDouble(discrete), BoundedDiscrete.Util.maxDouble(discrete));
                 default -> builder.define(name, number);
-            }
+            };
         } else {
-            builder.define(name, number);
+            return builder.define(name, number);
         }
     }
 }
