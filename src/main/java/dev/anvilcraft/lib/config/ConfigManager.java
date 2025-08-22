@@ -50,17 +50,7 @@ public class ConfigManager {
     }
 
     @SubscribeEvent
-    public void loading(ModConfigEvent.Loading event) {
-        this.configSpecMap.values().forEach(ConfigRecord::load);
-    }
-
-    @SubscribeEvent
-    public void reloading(ModConfigEvent.Reloading event) {
-        this.configSpecMap.values().forEach(ConfigRecord::load);
-    }
-
-    @SubscribeEvent
-    public void unloading(ModConfigEvent.Unloading event) {
+    public void loading(ModConfigEvent event) {
         this.configSpecMap.values().forEach(ConfigRecord::load);
     }
 
