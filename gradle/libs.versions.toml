@@ -3,11 +3,9 @@ minecraft = "1.21.1"
 neoForge = "21.1.152"
 modDevGradle = "2.0.78"
 lombok = "8.7.1"
-jankson = "1.2.3"
 
 [libraries]
 neoForge = { group = "net.neoforged", name = "neoforge", version.ref = "neoForge" }
-jankson = { group = "blue.endless", name = "jankson", version.ref = "jankson" }
 
 [plugins]
 modDevGradle = { id = "net.neoforged.moddev", version.ref = "modDevGradle" }
