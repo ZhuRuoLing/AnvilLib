@@ -5,7 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException;
 import org.apache.maven.artifact.versioning.VersionRange;
-import org.jetbrains.annotations.NotNull;
+
+import javax.annotation.Nullable;
 
 @Slf4j
 @Getter
@@ -17,17 +18,18 @@ public class ModVersionRange {
         }
 
         @Override
-        public @NotNull String toString() {
+        public String toString() {
             return "*";
         }
     };
+    @Nullable
     private final VersionRange range;
 
-    protected ModVersionRange(VersionRange range) {
+    protected ModVersionRange(@Nullable VersionRange range) {
         this.range = range;
     }
 
-    public static @NotNull ModVersionRange of(String spec) {
+    public static ModVersionRange of(String spec) {
         try {
             if ("*".equals(spec)) return ModVersionRange.ANY;
             return new ModVersionRange(VersionRange.createFromVersionSpec(spec));
@@ -44,6 +46,6 @@ public class ModVersionRange {
 
     @Override
     public String toString() {
-        return range.toString();
+        return range == null ? "*" : range.toString();
     }
 }

@@ -1,9 +1,9 @@
 package dev.anvilcraft.lib.integration;
 
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.neoforged.fml.loading.moddiscovery.ModInfo;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Slf4j
+@Getter
 public final class IntegrationInstance {
     private final String modid;
     private final ModVersionRange versionRange;
@@ -25,12 +26,7 @@ public final class IntegrationInstance {
     private MethodHandle dataLoader;
 
     @SneakyThrows
-    public IntegrationInstance(
-        String modid,
-        ModVersionRange versionRange,
-        String className,
-        List<IntegrationType> type
-    ) {
+    public IntegrationInstance(String modid, ModVersionRange versionRange, String className, List<IntegrationType> type) {
         this.modid = modid;
         this.versionRange = versionRange;
         this.className = className;
@@ -96,16 +92,9 @@ public final class IntegrationInstance {
         return this.type.contains(type);
     }
 
-    public boolean is(@NotNull ModInfo modInfo) {
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean is(ModInfo modInfo) {
         return modid.equals(modInfo.getModId()) && versionRange.containsVersion(modInfo.getVersion());
-    }
-
-    public String modid() {
-        return modid;
-    }
-
-    public Object instance() {
-        return instance;
     }
 
     @Override
@@ -114,24 +103,25 @@ public final class IntegrationInstance {
         if (obj == null || obj.getClass() != this.getClass()) return false;
         var that = (IntegrationInstance) obj;
         return Objects.equals(this.modid, that.modid)
-            && Objects.equals(this.instance, that.instance)
-            && Objects.equals(this.loader, that.loader)
-            && Objects.equals(this.clientLoader, that.clientLoader);
+               && Objects.equals(this.instance, that.instance)
+               && Objects.equals(this.loader, that.loader)
+               && Objects.equals(this.clientLoader, that.clientLoader)
+               && Objects.equals(this.dataLoader, that.dataLoader);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(modid, instance, loader, clientLoader);
+        return Objects.hash(modid, instance, loader, clientLoader, dataLoader);
     }
 
     @Override
     public String toString() {
         return "IntegrationInstance["
-            + "modid=" + modid + ", "
-            + "instance=" + instance + ", "
-            + "loader=" + loader + ", "
-            + "clientLoader=" + clientLoader
-            + ']';
+               + "modid=" + modid + ", "
+               + "instance=" + instance + ", "
+               + "loader=" + loader + ", "
+               + "clientLoader=" + clientLoader + ", "
+               + "dataLoader=" + dataLoader
+               + ']';
     }
-
 }
