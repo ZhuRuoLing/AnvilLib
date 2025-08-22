@@ -1,5 +1,6 @@
 package dev.anvilcraft.lib.integration;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -9,10 +10,10 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @Getter
+@EqualsAndHashCode
 public final class IntegrationInstance {
     private final String modid;
     private final ModVersionRange versionRange;
@@ -95,23 +96,6 @@ public final class IntegrationInstance {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean is(ModInfo modInfo) {
         return modid.equals(modInfo.getModId()) && versionRange.containsVersion(modInfo.getVersion());
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (IntegrationInstance) obj;
-        return Objects.equals(this.modid, that.modid)
-               && Objects.equals(this.instance, that.instance)
-               && Objects.equals(this.loader, that.loader)
-               && Objects.equals(this.clientLoader, that.clientLoader)
-               && Objects.equals(this.dataLoader, that.dataLoader);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(modid, instance, loader, clientLoader, dataLoader);
     }
 
     @Override

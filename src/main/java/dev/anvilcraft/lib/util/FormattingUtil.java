@@ -2,7 +2,6 @@ package dev.anvilcraft.lib.util;
 
 import com.google.common.base.CaseFormat;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Locale;
