@@ -13,6 +13,7 @@ public record ConfigRecord(
     @Unmodifiable List<ConfigField> values
 ) {
     public void load() {
+        if (!this.spec.isLoaded()) return;
         this.values.forEach(ConfigField::load);
     }
 }
