@@ -5,6 +5,7 @@ plugins {
     id 'maven-publish'
     alias libs.plugins.modDevGradle
     alias libs.plugins.lombok
+    alias libs.plugins.machete
 }
 
 String buildType = 'build'
@@ -34,6 +35,8 @@ neoForge {
 
     // This line is optional. Access Transformers are automatically detected
     // accessTransformers.add('src/main/resources/META-INF/accesstransformer.cfg')
+
+    interfaceInjectionData.from 'src/main/resources/interface_injections.json'
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
@@ -154,6 +157,11 @@ idea {
         downloadSources = true
         downloadJavadoc = true
     }
+}
+
+machete {
+    // disable machete locally for faster builds
+    enabled = false
 }
 
 lombok {

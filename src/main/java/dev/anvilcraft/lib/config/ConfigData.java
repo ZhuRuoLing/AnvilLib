@@ -9,13 +9,27 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Field;
 
 public class ConfigData {
+    public static final String TITLE_STRING = "%s.configuration.title";
+    public static final String TOML_STRING = "%s.configuration.section.%s.%s.toml";
+    public static final String TOML_TITLE_STRING = "%s.configuration.section.%s.%s.toml.title";
     public static final String OPTION_STRING = "%s.configuration.%s";
     public static final String TOOLTIP_STRING = OPTION_STRING + ".tooltip";
 
     public static void readConfigClass(LanguageProvider provider, Class<?> configClass) {
         if (!configClass.isAnnotationPresent(Config.class)) return;
         Config config = configClass.getAnnotation(Config.class);
-        ConfigData.readConfigClass(provider, config.name(), config.type(), configClass, null);
+        String name = config.name();
+        ModConfig.Type type = config.type();
+        provider.add(TITLE_STRING.formatted(name), "%s Configuration".formatted(FormattingUtil.toEnglishName(name)));
+        provider.add(
+            TOML_STRING.formatted(name, name, type.extension()),
+            "%s %s Configuration".formatted(FormattingUtil.toEnglishName(name), FormattingUtil.toEnglishName(type.extension()))
+        );
+        provider.add(
+            TOML_TITLE_STRING.formatted(name, name, type.extension()),
+            "%s %s Configuration".formatted(FormattingUtil.toEnglishName(name), FormattingUtil.toEnglishName(type.extension()))
+        );
+        ConfigData.readConfigClass(provider, name, type, configClass, null);
     }
 
     private static void readConfigClass(
@@ -28,13 +42,7 @@ public class ConfigData {
         ConfigData.providerAdd(provider, modId, type, configClass.getDeclaredFields(), parent);
     }
 
-    private static void providerAdd(
-        LanguageProvider provider,
-        String modId,
-        ModConfig.Type type,
-        Field[] fields,
-        @Nullable String parent
-    ) {
+    private static void providerAdd(LanguageProvider provider, String modId, ModConfig.Type type, Field[] fields, @Nullable String parent) {
         for (Field field : fields) {
             String fieldName = FormattingUtil.toLowerCaseUnder(field.getName());
             if (field.isAnnotationPresent(CollapsibleObject.class)) {

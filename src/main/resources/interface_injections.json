@@ -1,0 +1,5 @@
+{
+  "net/minecraft/world/item/crafting/RecipeManager": [
+    "dev/anvilcraft/lib/injection/IRecipeManagerExtension"
+  ]
+}

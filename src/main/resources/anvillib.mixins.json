@@ -5,6 +5,8 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "anvillib.refmap.json",
   "mixins": [
+    "ItemEntityMixin",
+    "RecipeManagerMixin"
   ],
   "client": [
   ],

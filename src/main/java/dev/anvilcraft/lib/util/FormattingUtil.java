@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class FormattingUtil {
+public abstract class FormattingUtil {
     /**
      * 与 .to(LOWER_UNDERSCORE, string) 几乎相同，但它也会在单词和数字之间插入下划线。
      *
