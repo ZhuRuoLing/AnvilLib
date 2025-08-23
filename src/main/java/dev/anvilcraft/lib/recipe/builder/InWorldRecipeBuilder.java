@@ -55,43 +55,43 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
     /**
      * 配方图标
      */
-    private final NonNullList<ItemStack> icon = NonNullList.withSize(1, Items.ANVIL.getDefaultInstance());
+    protected final NonNullList<ItemStack> icon = NonNullList.withSize(1, Items.ANVIL.getDefaultInstance());
     /**
      * 偏移量
      */
-    private Vec3 offset = Vec3.ZERO;
+    protected Vec3 offset = Vec3.ZERO;
     /**
      * 配方触发器
      */
-    private final @NotNull IRecipeTrigger trigger;
+    protected final @NotNull IRecipeTrigger trigger;
     /**
      * 冲突的配方谓词列表
      */
-    private final List<IRecipePredicate<?>> conflicting = new ArrayList<>();
+    protected final List<IRecipePredicate<?>> conflicting = new ArrayList<>();
     /**
      * 非冲突的配方谓词列表
      */
-    private final List<IRecipePredicate<?>> nonConflicting = new ArrayList<>();
+    protected final List<IRecipePredicate<?>> nonConflicting = new ArrayList<>();
     /**
      * 配方结果列表
      */
-    private final List<IRecipeOutcome<?>> outcomes = new ArrayList<>();
+    protected final List<IRecipeOutcome<?>> outcomes = new ArrayList<>();
     /**
      * 是否兼容
      */
-    private final boolean compatible;
+    protected final boolean compatible;
     /**
      * 优先级
      */
-    private Integer priority = null;
+    protected Integer priority = null;
     /**
      * 配方组
      */
-    private String group;
+    protected String group;
     /**
      * 准则映射
      */
-    private final Map<String, Criterion<?>> criteria = Maps.newLinkedHashMap();
+    protected final Map<String, Criterion<?>> criteria = Maps.newLinkedHashMap();
 
     /**
      * 构造一个新的世界内配方构建器
@@ -99,7 +99,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param trigger    配方触发器
      * @param compatible 是否兼容
      */
-    private InWorldRecipeBuilder(IRecipeTrigger trigger, boolean compatible) {
+    protected InWorldRecipeBuilder(IRecipeTrigger trigger, boolean compatible) {
         this.trigger = trigger;
         this.compatible = compatible;
     }
