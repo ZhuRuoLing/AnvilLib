@@ -3,8 +3,8 @@ package dev.anvilcraft.lib.recipe;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.anvilcraft.lib.init.ModRecipeTypes;
-import dev.anvilcraft.lib.init.ModRegistries;
+import dev.anvilcraft.lib.init.LibRecipeTypes;
+import dev.anvilcraft.lib.init.LibRegistries;
 import dev.anvilcraft.lib.recipe.outcome.IRecipeOutcome;
 import dev.anvilcraft.lib.recipe.predicate.IRecipePredicate;
 import dev.anvilcraft.lib.recipe.trigger.IRecipeTrigger;
@@ -233,7 +233,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
      */
     @Override
     public RecipeSerializer<? extends InWorldRecipe> getSerializer() {
-        return ModRecipeTypes.IN_WORLD_RECIPE_SERIALIZER.get();
+        return LibRecipeTypes.IN_WORLD_RECIPE_SERIALIZER.get();
     }
 
     /**
@@ -243,17 +243,17 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
      */
     @Override
     public RecipeType<? extends InWorldRecipe> getType() {
-        return ModRecipeTypes.IN_WORLD_RECIPE.get();
+        return LibRecipeTypes.IN_WORLD_RECIPE.get();
     }
 
     /**
      * 世界内配方序列化器
      */
     public static class Serializer implements RecipeSerializer<InWorldRecipe> {
-        private static final Codec<IRecipePredicate<?>> PREDICATE_CODEC = ModRegistries.PREDICATE_TYPE_REGISTRY
+        private static final Codec<IRecipePredicate<?>> PREDICATE_CODEC = LibRegistries.PREDICATE_TYPE_REGISTRY
             .byNameCodec()
             .dispatch(IRecipePredicate::getType, IRecipePredicate.Type::codec);
-        private static final Codec<IRecipeOutcome<?>> OUTCOME_CODEC = ModRegistries.OUTCOME_TYPE_REGISTRY
+        private static final Codec<IRecipeOutcome<?>> OUTCOME_CODEC = LibRegistries.OUTCOME_TYPE_REGISTRY
             .byNameCodec()
             .dispatch(IRecipeOutcome::getType, IRecipeOutcome.Type::codec);
         private static final MapCodec<InWorldRecipe> CODEC = RecordCodecBuilder.mapCodec(
@@ -262,7 +262,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
                     .fieldOf("icon")
                     .orElse(Items.ANVIL.getDefaultInstance())
                     .forGetter(InWorldRecipe::getIcon),
-                ModRegistries.TRIGGER_REGISTRY
+                LibRegistries.TRIGGER_REGISTRY
                     .byNameCodec()
                     .fieldOf("trigger")
                     .forGetter(InWorldRecipe::getTrigger),
@@ -358,14 +358,14 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
          */
         private static InWorldRecipe decode(RegistryFriendlyByteBuf buf) {
             ItemStack icon = ItemStack.STREAM_CODEC.decode(buf);
-            IRecipeTrigger trigger = Objects.requireNonNull(ModRegistries.TRIGGER_REGISTRY.get(buf.readResourceLocation()));
+            IRecipeTrigger trigger = Objects.requireNonNull(LibRegistries.TRIGGER_REGISTRY.get(buf.readResourceLocation()));
             List<IRecipePredicate<?>> conflicting = decodeRecipePredicateList(buf);
             List<IRecipePredicate<?>> nonConflicting = decodeRecipePredicateList(buf);
             List<IRecipeOutcome<?>> outcomes = new ArrayList<>();
             int outcomesSize = buf.readVarInt();
             for (int i = 0; i < outcomesSize; i++) {
                 ResourceLocation location = buf.readResourceLocation();
-                IRecipeOutcome.Type<?> type = ModRegistries.OUTCOME_TYPE_REGISTRY.get(location);
+                IRecipeOutcome.Type<?> type = LibRegistries.OUTCOME_TYPE_REGISTRY.get(location);
                 if (type == null) throw new IllegalArgumentException("Unknown outcome type: " + location);
                 IRecipeOutcome<?> outcome = type.streamCodec().decode(buf);
                 outcomes.add(outcome);
@@ -394,7 +394,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
             List<IRecipePredicate<?>> predicates = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 ResourceLocation location = buf.readResourceLocation();
-                IRecipePredicate.Type<?> type = ModRegistries.PREDICATE_TYPE_REGISTRY.get(location);
+                IRecipePredicate.Type<?> type = LibRegistries.PREDICATE_TYPE_REGISTRY.get(location);
                 if (type == null) throw new IllegalArgumentException("Unknown predicate type: " + location);
                 IRecipePredicate<?> predicate = type.streamCodec().decode(buf);
                 predicates.add(predicate);

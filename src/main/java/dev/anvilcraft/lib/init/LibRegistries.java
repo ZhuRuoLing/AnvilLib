@@ -12,7 +12,7 @@ import net.neoforged.neoforge.registries.NewRegistryEvent;
 import net.neoforged.neoforge.registries.RegistryBuilder;
 
 @EventBusSubscriber(modid = AnvilLib.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
-public class ModRegistries {
+public class LibRegistries {
     public static final ResourceKey<Registry<IRecipeTrigger>> TRIGGER_KEY = ResourceKey.createRegistryKey(
         AnvilLib.of("trigger")
     );

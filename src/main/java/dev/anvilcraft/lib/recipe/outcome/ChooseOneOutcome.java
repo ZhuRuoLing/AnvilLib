@@ -3,18 +3,15 @@ package dev.anvilcraft.lib.recipe.outcome;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.anvilcraft.lib.init.reicpe.ModRecipeOutcomeTypes;
+import dev.anvilcraft.lib.init.reicpe.LibRecipeOutcomeTypes;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeContext;
 import dev.anvilcraft.lib.util.CodecUtil;
 import lombok.Getter;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProviders;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.ArrayList;
@@ -56,7 +53,7 @@ public class ChooseOneOutcome implements IRecipeOutcome<ChooseOneOutcome> {
      */
     @Override
     public Type getType() {
-        return ModRecipeOutcomeTypes.CHOOSE_ONE.get();
+        return LibRecipeOutcomeTypes.CHOOSE_ONE.get();
     }
 
     /**

@@ -2,7 +2,7 @@ package dev.anvilcraft.lib.recipe.outcome;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.anvilcraft.lib.init.reicpe.ModRecipeOutcomeTypes;
+import dev.anvilcraft.lib.init.reicpe.LibRecipeOutcomeTypes;
 import dev.anvilcraft.lib.recipe.cache.BlockCache;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeContext;
 import dev.anvilcraft.lib.util.CodecUtil;
@@ -77,7 +77,7 @@ public class SetBlock implements IRecipeOutcome<SetBlock> {
      */
     @Override
     public Type getType() {
-        return ModRecipeOutcomeTypes.SET_BLOCK.get();
+        return LibRecipeOutcomeTypes.SET_BLOCK.get();
     }
 
     /**

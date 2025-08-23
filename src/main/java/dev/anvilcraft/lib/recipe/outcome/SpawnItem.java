@@ -2,7 +2,7 @@ package dev.anvilcraft.lib.recipe.outcome;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.anvilcraft.lib.init.reicpe.ModRecipeOutcomeTypes;
+import dev.anvilcraft.lib.init.reicpe.LibRecipeOutcomeTypes;
 import dev.anvilcraft.lib.recipe.cache.BlockCache;
 import dev.anvilcraft.lib.recipe.cache.ItemCache;
 import dev.anvilcraft.lib.recipe.cache.item.ICacheOutput;
@@ -85,7 +85,7 @@ public class SpawnItem implements IRecipeOutcome<SpawnItem> {
      */
     @Override
     public Type getType() {
-        return ModRecipeOutcomeTypes.SPAWN_ITEM.get();
+        return LibRecipeOutcomeTypes.SPAWN_ITEM.get();
     }
 
     /**

@@ -3,8 +3,8 @@ package dev.anvilcraft.lib.recipe.cache;
 
 import dev.anvilcraft.lib.AnvilLib;
 import dev.anvilcraft.lib.event.ItemCacheEvent;
-import dev.anvilcraft.lib.init.ModBlockEntityTags;
-import dev.anvilcraft.lib.init.ModEntityTypeTags;
+import dev.anvilcraft.lib.init.LibBlockEntityTags;
+import dev.anvilcraft.lib.init.LibEntityTypeTags;
 import dev.anvilcraft.lib.recipe.cache.item.ICacheElement;
 import dev.anvilcraft.lib.recipe.cache.item.ICacheInput;
 import dev.anvilcraft.lib.recipe.cache.item.ICacheInputOutputImpl;
@@ -228,7 +228,7 @@ public class ItemCache {
         Vec3 elementRange = new Vec3(minRange, minRange, minRange);
         if (entity instanceof IItemHandlerCache cache) {
             ItemCache.toElement(itemCache, cache, input, output, elementPos, elementRange);
-        } else if (entity instanceof IItemHandler handler && entity.getType().is(ModEntityTypeTags.ITEM_CACHE)) {
+        } else if (entity instanceof IItemHandler handler && entity.getType().is(LibEntityTypeTags.ITEM_CACHE)) {
             ItemCache.toElement(itemCache, handler, input, output, elementPos, elementRange);
         }
         return Map.entry(input, output);
@@ -250,7 +250,7 @@ public class ItemCache {
         Vec3 elementPos = entity.getBlockPos().getCenter();
         Vec3 elementRange = new Vec3(0.5, 0.5, 0.5);
         Predicate<BlockEntity> inTag = blockEntity -> false;
-        Optional<HolderSet.Named<BlockEntityType<?>>> holders = BuiltInRegistries.BLOCK_ENTITY_TYPE.getTag(ModBlockEntityTags.ITEM_CACHE);
+        Optional<HolderSet.Named<BlockEntityType<?>>> holders = BuiltInRegistries.BLOCK_ENTITY_TYPE.getTag(LibBlockEntityTags.ITEM_CACHE);
         if (holders.isPresent()) {
             HolderSet.Named<BlockEntityType<?>> named = holders.get();
             List<ResourceKey<BlockEntityType<?>>> keys = new ArrayList<>();

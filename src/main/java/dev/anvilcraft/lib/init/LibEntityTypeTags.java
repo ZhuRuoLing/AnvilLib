@@ -6,7 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 
-public class ModEntityTypeTags {
+public class LibEntityTypeTags {
     public static final TagKey<EntityType<?>> ITEM_CACHE = bind("item_cache");
 
     @SuppressWarnings("unused")

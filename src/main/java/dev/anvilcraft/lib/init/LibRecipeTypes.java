@@ -11,7 +11,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 @SuppressWarnings("SameParameterValue")
-public class ModRecipeTypes {
+public class LibRecipeTypes {
     private static final DeferredRegister<RecipeType<?>> RECIPE_TYPES =
         DeferredRegister.create(Registries.RECIPE_TYPE, AnvilLib.MOD_ID);
     private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =

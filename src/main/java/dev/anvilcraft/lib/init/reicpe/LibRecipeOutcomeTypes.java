@@ -1,7 +1,7 @@
 package dev.anvilcraft.lib.init.reicpe;
 
 import dev.anvilcraft.lib.AnvilLib;
-import dev.anvilcraft.lib.init.ModRegistries;
+import dev.anvilcraft.lib.init.LibRegistries;
 import dev.anvilcraft.lib.recipe.outcome.ChooseOneOutcome;
 import dev.anvilcraft.lib.recipe.outcome.IRecipeOutcome;
 import dev.anvilcraft.lib.recipe.outcome.ProduceExplosion;
@@ -10,9 +10,9 @@ import dev.anvilcraft.lib.recipe.outcome.SpawnItem;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-public class ModRecipeOutcomeTypes {
+public class LibRecipeOutcomeTypes {
     public static final DeferredRegister<IRecipeOutcome.Type<?>> OUTCOME_TYPE = DeferredRegister
-        .create(ModRegistries.OUTCOME_TYPE_REGISTRY, AnvilLib.MOD_ID);
+        .create(LibRegistries.OUTCOME_TYPE_REGISTRY, AnvilLib.MOD_ID);
 
     public static final DeferredHolder<IRecipeOutcome.Type<?>, SpawnItem.Type> SPAWN_ITEM = OUTCOME_TYPE
         .register("spawn_item", SpawnItem.Type::new);

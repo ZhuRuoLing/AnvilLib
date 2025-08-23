@@ -1,6 +1,6 @@
 package dev.anvilcraft.lib.recipe.predicate.block;
 
-import dev.anvilcraft.lib.init.reicpe.ModRecipePredicateTypes;
+import dev.anvilcraft.lib.init.reicpe.LibRecipePredicateTypes;
 import dev.anvilcraft.lib.recipe.cache.BlockCache;
 import dev.anvilcraft.lib.recipe.component.BlockStatePredicate;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeContext;
@@ -52,7 +52,7 @@ public class HasBlockIngredient extends HasBlockBase<HasBlockIngredient> {
 
     @Override
     public Type getType() {
-        return ModRecipePredicateTypes.HAS_BLOCK_INGREDIENT.get();
+        return LibRecipePredicateTypes.HAS_BLOCK_INGREDIENT.get();
     }
 
     /**

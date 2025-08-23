@@ -1,7 +1,7 @@
 package dev.anvilcraft.lib.recipe.outcome;
 
 import com.mojang.serialization.Codec;
-import dev.anvilcraft.lib.init.ModRegistries;
+import dev.anvilcraft.lib.init.LibRegistries;
 import dev.anvilcraft.lib.recipe.util.IPrioritized;
 import dev.anvilcraft.lib.recipe.util.ISerializer;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeContext;
@@ -20,7 +20,7 @@ import java.util.function.Consumer;
  * @param <O> 配方结果类型
  */
 public interface IRecipeOutcome<O extends IRecipeOutcome<O>> extends Consumer<InWorldRecipeContext>, IPrioritized {
-    Codec<IRecipeOutcome<?>> CODEC = ModRegistries.OUTCOME_TYPE_REGISTRY.byNameCodec()
+    Codec<IRecipeOutcome<?>> CODEC = LibRegistries.OUTCOME_TYPE_REGISTRY.byNameCodec()
         .dispatch(IRecipeOutcome::getType, IRecipeOutcome.Type::codec);
 
     /**
@@ -62,7 +62,7 @@ public interface IRecipeOutcome<O extends IRecipeOutcome<O>> extends Consumer<In
          * @return ID
          */
         default @Nullable ResourceLocation getId() {
-            return ModRegistries.OUTCOME_TYPE_REGISTRY.getKey(this);
+            return LibRegistries.OUTCOME_TYPE_REGISTRY.getKey(this);
         }
     }
 }

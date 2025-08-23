@@ -1,7 +1,7 @@
 package dev.anvilcraft.lib.recipe.predicate;
 
 import com.mojang.serialization.Codec;
-import dev.anvilcraft.lib.init.ModRegistries;
+import dev.anvilcraft.lib.init.LibRegistries;
 import dev.anvilcraft.lib.recipe.util.IPrioritized;
 import dev.anvilcraft.lib.recipe.util.ISerializer;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeContext;
@@ -20,10 +20,10 @@ import java.util.function.Predicate;
  */
 public interface IRecipePredicate<P extends IRecipePredicate<P>>
     extends Predicate<InWorldRecipeContext>, Consumer<InWorldRecipeContext>, IPrioritized {
-    Codec<IRecipePredicate<?>> CODEC = ModRegistries.PREDICATE_TYPE_REGISTRY.byNameCodec()
+    Codec<IRecipePredicate<?>> CODEC = LibRegistries.PREDICATE_TYPE_REGISTRY.byNameCodec()
         .dispatch(
             IRecipePredicate::getType,
-            type -> Objects.requireNonNull(ModRegistries.PREDICATE_TYPE_REGISTRY.get(type.getId())).codec()
+            type -> Objects.requireNonNull(LibRegistries.PREDICATE_TYPE_REGISTRY.get(type.getId())).codec()
         );
 
     /**
@@ -70,7 +70,7 @@ public interface IRecipePredicate<P extends IRecipePredicate<P>>
          * @return ID
          */
         default @Nullable ResourceLocation getId() {
-            return ModRegistries.PREDICATE_TYPE_REGISTRY.getKey(this);
+            return LibRegistries.PREDICATE_TYPE_REGISTRY.getKey(this);
         }
 
         /**

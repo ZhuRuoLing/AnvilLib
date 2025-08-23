@@ -1,6 +1,6 @@
 package dev.anvilcraft.lib.recipe.predicate.block;
 
-import dev.anvilcraft.lib.init.reicpe.ModRecipePredicateTypes;
+import dev.anvilcraft.lib.init.reicpe.LibRecipePredicateTypes;
 import dev.anvilcraft.lib.recipe.component.BlockStatePredicate;
 import lombok.Getter;
 import net.minecraft.tags.TagKey;
@@ -32,7 +32,7 @@ public class HasBlock extends HasBlockBase<HasBlock> {
 
     @Override
     public Type getType() {
-        return ModRecipePredicateTypes.HAS_BLOCK.get();
+        return LibRecipePredicateTypes.HAS_BLOCK.get();
     }
 
     /**

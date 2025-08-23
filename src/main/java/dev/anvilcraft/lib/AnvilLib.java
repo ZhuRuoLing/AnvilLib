@@ -2,8 +2,8 @@ package dev.anvilcraft.lib;
 
 
 import dev.anvilcraft.lib.config.ConfigManager;
-import dev.anvilcraft.lib.init.ModRecipeTypes;
-import dev.anvilcraft.lib.init.reicpe.ModRecipeInits;
+import dev.anvilcraft.lib.init.LibRecipeTypes;
+import dev.anvilcraft.lib.init.reicpe.LibRecipeInits;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -18,8 +18,8 @@ public class AnvilLib {
 
     public AnvilLib(IEventBus modEventBus, ModContainer modContainer) {
         AnvilLib.CONFIG_MANAGER.register(modEventBus, modContainer);
-        ModRecipeTypes.register(modEventBus);
-        ModRecipeInits.init(modEventBus);
+        LibRecipeTypes.register(modEventBus);
+        LibRecipeInits.init(modEventBus);
     }
 
     public static ResourceLocation of(String path) {

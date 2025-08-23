@@ -1,7 +1,7 @@
 package dev.anvilcraft.lib.recipe.predicate.item;
 
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.anvilcraft.lib.init.reicpe.ModRecipePredicateTypes;
+import dev.anvilcraft.lib.init.reicpe.LibRecipePredicateTypes;
 import dev.anvilcraft.lib.recipe.component.ItemPredicate;
 import dev.anvilcraft.lib.recipe.predicate.IRecipePredicate;
 import lombok.Getter;
@@ -44,7 +44,7 @@ public class HasItem extends HasItemBase<HasItem, ItemPredicate> {
 
     @Override
     public IRecipePredicate.Type<HasItem> getType() {
-        return ModRecipePredicateTypes.HAS_ITEM.get();
+        return LibRecipePredicateTypes.HAS_ITEM.get();
     }
 
     /**

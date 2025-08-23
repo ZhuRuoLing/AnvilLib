@@ -2,7 +2,7 @@ package dev.anvilcraft.lib.event.listener;
 
 import dev.anvilcraft.lib.AnvilLib;
 import dev.anvilcraft.lib.event.ItemEntityEvent;
-import dev.anvilcraft.lib.init.reicpe.ModRecipeTriggers;
+import dev.anvilcraft.lib.init.reicpe.LibRecipeTriggers;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeContext;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeManager;
 import net.minecraft.server.level.ServerLevel;
@@ -19,7 +19,7 @@ public class ItemEntityEventListener {
         if (!(level instanceof ServerLevel serverLevel)) return;
         InWorldRecipeManager manager = level.getRecipeManager().anvillib$getInWorldRecipeManager();
         InWorldRecipeContext context = new InWorldRecipeContext(serverLevel, event.getPos(), event.getEntity());
-        manager.trigger(ModRecipeTriggers.ITEM_INTO_BLOCK, context);
+        manager.trigger(LibRecipeTriggers.ITEM_INTO_BLOCK, context);
         context.accept();
     }
 }

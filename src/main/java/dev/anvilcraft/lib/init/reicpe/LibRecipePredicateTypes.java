@@ -1,7 +1,7 @@
 package dev.anvilcraft.lib.init.reicpe;
 
 import dev.anvilcraft.lib.AnvilLib;
-import dev.anvilcraft.lib.init.ModRegistries;
+import dev.anvilcraft.lib.init.LibRegistries;
 import dev.anvilcraft.lib.recipe.predicate.IRecipePredicate;
 import dev.anvilcraft.lib.recipe.predicate.block.HasBlock;
 import dev.anvilcraft.lib.recipe.predicate.block.HasBlockIngredient;
@@ -10,9 +10,9 @@ import dev.anvilcraft.lib.recipe.predicate.item.HasItemIngredient;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-public class ModRecipePredicateTypes {
+public class LibRecipePredicateTypes {
     public static final DeferredRegister<IRecipePredicate.Type<?>> PREDICATE_TYPE = DeferredRegister
-        .create(ModRegistries.PREDICATE_TYPE_REGISTRY, AnvilLib.MOD_ID);
+        .create(LibRegistries.PREDICATE_TYPE_REGISTRY, AnvilLib.MOD_ID);
 
     public static final DeferredHolder<IRecipePredicate.Type<?>, HasItem.Type> HAS_ITEM = PREDICATE_TYPE.register(
         "has_item",
