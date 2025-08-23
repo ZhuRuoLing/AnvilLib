@@ -51,7 +51,7 @@ import java.util.function.Supplier;
  */
 @EqualsAndHashCode
 @SuppressWarnings("unused")
-public class InWorldRecipeBuilder implements RecipeBuilder {
+public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements RecipeBuilder {
     /**
      * 配方图标
      */
@@ -110,8 +110,8 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param trigger 配方触发器
      * @return 兼容的世界内配方构建器
      */
-    public static InWorldRecipeBuilder compatible(IRecipeTrigger trigger) {
-        return new InWorldRecipeBuilder(trigger, true);
+    public static <T extends InWorldRecipeBuilder<T>> InWorldRecipeBuilder<T> compatible(IRecipeTrigger trigger) {
+        return new InWorldRecipeBuilder<>(trigger, true);
     }
 
     /**
@@ -120,7 +120,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param trigger 配方触发器
      * @return 兼容的世界内配方构建器
      */
-    public static InWorldRecipeBuilder compatible(Supplier<IRecipeTrigger> trigger) {
+    public static <T extends InWorldRecipeBuilder<T>> InWorldRecipeBuilder<T> compatible(Supplier<IRecipeTrigger> trigger) {
         return InWorldRecipeBuilder.compatible(trigger.get());
     }
 
@@ -130,8 +130,8 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param trigger 配方触发器
      * @return 不兼容的世界内配方构建器
      */
-    public static InWorldRecipeBuilder incompatible(IRecipeTrigger trigger) {
-        return new InWorldRecipeBuilder(trigger, false);
+    public static <T extends InWorldRecipeBuilder<T>> InWorldRecipeBuilder<T> incompatible(IRecipeTrigger trigger) {
+        return new InWorldRecipeBuilder<>(trigger, false);
     }
 
     /**
@@ -140,8 +140,13 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param trigger 配方触发器
      * @return 不兼容的世界内配方构建器
      */
-    public static InWorldRecipeBuilder incompatible(Supplier<IRecipeTrigger> trigger) {
+    public static <T extends InWorldRecipeBuilder<T>> InWorldRecipeBuilder<T> incompatible(Supplier<IRecipeTrigger> trigger) {
         return InWorldRecipeBuilder.incompatible(trigger.get());
+    }
+
+    @SuppressWarnings("unchecked")
+    public T self() {
+        return (T) this;
     }
 
     /**
@@ -150,9 +155,9 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param icon 配方图标物品堆
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder icon(ItemStack icon) {
+    public T icon(ItemStack icon) {
         this.icon.set(0, icon);
-        return this;
+        return this.self();
     }
 
     /**
@@ -161,13 +166,13 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param predicate 配方谓词
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder with(IRecipePredicate<?> predicate) {
+    public T with(IRecipePredicate<?> predicate) {
         if (predicate.getType().conflict()) {
             this.conflicting.add(predicate);
         } else {
             this.nonConflicting.add(predicate);
         }
-        return this;
+        return this.self();
     }
 
     /**
@@ -176,9 +181,9 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param offset 偏移向量
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder offset(Vec3 offset) {
+    public T offset(Vec3 offset) {
         this.offset = offset;
-        return this;
+        return this.self();
     }
 
     /**
@@ -189,7 +194,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param z Z轴偏移量
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder offset(double x, double y, double z) {
+    public T offset(double x, double y, double z) {
         return this.offset(new Vec3(x, y, z));
     }
 
@@ -199,7 +204,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param below 向下偏移距离
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder below(double below) {
+    public T below(double below) {
         return this.offset(Vec3.ZERO.subtract(0, below, 0));
     }
 
@@ -208,7 +213,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      *
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder below() {
+    public T below() {
         return this.below(1);
     }
 
@@ -218,7 +223,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param above 向上偏移距离
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder above(double above) {
+    public T above(double above) {
         return this.offset(Vec3.ZERO.add(0, above, 0));
     }
 
@@ -227,7 +232,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      *
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder above() {
+    public T above() {
         return this.above(1);
     }
 
@@ -237,7 +242,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param consumer HasItem构建器消费者
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasItem(Consumer<HasItem.Builder> consumer) {
+    public T hasItem(Consumer<HasItem.Builder> consumer) {
         HasItem.Builder builder = HasItem.builder();
         builder.offset(this.offset);
         consumer.accept(builder);
@@ -250,7 +255,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param items 物品列表
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasItem(ItemLike... items) {
+    public T hasItem(ItemLike... items) {
         return this.with(HasItem.builder().of(items).offset(this.offset).build());
     }
 
@@ -261,7 +266,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param items  物品列表
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasItem(Vec3 offset, ItemLike... items) {
+    public T hasItem(Vec3 offset, ItemLike... items) {
         return this.with(HasItem.builder().of(items).offset(offset).build());
     }
 
@@ -274,7 +279,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param items 物品列表
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasItem(double x, double y, double z, ItemLike... items) {
+    public T hasItem(double x, double y, double z, ItemLike... items) {
         return this.with(HasItem.builder().of(items).offset(x, y, z).build());
     }
 
@@ -284,7 +289,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param items 物品标签
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasItem(TagKey<Item> items) {
+    public T hasItem(TagKey<Item> items) {
         return this.with(HasItem.builder().of(items).offset(this.offset).build());
     }
 
@@ -295,7 +300,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param items  物品标签
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasItem(Vec3 offset, TagKey<Item> items) {
+    public T hasItem(Vec3 offset, TagKey<Item> items) {
         return this.with(HasItem.builder().offset(offset).build());
     }
 
@@ -308,7 +313,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param items 物品标签
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasItem(double x, double y, double z, TagKey<Item> items) {
+    public T hasItem(double x, double y, double z, TagKey<Item> items) {
         return this.with(HasItem.builder().offset(x, y, z).build());
     }
 
@@ -318,7 +323,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param consumer HasItemIngredient构建器消费者
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasItemIngredient(Consumer<HasItemIngredient.Builder> consumer) {
+    public T hasItemIngredient(Consumer<HasItemIngredient.Builder> consumer) {
         HasItemIngredient.Builder builder = HasItemIngredient.builder();
         builder.offset(this.offset);
         consumer.accept(builder);
@@ -331,7 +336,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param items 物品列表
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasItemIngredient(ItemLike... items) {
+    public T hasItemIngredient(ItemLike... items) {
         return this.with(HasItemIngredient.builder().of(items).offset(this.offset).build());
     }
 
@@ -342,7 +347,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param items  物品列表
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasItemIngredient(Vec3 offset, ItemLike... items) {
+    public T hasItemIngredient(Vec3 offset, ItemLike... items) {
         return this.with(HasItemIngredient.builder().of(items).offset(offset).build());
     }
 
@@ -355,7 +360,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param items 物品列表
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasItemIngredient(double x, double y, double z, ItemLike... items) {
+    public T hasItemIngredient(double x, double y, double z, ItemLike... items) {
         return this.with(HasItemIngredient.builder().of(items).offset(x, y, z).build());
     }
 
@@ -365,7 +370,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param items 物品标签
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasItemIngredient(TagKey<Item> items) {
+    public T hasItemIngredient(TagKey<Item> items) {
         return this.with(HasItemIngredient.builder().of(items).offset(this.offset).build());
     }
 
@@ -376,7 +381,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param items  物品标签
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasItemIngredient(Vec3 offset, TagKey<Item> items) {
+    public T hasItemIngredient(Vec3 offset, TagKey<Item> items) {
         return this.with(HasItemIngredient.builder().of(items).offset(offset).build());
     }
 
@@ -389,7 +394,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param items 物品标签
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasItemIngredient(double x, double y, double z, TagKey<Item> items) {
+    public T hasItemIngredient(double x, double y, double z, TagKey<Item> items) {
         return this.with(HasItemIngredient.builder().of(items).offset(x, y, z).build());
     }
 
@@ -399,7 +404,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param consumer HasBlock构建器消费者
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlock(Consumer<HasBlock.Builder> consumer) {
+    public T hasBlock(Consumer<HasBlock.Builder> consumer) {
         HasBlock.Builder builder = HasBlock.builder();
         builder.offset(this.offset);
         consumer.accept(builder);
@@ -412,7 +417,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param blocks 方块列表
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlock(Block... blocks) {
+    public T hasBlock(Block... blocks) {
         return this.with(HasBlock.builder().of(blocks).offset(this.offset).build());
     }
 
@@ -423,7 +428,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param blocks 方块列表
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlock(Vec3 offset, Block... blocks) {
+    public T hasBlock(Vec3 offset, Block... blocks) {
         return this.with(HasBlock.builder().of(blocks).offset(offset).build());
     }
 
@@ -436,7 +441,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param blocks 方块列表
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlock(double x, double y, double z, Block... blocks) {
+    public T hasBlock(double x, double y, double z, Block... blocks) {
         return this.with(HasBlock.builder().of(blocks).offset(x, y, z).build());
     }
 
@@ -446,7 +451,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param blocks 方块集合
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlock(Collection<Block> blocks) {
+    public T hasBlock(Collection<Block> blocks) {
         return this.with(HasBlock.builder().of(blocks).offset(this.offset).build());
     }
 
@@ -457,7 +462,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param blocks 方块集合
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlock(Vec3 offset, Collection<Block> blocks) {
+    public T hasBlock(Vec3 offset, Collection<Block> blocks) {
         return this.with(HasBlock.builder().of(blocks).offset(offset).build());
     }
 
@@ -470,7 +475,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param blocks 方块集合
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlock(double x, double y, double z, Collection<Block> blocks) {
+    public T hasBlock(double x, double y, double z, Collection<Block> blocks) {
         return this.with(HasBlock.builder().of(blocks).offset(x, y, z).build());
     }
 
@@ -480,7 +485,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param tag 方块标签
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlock(TagKey<Block> tag) {
+    public T hasBlock(TagKey<Block> tag) {
         return this.with(HasBlock.builder().of(tag).offset(this.offset).build());
     }
 
@@ -491,7 +496,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param tag    方块标签
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlock(Vec3 offset, TagKey<Block> tag) {
+    public T hasBlock(Vec3 offset, TagKey<Block> tag) {
         return this.with(HasBlock.builder().of(tag).offset(offset).build());
     }
 
@@ -504,7 +509,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param tag 方块标签
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlock(double x, double y, double z, TagKey<Block> tag) {
+    public T hasBlock(double x, double y, double z, TagKey<Block> tag) {
         return this.with(HasBlock.builder().of(tag).offset(x, y, z).build());
     }
 
@@ -513,10 +518,9 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      *
      * @param offset 偏移向量
      * @param state  方块状态
-     * @param <T>    属性类型
      * @return 当前构建器实例
      */
-    public <T extends Comparable<T>> InWorldRecipeBuilder hasBlock(Vec3 offset, BlockState state) {
+    public <C extends Comparable<C>> T hasBlock(Vec3 offset, BlockState state) {
         HasBlock.Builder builder = HasBlock.builder();
         Block block = state.getBlock();
         builder.of(block);
@@ -527,7 +531,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
             Comparable<?> defaultValue = defaultState.getValue(property);
             if (value.equals(defaultValue)) continue;
             //noinspection unchecked
-            builder.with((Property<T>) property, (T) value);
+            builder.with((Property<C>) property, (C) value);
         }
         return this.with(builder.build());
     }
@@ -539,10 +543,9 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param y     Y轴偏移量
      * @param z     Z轴偏移量
      * @param state 方块状态
-     * @param <T>   属性类型
      * @return 当前构建器实例
      */
-    public <T extends Comparable<T>> InWorldRecipeBuilder hasBlock(double x, double y, double z, BlockState state) {
+    public T hasBlock(double x, double y, double z, BlockState state) {
         return this.hasBlock(new Vec3(x, y, z), state);
     }
 
@@ -550,10 +553,9 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * 添加方块谓词
      *
      * @param state 方块状态
-     * @param <T>   属性类型
      * @return 当前构建器实例
      */
-    public <T extends Comparable<T>> InWorldRecipeBuilder hasBlock(BlockState state) {
+    public T hasBlock(BlockState state) {
         return this.hasBlock(this.offset, state);
     }
 
@@ -563,7 +565,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param consumer HasBlockIngredient构建器消费者
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlockIngredient(Consumer<HasBlockIngredient.Builder> consumer) {
+    public T hasBlockIngredient(Consumer<HasBlockIngredient.Builder> consumer) {
         HasBlockIngredient.Builder builder = HasBlockIngredient.builder();
         builder.offset(this.offset);
         consumer.accept(builder);
@@ -576,7 +578,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param blocks 方块列表
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlockIngredient(Block... blocks) {
+    public T hasBlockIngredient(Block... blocks) {
         return this.with(HasBlockIngredient.builder().of(blocks).offset(this.offset).build());
     }
 
@@ -587,7 +589,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param blocks 方块列表
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlockIngredient(Vec3 offset, Block... blocks) {
+    public T hasBlockIngredient(Vec3 offset, Block... blocks) {
         return this.with(HasBlockIngredient.builder().of(blocks).offset(offset).build());
     }
 
@@ -600,7 +602,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param blocks 方块列表
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlockIngredient(double x, double y, double z, Block... blocks) {
+    public T hasBlockIngredient(double x, double y, double z, Block... blocks) {
         return this.with(HasBlockIngredient.builder().of(blocks).offset(new Vec3(x, y, z)).build());
     }
 
@@ -610,7 +612,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param blocks 方块集合
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlockIngredient(Collection<Block> blocks) {
+    public T hasBlockIngredient(Collection<Block> blocks) {
         return this.with(HasBlockIngredient.builder().of(blocks).offset(this.offset).build());
     }
 
@@ -621,7 +623,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param blocks 方块集合
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlockIngredient(Vec3 offset, Collection<Block> blocks) {
+    public T hasBlockIngredient(Vec3 offset, Collection<Block> blocks) {
         return this.with(HasBlockIngredient.builder().of(blocks).offset(offset).build());
     }
 
@@ -634,7 +636,12 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param blocks 方块集合
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlockIngredient(double x, double y, double z, Collection<Block> blocks) {
+    public T hasBlockIngredient(
+        double x,
+        double y,
+        double z,
+        Collection<Block> blocks
+    ) {
         return this.with(HasBlockIngredient.builder().of(blocks).offset(new Vec3(x, y, z)).build());
     }
 
@@ -645,7 +652,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param tag 方块标签
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlockIngredient(TagKey<Block> tag) {
+    public T hasBlockIngredient(TagKey<Block> tag) {
         return this.with(HasBlockIngredient.builder().of(tag).offset(this.offset).build());
     }
 
@@ -656,7 +663,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param tag    方块标签
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlockIngredient(Vec3 offset, TagKey<Block> tag) {
+    public T hasBlockIngredient(Vec3 offset, TagKey<Block> tag) {
         return this.with(HasBlockIngredient.builder().of(tag).offset(offset).build());
     }
 
@@ -669,7 +676,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param tag 方块标签
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder hasBlockIngredient(double x, double y, double z, TagKey<Block> tag) {
+    public T hasBlockIngredient(double x, double y, double z, TagKey<Block> tag) {
         return this.with(HasBlockIngredient.builder().of(tag).offset(new Vec3(x, y, z)).build());
     }
 
@@ -678,10 +685,10 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      *
      * @param offset 偏移向量
      * @param state  方块状态
-     * @param <T>    属性类型
+     * @param <C>    属性类型
      * @return 当前构建器实例
      */
-    public <T extends Comparable<T>> InWorldRecipeBuilder hasBlockIngredient(Vec3 offset, BlockState state) {
+    public <C extends Comparable<C>> T hasBlockIngredient(Vec3 offset, BlockState state) {
         HasBlockIngredient.Builder builder = HasBlockIngredient.builder();
         Block block = state.getBlock();
         BlockState defaultState = block.defaultBlockState();
@@ -691,7 +698,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
             Comparable<?> value = state.getValue(property);
             if (value.equals(defaultState.getValue(property))) continue;
             //noinspection unchecked
-            builder.with((Property<T>) property, (T) value);
+            builder.with((Property<C>) property, (C) value);
         }
         return this.with(builder.build());
     }
@@ -703,10 +710,9 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param y     Y轴偏移量
      * @param z     Z轴偏移量
      * @param state 方块状态
-     * @param <T>   属性类型
      * @return 当前构建器实例
      */
-    public <T extends Comparable<T>> InWorldRecipeBuilder hasBlockIngredient(double x, double y, double z, BlockState state) {
+    public T hasBlockIngredient(double x, double y, double z, BlockState state) {
         return this.hasBlockIngredient(new Vec3(x, y, z), state);
     }
 
@@ -714,10 +720,9 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * 添加方块原料谓词
      *
      * @param state 方块状态
-     * @param <T>   属性类型
      * @return 当前构建器实例
      */
-    public <T extends Comparable<T>> InWorldRecipeBuilder hasBlockIngredient(BlockState state) {
+    public T hasBlockIngredient(BlockState state) {
         return this.hasBlockIngredient(this.offset, state);
     }
 
@@ -727,9 +732,9 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param outcome 配方结果
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder out(IRecipeOutcome<?> outcome) {
+    public T out(IRecipeOutcome<?> outcome) {
         this.outcomes.add(outcome);
-        return this;
+        return this.self();
     }
 
     /**
@@ -738,7 +743,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param consumer SpawnItem构建器消费者
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder spawnItem(Consumer<SpawnItem.Builder> consumer) {
+    public T spawnItem(Consumer<SpawnItem.Builder> consumer) {
         SpawnItem.Builder builder = SpawnItem.builder();
         builder.offset(this.offset);
         consumer.accept(builder);
@@ -753,7 +758,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param stack  物品堆
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder spawnItem(Vec3 offset, double chance, ItemStack stack) {
+    public T spawnItem(Vec3 offset, double chance, ItemStack stack) {
         return this.out(SpawnItem.builder().offset(offset).count((float) chance).item(stack).build());
     }
 
@@ -764,7 +769,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param stack  物品堆
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder spawnItem(Vec3 offset, ItemStack stack) {
+    public T spawnItem(Vec3 offset, ItemStack stack) {
         return this.spawnItem(offset, 1, stack);
     }
 
@@ -778,7 +783,13 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param stack  物品堆
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder spawnItem(double x, double y, double z, double chance, ItemStack stack) {
+    public T spawnItem(
+        double x,
+        double y,
+        double z,
+        double chance,
+        ItemStack stack
+    ) {
         return this.spawnItem(new Vec3(x, y, z), chance, stack);
     }
 
@@ -791,7 +802,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param stack 物品堆
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder spawnItem(double x, double y, double z, ItemStack stack) {
+    public T spawnItem(double x, double y, double z, ItemStack stack) {
         return this.spawnItem(new Vec3(x, y, z), stack);
     }
 
@@ -801,7 +812,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param stack 物品堆
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder spawnItem(ItemStack stack) {
+    public T spawnItem(ItemStack stack) {
         return this.spawnItem(this.offset, stack);
     }
 
@@ -811,7 +822,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param consumer SetBlock构建器消费者
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder setBlock(Consumer<SetBlock.Builder> consumer) {
+    public T setBlock(Consumer<SetBlock.Builder> consumer) {
         SetBlock.Builder builder = SetBlock.builder();
         builder.offset(this.offset);
         consumer.accept(builder);
@@ -826,7 +837,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param state  方块状态
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder setBlock(Vec3 offset, double chance, BlockState state) {
+    public T setBlock(Vec3 offset, double chance, BlockState state) {
         return this.out(SetBlock.builder().block(state).offset(offset).chance((float) chance).build());
     }
 
@@ -837,7 +848,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param state  方块状态
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder setBlock(Vec3 offset, BlockState state) {
+    public T setBlock(Vec3 offset, BlockState state) {
         return this.setBlock(offset, 1, state);
     }
 
@@ -851,7 +862,13 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param state  方块状态
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder setBlock(double x, double y, double z, double chance, BlockState state) {
+    public T setBlock(
+        double x,
+        double y,
+        double z,
+        double chance,
+        BlockState state
+    ) {
         return this.setBlock(new Vec3(x, y, z), chance, state);
     }
 
@@ -864,7 +881,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param state 方块状态
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder setBlock(double x, double y, double z, BlockState state) {
+    public T setBlock(double x, double y, double z, BlockState state) {
         return this.setBlock(new Vec3(x, y, z), state);
     }
 
@@ -874,7 +891,7 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param state 方块状态
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder setBlock(BlockState state) {
+    public T setBlock(BlockState state) {
         return this.setBlock(this.offset, state);
     }
 
@@ -884,9 +901,9 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
      * @param priority 优先级
      * @return 当前构建器实例
      */
-    public InWorldRecipeBuilder priority(Integer priority) {
+    public T priority(Integer priority) {
         this.priority = priority;
-        return this;
+        return this.self();
     }
 
     /**
@@ -910,15 +927,15 @@ public class InWorldRecipeBuilder implements RecipeBuilder {
     }
 
     @Override
-    public InWorldRecipeBuilder unlockedBy(String name, Criterion<?> criterion) {
+    public T unlockedBy(String name, Criterion<?> criterion) {
         this.criteria.put(name, criterion);
-        return this;
+        return this.self();
     }
 
     @Override
-    public InWorldRecipeBuilder group(@Nullable String groupName) {
+    public T group(@Nullable String groupName) {
         this.group = groupName;
-        return this;
+        return this.self();
     }
 
     @Override
