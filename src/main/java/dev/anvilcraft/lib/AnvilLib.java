@@ -2,7 +2,7 @@ package dev.anvilcraft.lib;
 
 
 import dev.anvilcraft.lib.config.ConfigManager;
-import dev.anvilcraft.lib.init.LibRecipeTypes;
+import dev.anvilcraft.lib.init.reicpe.LibRecipeTypes;
 import dev.anvilcraft.lib.init.reicpe.LibRecipeInits;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
@@ -18,7 +18,6 @@ public class AnvilLib {
 
     public AnvilLib(IEventBus modEventBus, ModContainer modContainer) {
         AnvilLib.CONFIG_MANAGER.register(modEventBus, modContainer);
-        LibRecipeTypes.register(modEventBus);
         LibRecipeInits.init(modEventBus);
     }
 

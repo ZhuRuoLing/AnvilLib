@@ -3,7 +3,7 @@ package dev.anvilcraft.lib.recipe;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.anvilcraft.lib.init.LibRecipeTypes;
+import dev.anvilcraft.lib.init.reicpe.LibRecipeTypes;
 import dev.anvilcraft.lib.init.LibRegistries;
 import dev.anvilcraft.lib.recipe.outcome.IRecipeOutcome;
 import dev.anvilcraft.lib.recipe.predicate.IRecipePredicate;

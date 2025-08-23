@@ -1,4 +1,4 @@
-package dev.anvilcraft.lib.init;
+package dev.anvilcraft.lib.init.reicpe;
 
 import dev.anvilcraft.lib.AnvilLib;
 import dev.anvilcraft.lib.recipe.InWorldRecipe;

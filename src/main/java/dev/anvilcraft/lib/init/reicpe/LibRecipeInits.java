@@ -7,5 +7,6 @@ public class LibRecipeInits {
         LibRecipeTriggers.TRIGGER.register(modEventBus);
         LibRecipePredicateTypes.PREDICATE_TYPE.register(modEventBus);
         LibRecipeOutcomeTypes.OUTCOME_TYPE.register(modEventBus);
+        LibRecipeTypes.register(modEventBus);
     }
 }
