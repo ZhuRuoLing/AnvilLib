@@ -1,5 +1,9 @@
 package dev.anvilcraft.lib.recipe.cache.item;
 
+import net.minecraft.world.item.ItemStack;
+
+import java.util.function.Consumer;
+
 /**
  * 缓存输入接口
  */
@@ -30,4 +34,6 @@ public interface ICacheInput {
      * @return 物品数量
      */
     int getCount();
+
+    void apply(Consumer<ItemStack> consumer);
 }

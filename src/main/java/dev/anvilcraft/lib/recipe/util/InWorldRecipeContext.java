@@ -2,6 +2,9 @@ package dev.anvilcraft.lib.recipe.util;
 
 import dev.anvilcraft.lib.recipe.predicate.IRecipePredicate;
 import lombok.Getter;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -189,8 +192,8 @@ public class InWorldRecipeContext implements RecipeInput {
      * 获取数字提供器的浮点数值，并限制在指定范围内
      *
      * @param provider 数字提供器
-     * @param min 最小值
-     * @param max 最大值
+     * @param min      最小值
+     * @param max      最大值
      * @return 浮点数值
      */
     public float getFloat(NumberProvider provider, float min, float max) {
@@ -201,7 +204,7 @@ public class InWorldRecipeContext implements RecipeInput {
      * 获取数字提供器的浮点数值，并限制最大值
      *
      * @param provider 数字提供器
-     * @param max 最大值
+     * @param max      最大值
      * @return 浮点数值
      */
     public float getFloat(NumberProvider provider, float max) {
@@ -222,8 +225,8 @@ public class InWorldRecipeContext implements RecipeInput {
      * 获取数字提供器的整数数值，并限制在指定范围内
      *
      * @param provider 数字提供器
-     * @param min 最小值
-     * @param max 最大值
+     * @param min      最小值
+     * @param max      最大值
      * @return 整数数值
      */
     public int getInt(NumberProvider provider, int min, int max) {
@@ -234,7 +237,7 @@ public class InWorldRecipeContext implements RecipeInput {
      * 获取数字提供器的整数数值，并限制最大值
      *
      * @param provider 数字提供器
-     * @param max 最大值
+     * @param max      最大值
      * @return 整数数值
      */
     public int getInt(NumberProvider provider, int max) {
@@ -249,5 +252,9 @@ public class InWorldRecipeContext implements RecipeInput {
      */
     public int getInt(NumberProvider provider) {
         return provider.getInt(this.emptyLootContext());
+    }
+
+    public RegistryOps<Tag> getNbtRegistryOps() {
+        return this.getLevel().registryAccess().createSerializationContext(NbtOps.INSTANCE);
     }
 }

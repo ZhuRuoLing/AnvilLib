@@ -7,13 +7,18 @@ import dev.anvilcraft.lib.recipe.cache.ItemCache;
 import dev.anvilcraft.lib.recipe.cache.item.ICacheInput;
 import dev.anvilcraft.lib.recipe.component.IItemStackPredicate;
 import dev.anvilcraft.lib.recipe.predicate.IRecipePredicate;
+import dev.anvilcraft.lib.recipe.predicate.function.IPredicateFunction;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeContext;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeData;
 import dev.anvilcraft.lib.util.CodecUtil;
 import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.List;
 
 /**
  * 物品条件基类
@@ -42,21 +47,39 @@ public abstract class HasItemBase<T extends HasItemBase<T, P>, P extends IItemSt
     protected final P item;
 
     /**
+     * 函数列表
+     */
+    private final List<IPredicateFunction<?>> functions;
+
+    /**
      * 构造一个物品条件基类
      *
      * @param offset 偏移量
      * @param range  范围
      * @param item   物品谓词
      */
-    public HasItemBase(Vec3 offset, Vec3 range, P item) {
+    public HasItemBase(Vec3 offset, Vec3 range, P item, List<IPredicateFunction<?>> functions) {
         this.offset = offset;
         this.range = range;
         this.item = item;
+        this.functions = functions;
     }
 
     @Override
     public boolean test(InWorldRecipeContext context) {
         return this.item.testCount(this.getItem(context).getCount());
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void accept(InWorldRecipeContext context) {
+        ICacheInput item1 = this.getItem(context);
+        item1.apply(itemStack -> {
+            for (IPredicateFunction<?> function : this.functions) {
+                IPredicateFunction<ItemStack> function1 = (IPredicateFunction<ItemStack>) function;
+                itemStack = function1.apply(context, itemStack);
+            }
+        });
     }
 
     /**
@@ -92,7 +115,8 @@ public abstract class HasItemBase<T extends HasItemBase<T, P>, P extends IItemSt
             instance -> instance.group(
                 Vec3.CODEC.fieldOf("offset").forGetter(T::getOffset),
                 Vec3.CODEC.fieldOf("range").forGetter(T::getRange),
-                this.itemCodec()
+                this.itemCodec(),
+                IPredicateFunction.CODEC.listOf().fieldOf("functions").forGetter(T::getFunctions)
             ).apply(instance, this::create)
         );
 
@@ -106,6 +130,8 @@ public abstract class HasItemBase<T extends HasItemBase<T, P>, P extends IItemSt
             T::getRange,
             StreamCodec.of(this::encodeItem, this::decodeItem),
             T::getItem,
+            CodecUtil.codec2Stream(IPredicateFunction.CODEC).apply(ByteBufCodecs.list()),
+            T::getFunctions,
             this::create
         );
 
@@ -117,7 +143,7 @@ public abstract class HasItemBase<T extends HasItemBase<T, P>, P extends IItemSt
          * @param item   物品谓词
          * @return 实例
          */
-        protected abstract T create(Vec3 offset, Vec3 range, P item);
+        protected abstract T create(Vec3 offset, Vec3 range, P item, List<IPredicateFunction<?>> functions);
 
         /**
          * 解码物品谓词

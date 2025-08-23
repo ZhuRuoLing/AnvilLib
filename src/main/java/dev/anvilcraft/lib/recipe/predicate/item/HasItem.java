@@ -4,15 +4,23 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.anvilcraft.lib.init.reicpe.LibRecipePredicateTypes;
 import dev.anvilcraft.lib.recipe.component.ItemPredicate;
 import dev.anvilcraft.lib.recipe.predicate.IRecipePredicate;
+import dev.anvilcraft.lib.recipe.predicate.function.IPredicateFunction;
+import dev.anvilcraft.lib.recipe.predicate.function.SaveComponentToTag;
 import lombok.Getter;
 import net.minecraft.advancements.critereon.ItemSubPredicate;
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.core.component.DataComponentPredicate;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 物品条件谓词
@@ -29,8 +37,8 @@ public class HasItem extends HasItemBase<HasItem, ItemPredicate> {
      * @param range  范围
      * @param item   物品谓词
      */
-    public HasItem(Vec3 offset, Vec3 range, ItemPredicate item) {
-        super(offset, range, item);
+    public HasItem(Vec3 offset, Vec3 range, ItemPredicate item, List<IPredicateFunction<?>> functions) {
+        super(offset, range, item, functions);
     }
 
     /**
@@ -52,8 +60,8 @@ public class HasItem extends HasItemBase<HasItem, ItemPredicate> {
      */
     public static class Type extends AbstractType<HasItem, ItemPredicate> {
         @Override
-        protected HasItem create(Vec3 offset, Vec3 range, ItemPredicate item) {
-            return new HasItem(offset, range, item);
+        protected HasItem create(Vec3 offset, Vec3 range, ItemPredicate item, List<IPredicateFunction<?>> functions) {
+            return new HasItem(offset, range, item, functions);
         }
 
         @Override
@@ -79,6 +87,7 @@ public class HasItem extends HasItemBase<HasItem, ItemPredicate> {
         private Vec3 offset = Vec3.ZERO;
         private Vec3 range = new Vec3(1.0, 1.0, 1.0);
         private final ItemPredicate.Builder item = ItemPredicate.Builder.item();
+        private final List<IPredicateFunction<?>> functions = new ArrayList<>();
 
         /**
          * 设置偏移量
@@ -267,13 +276,22 @@ public class HasItem extends HasItemBase<HasItem, ItemPredicate> {
             return this;
         }
 
+        public Builder function(IPredicateFunction<?>... function) {
+            this.functions.addAll(Arrays.asList(function));
+            return this;
+        }
+
+        public Builder saveComponent(DataComponentType<?> component, ResourceLocation path) {
+            return this.function(new SaveComponentToTag<>(component, path));
+        }
+
         /**
          * 构建HasItem实例
          *
          * @return HasItem实例
          */
         public HasItem build() {
-            return new HasItem(offset, range, item.build());
+            return new HasItem(offset, range, item.build(), functions);
         }
     }
 }

@@ -2,13 +2,12 @@ package dev.anvilcraft.lib.recipe.component;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.anvilcraft.lib.recipe.predicate.item.HasItemIngredient;
+import dev.anvilcraft.lib.util.CodecUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.advancements.critereon.ItemSubPredicate;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.RegistryCodecs;
 import net.minecraft.core.component.DataComponentPredicate;
@@ -16,11 +15,8 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -28,9 +24,9 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * 物品原料谓词
@@ -58,18 +54,8 @@ public record ItemIngredientPredicate(
     /**
      * ItemIngredientPredicate流编解码器
      */
-    public static final StreamCodec<RegistryFriendlyByteBuf, ItemIngredientPredicate> STREAM_CODEC = StreamCodec.of(
-        (buffer, value) -> {
-            RegistryOps<Tag> ops = HolderLookup.Provider.create(Stream.of(BuiltInRegistries.ITEM.asLookup()))
-                .createSerializationContext(NbtOps.INSTANCE);
-            DataResult<Tag> encode = ItemIngredientPredicate.CODEC.encode(value, ops, ops.empty());
-            Tag tag = encode.getOrThrow();
-            buffer.writeNbt(tag);
-        }, buffer -> {
-            RegistryOps<Tag> ops = HolderLookup.Provider.create(Stream.of(BuiltInRegistries.ITEM.asLookup()))
-                .createSerializationContext(NbtOps.INSTANCE);
-            return ItemIngredientPredicate.CODEC.decode(ops, buffer.readNbt()).getOrThrow().getFirst();
-        }
+    public static final StreamCodec<RegistryFriendlyByteBuf, ItemIngredientPredicate> STREAM_CODEC = CodecUtil.codec2Stream(
+        ItemIngredientPredicate.CODEC
     );
 
     /**
@@ -110,7 +96,7 @@ public record ItemIngredientPredicate(
      * @return HasItemIngredient谓词
      */
     public HasItemIngredient toHasItemIngredient(Vec3 offset, Vec3 range) {
-        return new HasItemIngredient(offset, range, this);
+        return new HasItemIngredient(offset, range, this, List.of());
     }
 
     private static final Int2ObjectMap<ItemStack[]> INGREDIENT_CACHE = new Int2ObjectArrayMap<>();

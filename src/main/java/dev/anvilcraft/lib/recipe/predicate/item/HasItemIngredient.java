@@ -6,15 +6,23 @@ import dev.anvilcraft.lib.recipe.cache.ItemCache;
 import dev.anvilcraft.lib.recipe.cache.item.ICacheInput;
 import dev.anvilcraft.lib.recipe.component.ItemIngredientPredicate;
 import dev.anvilcraft.lib.recipe.predicate.IRecipePredicate;
+import dev.anvilcraft.lib.recipe.predicate.function.IPredicateFunction;
+import dev.anvilcraft.lib.recipe.predicate.function.SaveComponentToTag;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeContext;
 import lombok.Getter;
 import net.minecraft.advancements.critereon.ItemSubPredicate;
 import net.minecraft.core.component.DataComponentPredicate;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 物品原料条件谓词
@@ -31,8 +39,8 @@ public class HasItemIngredient extends HasItemBase<HasItemIngredient, ItemIngred
      * @param range  范围
      * @param item   物品原料谓词
      */
-    public HasItemIngredient(Vec3 offset, Vec3 range, ItemIngredientPredicate item) {
-        super(offset, range, item);
+    public HasItemIngredient(Vec3 offset, Vec3 range, ItemIngredientPredicate item, List<IPredicateFunction<?>> functions) {
+        super(offset, range, item, functions);
     }
 
     @Override
@@ -54,6 +62,7 @@ public class HasItemIngredient extends HasItemBase<HasItemIngredient, ItemIngred
 
     @Override
     public void accept(InWorldRecipeContext context) {
+        super.accept(context);
         context.putAcceptor(ItemCache.ITEM_CACHE.location(), ItemCache.DEFAULT_ACCEPTOR);
     }
 
@@ -71,8 +80,8 @@ public class HasItemIngredient extends HasItemBase<HasItemIngredient, ItemIngred
      */
     public static class Type extends AbstractType<HasItemIngredient, ItemIngredientPredicate> {
         @Override
-        protected HasItemIngredient create(Vec3 offset, Vec3 range, ItemIngredientPredicate item) {
-            return new HasItemIngredient(offset, range, item);
+        protected HasItemIngredient create(Vec3 offset, Vec3 range, ItemIngredientPredicate item, List<IPredicateFunction<?>> functions) {
+            return new HasItemIngredient(offset, range, item, functions);
         }
 
         @Override
@@ -103,6 +112,7 @@ public class HasItemIngredient extends HasItemBase<HasItemIngredient, ItemIngred
         private Vec3 offset = Vec3.ZERO;
         private Vec3 range = new Vec3(1.0, 1.0, 1.0);
         private final ItemIngredientPredicate.Builder item = ItemIngredientPredicate.Builder.item();
+        private final List<IPredicateFunction<?>> functions = new ArrayList<>();
 
         /**
          * 设置检测范围
@@ -257,13 +267,22 @@ public class HasItemIngredient extends HasItemBase<HasItemIngredient, ItemIngred
             return this.above(1);
         }
 
+        public Builder function(IPredicateFunction<?>... function) {
+            this.functions.addAll(Arrays.asList(function));
+            return this;
+        }
+
+        public Builder saveComponent(DataComponentType<?> component, ResourceLocation path) {
+            return this.function(new SaveComponentToTag<>(component, path));
+        }
+
         /**
          * 构建HasItemIngredient实例
          *
          * @return HasItemIngredient实例
          */
         public HasItemIngredient build() {
-            return new HasItemIngredient(offset, range, item.build());
+            return new HasItemIngredient(offset, range, item.build(), functions);
         }
     }
 }

@@ -6,6 +6,8 @@ import dev.anvilcraft.lib.init.reicpe.LibRecipeOutcomeTypes;
 import dev.anvilcraft.lib.recipe.cache.BlockCache;
 import dev.anvilcraft.lib.recipe.cache.ItemCache;
 import dev.anvilcraft.lib.recipe.cache.item.ICacheOutput;
+import dev.anvilcraft.lib.recipe.outcome.function.ApplyTagToComponent;
+import dev.anvilcraft.lib.recipe.outcome.function.IOutcomeFunction;
 import dev.anvilcraft.lib.recipe.util.IRecipeResultOffsetBlock;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeContext;
 import dev.anvilcraft.lib.util.CodecUtil;
@@ -13,8 +15,11 @@ import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
@@ -22,6 +27,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 生成物品配方结果类，用于定义在配方执行时生成物品的结果
@@ -45,16 +54,22 @@ public class SpawnItem implements IRecipeOutcome<SpawnItem> {
     private final NumberProvider count;
 
     /**
+     * 函数列表
+     */
+    private final List<IOutcomeFunction<?>> functions;
+
+    /**
      * 构造一个新的生成物品配方结果
      *
      * @param item   物品堆
      * @param offset 偏移量
      * @param count  数量
      */
-    public SpawnItem(ItemStack item, Vec3 offset, NumberProvider count) {
+    public SpawnItem(ItemStack item, Vec3 offset, NumberProvider count, List<IOutcomeFunction<?>> functions) {
         this.item = item;
         this.offset = offset;
         this.count = count;
+        this.functions = functions;
     }
 
     /**
@@ -65,8 +80,8 @@ public class SpawnItem implements IRecipeOutcome<SpawnItem> {
      * @param offset 偏移量
      * @param count  数量
      */
-    public SpawnItem(Holder<Item> item, DataComponentPatch patch, Vec3 offset, NumberProvider count) {
-        this(new ItemStack(item, 1, patch), offset, count);
+    public SpawnItem(Holder<Item> item, DataComponentPatch patch, Vec3 offset, NumberProvider count, List<IOutcomeFunction<?>> functions) {
+        this(new ItemStack(item, 1, patch), offset, count, functions);
     }
 
     /**
@@ -94,6 +109,7 @@ public class SpawnItem implements IRecipeOutcome<SpawnItem> {
      * @param context 配方上下文
      */
     @Override
+    @SuppressWarnings("unchecked")
     public void accept(InWorldRecipeContext context) {
         ItemCache cache = context.computeIfAbsent(ItemCache.ITEM_CACHE);
         ItemStack stack = this.item.copyWithCount(context.getInt(this.count, 0, 99));
@@ -104,6 +120,10 @@ public class SpawnItem implements IRecipeOutcome<SpawnItem> {
         if (state.getBlock() instanceof IRecipeResultOffsetBlock block) {
             Vec3 offset1 = block.getOffset(context.getLevel(), blockPos, state);
             offset = offset.add(offset1);
+        }
+        for (IOutcomeFunction<?> function : this.functions) {
+            IOutcomeFunction<ItemStack> function1 = (IOutcomeFunction<ItemStack>) function;
+            stack = function1.apply(context, stack);
         }
         ICacheOutput output = cache.getOutput(stack, offset);
         output.grow(stack, true);
@@ -118,7 +138,9 @@ public class SpawnItem implements IRecipeOutcome<SpawnItem> {
          * Map编解码器
          */
         private static final MapCodec<SpawnItem> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                ItemStack.ITEM_NON_AIR_CODEC.fieldOf("item").forGetter(spawnItem -> spawnItem.getItem().getItemHolder()),
+                ItemStack.ITEM_NON_AIR_CODEC
+                    .fieldOf("item")
+                    .forGetter(spawnItem -> spawnItem.getItem().getItemHolder()),
                 DataComponentPatch.CODEC
                     .optionalFieldOf("components", DataComponentPatch.EMPTY)
                     .forGetter(spawnItem -> spawnItem.getItem().getComponentsPatch()),
@@ -127,7 +149,11 @@ public class SpawnItem implements IRecipeOutcome<SpawnItem> {
                     .forGetter(SpawnItem::getOffset),
                 CodecUtil.NUMBER_PROVIDER_CODEC
                     .optionalFieldOf("count", ConstantValue.exactly(1.0f))
-                    .forGetter(SpawnItem::getCount)
+                    .forGetter(SpawnItem::getCount),
+                IOutcomeFunction.CODEC
+                    .listOf()
+                    .fieldOf("functions")
+                    .forGetter(SpawnItem::getFunctions)
             ).apply(instance, SpawnItem::new)
         );
 
@@ -141,6 +167,8 @@ public class SpawnItem implements IRecipeOutcome<SpawnItem> {
             SpawnItem::getOffset,
             CodecUtil.NUMBER_PROVIDER_STREAM_CODEC,
             SpawnItem::getCount,
+            CodecUtil.codec2Stream(IOutcomeFunction.CODEC).apply(ByteBufCodecs.list()),
+            SpawnItem::getFunctions,
             SpawnItem::new
         );
 
@@ -183,6 +211,11 @@ public class SpawnItem implements IRecipeOutcome<SpawnItem> {
          * 物品堆
          */
         private ItemStack item = ItemStack.EMPTY;
+
+        /**
+         * 函数列表
+         */
+        private final List<IOutcomeFunction<?>> functions = new ArrayList<>();
 
         /**
          * 设置偏移量
@@ -298,13 +331,23 @@ public class SpawnItem implements IRecipeOutcome<SpawnItem> {
             return this.item(item.asItem());
         }
 
+        public Builder function(IOutcomeFunction<?>... function) {
+            this.functions.addAll(Arrays.asList(function));
+            return this;
+        }
+
+        public Builder applyComponent(DataComponentType<?> component, ResourceLocation path) {
+            this.functions.add(new ApplyTagToComponent<>(component, path));
+            return this;
+        }
+
         /**
          * 构建生成物品配方结果
          *
          * @return 生成物品配方结果
          */
         public SpawnItem build() {
-            return new SpawnItem(this.item, this.offset, this.count);
+            return new SpawnItem(this.item, this.offset, this.count, this.functions);
         }
     }
 }

@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * 缓存输入输出实现类，实现了缓存输入和输出接口
@@ -190,5 +191,10 @@ public class ICacheInputOutputImpl implements ICacheInput, ICacheOutput {
             return ItemStack.isSameItemSameComponents(stack, stack1);
         }
         return this.key.equals(key);
+    }
+
+    @Override
+    public void apply(Consumer<ItemStack> consumer) {
+        this.elements.forEach(element -> element.apply(consumer));
     }
 }

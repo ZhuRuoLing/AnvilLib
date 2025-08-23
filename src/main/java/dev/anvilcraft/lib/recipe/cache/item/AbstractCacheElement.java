@@ -8,6 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -152,5 +153,10 @@ public abstract class AbstractCacheElement implements ICacheElement {
     @Override
     public int getCount() {
         return this.simulate.isEmpty() ? 0 : this.simulate.getCount();
+    }
+
+    @Override
+    public void apply(Consumer<ItemStack> consumer) {
+        consumer.accept(this.type);
     }
 }
