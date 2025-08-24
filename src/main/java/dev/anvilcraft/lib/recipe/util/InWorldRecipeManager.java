@@ -37,7 +37,7 @@ public class InWorldRecipeManager {
      * @param recipe 要注册的配方
      */
     public void register(RecipeHolder<InWorldRecipe> recipe) {
-        recipeHolders.put(recipe.value().getTrigger(), recipe);
+        recipeHolders.put(recipe.value().trigger(), recipe);
     }
 
     /**
@@ -52,6 +52,7 @@ public class InWorldRecipeManager {
             InWorldRecipe recipe = holder.value();
             boolean accept = false;
             for (int i = 0; i < AnvilLib.CONFIG.inWorldRecipeMaxEfficiency; i++) {
+                if (i >= recipe.maxEfficiency()) break;
                 if (!recipe.matches(ctx, ctx.getLevel())) {
                     if (!accept) break;
                     return;

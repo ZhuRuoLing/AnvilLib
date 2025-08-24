@@ -11,7 +11,7 @@ public interface IPrioritized extends Comparable<IPrioritized> {
      *
      * @return 优先级值
      */
-    default int getPriority() {
+    default int priority() {
         return 1;
     }
 
@@ -23,7 +23,7 @@ public interface IPrioritized extends Comparable<IPrioritized> {
      */
     default int compareTo(IPrioritized o) {
         if (this.equals(o)) return 0;
-        int compared = Integer.compare(this.getPriority(), o.getPriority());
+        int compared = Integer.compare(this.priority(), o.priority());
         return compared == 0 ? 1 : -compared;
     }
 }

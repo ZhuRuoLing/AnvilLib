@@ -86,6 +86,10 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
      */
     protected Integer priority = null;
     /**
+     * 最大效率
+     */
+    protected int maxEfficiency = Integer.MAX_VALUE;
+    /**
      * 配方组
      */
     protected String group;
@@ -637,12 +641,7 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
      * @param blocks 方块集合
      * @return 当前构建器实例
      */
-    public T hasBlockIngredient(
-        double x,
-        double y,
-        double z,
-        Collection<Block> blocks
-    ) {
+    public T hasBlockIngredient(double x, double y, double z, Collection<Block> blocks) {
         return this.with(HasBlockIngredient.builder().of(blocks).offset(new Vec3(x, y, z)).build());
     }
 
@@ -796,13 +795,7 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
      * @param stack  物品堆
      * @return 当前构建器实例
      */
-    public T spawnItem(
-        double x,
-        double y,
-        double z,
-        double chance,
-        ItemStack stack
-    ) {
+    public T spawnItem(double x, double y, double z, double chance, ItemStack stack) {
         return this.spawnItem(new Vec3(x, y, z), chance, stack);
     }
 
@@ -875,13 +868,7 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
      * @param state  方块状态
      * @return 当前构建器实例
      */
-    public T setBlock(
-        double x,
-        double y,
-        double z,
-        double chance,
-        BlockState state
-    ) {
+    public T setBlock(double x, double y, double z, double chance, BlockState state) {
         return this.setBlock(new Vec3(x, y, z), chance, state);
     }
 
@@ -919,6 +906,11 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
         return this.self();
     }
 
+    public T maxEfficiency(int maxEfficiency) {
+        this.maxEfficiency = maxEfficiency;
+        return this.self();
+    }
+
     /**
      * 构建世界内配方
      *
@@ -935,7 +927,8 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
                 this.priority,
                 () -> InWorldRecipe.calcPriority(this.trigger, this.conflicting, this.nonConflicting, this.outcomes)
             ),
-            this.compatible
+            this.compatible,
+            this.maxEfficiency
         );
     }
 
