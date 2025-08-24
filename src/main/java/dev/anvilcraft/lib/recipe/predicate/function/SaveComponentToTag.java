@@ -25,7 +25,7 @@ public record SaveComponentToTag<T>(
         RegistryOps<Tag> ops = context.getNbtRegistryOps();
         T object = stack.get(this.component);
         DataResult<Tag> result = Objects.requireNonNull(this.component.codec()).encodeStart(ops, object);
-        TagCache cache = context.get(TagCache.TAG_CACHE);
+        TagCache cache = context.computeIfAbsent(TagCache.TAG_CACHE);
         cache.computeIfAbsent(this.path, key -> result.getOrThrow());
         return stack;
     }

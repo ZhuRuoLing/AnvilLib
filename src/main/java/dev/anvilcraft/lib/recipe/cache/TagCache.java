@@ -7,12 +7,13 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 public class TagCache {
-    public static final InWorldRecipeData<TagCache> TAG_CACHE = InWorldRecipeData.of(AnvilLib.of("block_cache"), TagCache::of);
-    public Map<ResourceLocation, Tag> tags;
+    public static final InWorldRecipeData<TagCache> TAG_CACHE = InWorldRecipeData.of(AnvilLib.of("tag_cache"), TagCache::of);
+    public final Map<ResourceLocation, Tag> tags = new HashMap<>();
 
     public TagCache() {
     }

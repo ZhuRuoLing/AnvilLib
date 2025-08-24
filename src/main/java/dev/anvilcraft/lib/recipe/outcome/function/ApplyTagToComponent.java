@@ -23,7 +23,7 @@ public record ApplyTagToComponent<T>(
 ) implements IOutcomeFunction<ItemStack> {
     @Override
     public ItemStack apply(InWorldRecipeContext context, ItemStack stack) {
-        TagCache cache = context.get(TagCache.TAG_CACHE);
+        TagCache cache = context.computeIfAbsent(TagCache.TAG_CACHE);
         Tag tag = cache.getTag(this.path);
         if (tag == null) return stack;
         RegistryOps<Tag> ops = context.getNbtRegistryOps();
