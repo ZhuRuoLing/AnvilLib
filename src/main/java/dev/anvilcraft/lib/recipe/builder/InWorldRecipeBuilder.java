@@ -3,6 +3,7 @@ package dev.anvilcraft.lib.recipe.builder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import dev.anvilcraft.lib.recipe.InWorldRecipe;
+import dev.anvilcraft.lib.recipe.outcome.ChooseOneOutcome;
 import dev.anvilcraft.lib.recipe.outcome.IRecipeOutcome;
 import dev.anvilcraft.lib.recipe.outcome.SetBlock;
 import dev.anvilcraft.lib.recipe.outcome.SpawnItem;
@@ -738,9 +739,21 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
     }
 
     /**
+     * 添加选择结果
+     *
+     * @param consumer ChooseOneOutcome 构建器消费者
+     * @return 当前构建器实例
+     */
+    public T chooseOne(Consumer<ChooseOneOutcome.Builder> consumer) {
+        ChooseOneOutcome.Builder builder = ChooseOneOutcome.builder();
+        consumer.accept(builder);
+        return this.out(builder.build());
+    }
+
+    /**
      * 添加生成物品结果
      *
-     * @param consumer SpawnItem构建器消费者
+     * @param consumer SpawnItem 构建器消费者
      * @return 当前构建器实例
      */
     public T spawnItem(Consumer<SpawnItem.Builder> consumer) {
@@ -819,7 +832,7 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
     /**
      * 添加设置方块结果
      *
-     * @param consumer SetBlock构建器消费者
+     * @param consumer SetBlock 构建器消费者
      * @return 当前构建器实例
      */
     public T setBlock(Consumer<SetBlock.Builder> consumer) {

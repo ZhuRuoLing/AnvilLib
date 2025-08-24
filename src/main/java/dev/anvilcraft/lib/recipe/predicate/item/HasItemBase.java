@@ -116,7 +116,7 @@ public abstract class HasItemBase<T extends HasItemBase<T, P>, P extends IItemSt
                 Vec3.CODEC.fieldOf("offset").forGetter(T::getOffset),
                 Vec3.CODEC.fieldOf("range").forGetter(T::getRange),
                 this.itemCodec(),
-                IPredicateFunction.CODEC.listOf().fieldOf("functions").forGetter(T::getFunctions)
+                IPredicateFunction.CODEC.listOf().optionalFieldOf("functions", List.of()).forGetter(T::getFunctions)
             ).apply(instance, this::create)
         );
 

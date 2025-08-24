@@ -6,7 +6,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.anvilcraft.lib.init.reicpe.LibRecipeOutcomeTypes;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeContext;
 import dev.anvilcraft.lib.util.CodecUtil;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
@@ -20,20 +19,11 @@ import java.util.List;
 /**
  * 多选一Outcome：多个Outcome中选择一个进行产出
  * 它本身也是一个Outcome
+ *
+ * @param chance  整个ChooseOneOutcome发生的概率
+ * @param choices 多选一中的所有选项列表
  */
-@Getter
-public class ChooseOneOutcome implements IRecipeOutcome<ChooseOneOutcome> {
-
-    /**
-     * 整个ChooseOneOutcome发生的概率
-     */
-    public final NumberProvider chance;
-
-    /**
-     * 多选一中的所有选项列表
-     */
-    private final List<Choice> choices;
-
+public record ChooseOneOutcome(NumberProvider chance, List<Choice> choices) implements IRecipeOutcome<ChooseOneOutcome> {
     /**
      * 多选一Outcome的构造器
      * 请使用builder类
@@ -235,8 +225,8 @@ public class ChooseOneOutcome implements IRecipeOutcome<ChooseOneOutcome> {
             NumberProviders.CODEC.optionalFieldOf(
                 "chance",
                 ConstantValue.exactly(1f)
-            ).forGetter(ChooseOneOutcome::getChance),
-            Choice.CODEC.listOf().fieldOf("choices").forGetter(ChooseOneOutcome::getChoices)
+            ).forGetter(ChooseOneOutcome::chance),
+            Choice.CODEC.listOf().fieldOf("choices").forGetter(ChooseOneOutcome::choices)
         ).apply(ins, ChooseOneOutcome::new));
 
         /**

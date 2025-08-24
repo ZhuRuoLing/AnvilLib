@@ -5,7 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.anvilcraft.lib.recipe.outcome.SpawnItem;
 import dev.anvilcraft.lib.util.CodecUtil;
 import dev.anvilcraft.lib.util.NumberProviderUtil;
-import lombok.Getter;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentPatch;
@@ -31,28 +30,18 @@ import java.util.Optional;
  * <p>
  * 该类用于定义在配方中可能出现的物品结果，包含物品堆栈和数量/概率信息
  * </p>
+ *
+ * @param stack 物品堆栈
+ * @param count 数量提供器（可以是固定值或概率分布）
  */
-@Getter
-public class ChanceItemStack {
-    /**
-     * 物品堆栈
-     */
-    private final ItemStack stack;
-
-    /**
-     * 数量提供器（可以是固定值或概率分布）
-     */
-    private final NumberProvider count;
-
+public record ChanceItemStack(ItemStack stack, NumberProvider count) {
     /**
      * 构造一个带概率的物品堆栈
      *
      * @param stack 物品堆栈
      * @param count 数量提供器
      */
-    private ChanceItemStack(ItemStack stack, NumberProvider count) {
-        this.stack = stack;
-        this.count = count;
+    public ChanceItemStack {
     }
 
     /**
@@ -149,7 +138,7 @@ public class ChanceItemStack {
     public static final Codec<ChanceItemStack> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         ItemStack.ITEM_NON_AIR_CODEC.fieldOf("id").forGetter(ChanceItemStack::getItemHolder),
         DataComponentPatch.CODEC.optionalFieldOf("components", DataComponentPatch.EMPTY).forGetter(ChanceItemStack::getComponentsPatch),
-        CodecUtil.NUMBER_PROVIDER_CODEC.optionalFieldOf("count", ConstantValue.exactly(1.0f)).forGetter(ChanceItemStack::getCount)
+        CodecUtil.NUMBER_PROVIDER_CODEC.optionalFieldOf("count", ConstantValue.exactly(1.0f)).forGetter(ChanceItemStack::count)
     ).apply(instance, ChanceItemStack::new));
 
     /**
@@ -157,9 +146,9 @@ public class ChanceItemStack {
      */
     public static final StreamCodec<RegistryFriendlyByteBuf, ChanceItemStack> STREAM_CODEC = StreamCodec.composite(
         ItemStack.STREAM_CODEC,
-        ChanceItemStack::getStack,
+        ChanceItemStack::stack,
         CodecUtil.NUMBER_PROVIDER_STREAM_CODEC,
-        ChanceItemStack::getCount,
+        ChanceItemStack::count,
         ChanceItemStack::new
     );
 
@@ -216,6 +205,6 @@ public class ChanceItemStack {
 
     public ItemStack getResult(ServerLevel level) {
         LootContext context = new LootContext.Builder(new LootParams(level, Map.of(), Map.of(), 0)).create(Optional.empty());
-        return this.getStack().copyWithCount(Math.clamp(this.getCount().getInt(context), 1, 99));
+        return this.stack().copyWithCount(Math.clamp(this.count().getInt(context), 1, 99));
     }
 }

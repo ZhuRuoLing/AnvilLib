@@ -6,7 +6,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.anvilcraft.lib.init.reicpe.LibRecipeOutcomeTypes;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeContext;
 import dev.anvilcraft.lib.util.CodecUtil;
-import lombok.Getter;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
@@ -16,29 +15,15 @@ import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProviders;
 import net.minecraft.world.phys.Vec3;
 
-@Getter
-public class ProduceExplosion implements IRecipeOutcome<ProduceExplosion> {
-    /**
-     * 爆炸中心点的位置偏移量
-     */
-    private final Vec3 offset;
-    /**
-     * 爆炸威力
-     */
-    private final float power;
-    /**
-     * 是否产生火焰
-     */
-    private final boolean fire;
-    /**
-     * 爆炸的方块交互类型
-     */
-    private final Level.ExplosionInteraction explodeInteraction;
-    /**
-     * 爆炸发生的概率，范围为0f到1.0f
-     */
-    public final NumberProvider chance;
-
+/**
+ * @param offset             爆炸中心点的位置偏移量
+ * @param power              爆炸威力
+ * @param fire               是否产生火焰
+ * @param explodeInteraction 爆炸的方块交互类型
+ * @param chance             爆炸发生的概率，范围为0f到1.0f
+ */
+public record ProduceExplosion(Vec3 offset, float power, boolean fire, Level.ExplosionInteraction explodeInteraction, NumberProvider chance)
+    implements IRecipeOutcome<ProduceExplosion> {
     /**
      * 构建一个新的产生爆炸配方结果
      *
@@ -48,12 +33,7 @@ public class ProduceExplosion implements IRecipeOutcome<ProduceExplosion> {
      * @param explodeInteraction 爆炸的方块交互类型
      * @param chance             爆炸发生的概率
      */
-    public ProduceExplosion(Vec3 offset, float power, boolean fire, Level.ExplosionInteraction explodeInteraction, NumberProvider chance) {
-        this.offset = offset;
-        this.power = power;
-        this.fire = fire;
-        this.explodeInteraction = explodeInteraction;
-        this.chance = chance;
+    public ProduceExplosion {
     }
 
     /**
@@ -83,11 +63,11 @@ public class ProduceExplosion implements IRecipeOutcome<ProduceExplosion> {
          * 编解码器
          */
         public static final MapCodec<ProduceExplosion> MAP_CODEC = RecordCodecBuilder.mapCodec(ins -> ins.group(
-            Vec3.CODEC.optionalFieldOf("offset", Vec3.ZERO).forGetter(ProduceExplosion::getOffset),
-            Codec.FLOAT.fieldOf("power").forGetter(ProduceExplosion::getPower),
-            Codec.BOOL.fieldOf("fire").forGetter(ProduceExplosion::isFire),
-            Level.ExplosionInteraction.CODEC.fieldOf("interact").forGetter(ProduceExplosion::getExplodeInteraction),
-            NumberProviders.CODEC.optionalFieldOf("chance", ConstantValue.exactly(1f)).forGetter(ProduceExplosion::getChance)
+            Vec3.CODEC.optionalFieldOf("offset", Vec3.ZERO).forGetter(ProduceExplosion::offset),
+            Codec.FLOAT.fieldOf("power").forGetter(ProduceExplosion::power),
+            Codec.BOOL.fieldOf("fire").forGetter(ProduceExplosion::fire),
+            Level.ExplosionInteraction.CODEC.fieldOf("interact").forGetter(ProduceExplosion::explodeInteraction),
+            NumberProviders.CODEC.optionalFieldOf("chance", ConstantValue.exactly(1f)).forGetter(ProduceExplosion::chance)
         ).apply(ins, ProduceExplosion::new));
 
         public static final Codec<ProduceExplosion> CODEC = MAP_CODEC.codec();

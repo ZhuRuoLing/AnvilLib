@@ -33,12 +33,17 @@ import java.util.Optional;
  * <p>
  * 用于定义配方中物品原料的匹配规则，包括物品类型、数量、组件和子谓词
  * </p>
+ *
+ * @param items         物品集合
+ * @param count         数量
+ * @param components    数据组件谓词
+ * @param subPredicates 子谓词映射
  */
 public record ItemIngredientPredicate(
-    Optional<HolderSet<Item>> items, // 物品集合
-    int count, // 数量
-    DataComponentPredicate components, // 数据组件谓词
-    Map<ItemSubPredicate.Type<?>, ItemSubPredicate> subPredicates // 子谓词映射
+    Optional<HolderSet<Item>> items,
+    int count,
+    DataComponentPredicate components,
+    Map<ItemSubPredicate.Type<?>, ItemSubPredicate> subPredicates
 ) implements IItemStackPredicate {
     /**
      * ItemIngredientPredicate编解码器

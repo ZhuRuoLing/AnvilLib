@@ -4,7 +4,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.anvilcraft.lib.recipe.outcome.SetBlock;
 import dev.anvilcraft.lib.util.CodecUtil;
-import lombok.Getter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -28,24 +27,12 @@ import java.util.function.Supplier;
  * <p>
  * 该类用于定义在配方中可能出现的方块结果，包含方块状态和出现概率
  * </p>
+ *
+ * @param state  方块状态
+ * @param nbt    方块的 NBT 数据
+ * @param chance 出现概率
  */
-@Getter
-public class ChanceBlockState {
-    /**
-     * 方块状态
-     */
-    private final BlockState state;
-
-    /**
-     * 方块的 NBT 数据
-     */
-    private final CompoundTag nbt;
-
-    /**
-     * 出现概率
-     */
-    private final NumberProvider chance;
-
+public record ChanceBlockState(BlockState state, CompoundTag nbt, NumberProvider chance) {
     /**
      * 构造一个带有概率的方块状态
      *
@@ -53,10 +40,7 @@ public class ChanceBlockState {
      * @param nbt    方块的 NBT 数据
      * @param chance 出现概率
      */
-    public ChanceBlockState(BlockState state, CompoundTag nbt, NumberProvider chance) {
-        this.state = state;
-        this.nbt = nbt;
-        this.chance = chance;
+    public ChanceBlockState {
     }
 
     /**
@@ -93,13 +77,13 @@ public class ChanceBlockState {
     public static final MapCodec<ChanceBlockState> CODEC = RecordCodecBuilder.mapCodec(
         instance -> instance.group(
             CodecUtil.BLOCK_STATE_MAP_CODEC
-                .forGetter(ChanceBlockState::getState),
+                .forGetter(ChanceBlockState::state),
             CompoundTag.CODEC
                 .optionalFieldOf("nbt", new CompoundTag())
-                .forGetter(ChanceBlockState::getNbt),
+                .forGetter(ChanceBlockState::nbt),
             CodecUtil.NUMBER_PROVIDER_CODEC
                 .optionalFieldOf("chance", ConstantValue.exactly(1.0f))
-                .forGetter(ChanceBlockState::getChance)
+                .forGetter(ChanceBlockState::chance)
         ).apply(instance, ChanceBlockState::new));
 
     /**
@@ -107,11 +91,11 @@ public class ChanceBlockState {
      */
     public static final StreamCodec<RegistryFriendlyByteBuf, ChanceBlockState> STREAM_CODEC = StreamCodec.composite(
         CodecUtil.BLOCK_STATE_STREAM_CODEC,
-        ChanceBlockState::getState,
+        ChanceBlockState::state,
         ByteBufCodecs.COMPOUND_TAG,
-        ChanceBlockState::getNbt,
+        ChanceBlockState::nbt,
         CodecUtil.NUMBER_PROVIDER_STREAM_CODEC,
-        ChanceBlockState::getChance,
+        ChanceBlockState::chance,
         ChanceBlockState::new
     );
 
@@ -122,7 +106,7 @@ public class ChanceBlockState {
      * @return SetBlock结果
      */
     public SetBlock toSetBlock(Vec3 offset) {
-        return SetBlock.builder().block(this.getState()).offset(offset).nbt(this.nbt).chance(this.chance).build();
+        return SetBlock.builder().block(this.state()).offset(offset).nbt(this.nbt).chance(this.chance).build();
     }
 
     public @Nullable Map.Entry<BlockState, CompoundTag> getResult(ServerLevel level) {

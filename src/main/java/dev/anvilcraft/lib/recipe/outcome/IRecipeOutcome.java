@@ -35,7 +35,7 @@ public interface IRecipeOutcome<O extends IRecipeOutcome<O>> extends Consumer<In
      *
      * @return 触发概率
      */
-    default NumberProvider getChance() {
+    default NumberProvider chance() {
         return ConstantValue.exactly(1.0f);
     }
 
@@ -46,7 +46,7 @@ public interface IRecipeOutcome<O extends IRecipeOutcome<O>> extends Consumer<In
      */
     default void acceptWithChance(InWorldRecipeContext context) {
         ServerLevel level = context.getLevel();
-        if (level.getRandom().nextDouble() > context.getFloat(this.getChance())) return;
+        if (level.getRandom().nextDouble() > context.getFloat(this.chance())) return;
         this.accept(context);
     }
 

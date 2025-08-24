@@ -2,7 +2,6 @@ package dev.anvilcraft.lib.recipe.component;
 
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
-import lombok.Getter;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -23,34 +22,29 @@ import java.util.function.Predicate;
  * <p>
  * 用于匹配NBT数据的谓词，支持物品堆栈和实体的NBT数据匹配
  * </p>
+ *
+ * @param tag NBT标签
  */
-@Getter
-public class NbtPredicate implements Predicate<Tag> {
+public record NbtPredicate(CompoundTag tag) implements Predicate<Tag> {
     /**
      * NbtPredicate编解码器
      */
-    public static final Codec<NbtPredicate> CODEC = TagParser.LENIENT_CODEC.xmap(NbtPredicate::new, NbtPredicate::getTag);
+    public static final Codec<NbtPredicate> CODEC = TagParser.LENIENT_CODEC.xmap(NbtPredicate::new, NbtPredicate::tag);
 
     /**
      * NbtPredicate流编解码器
      */
     public static final StreamCodec<ByteBuf, NbtPredicate> STREAM_CODEC = ByteBufCodecs.COMPOUND_TAG.map(
         NbtPredicate::new,
-        NbtPredicate::getTag
+        NbtPredicate::tag
     );
-
-    /**
-     * NBT标签
-     */
-    private final CompoundTag tag;
 
     /**
      * 构造一个NBT谓词
      *
      * @param tag NBT标签
      */
-    public NbtPredicate(CompoundTag tag) {
-        this.tag = tag;
+    public NbtPredicate {
     }
 
     @Override

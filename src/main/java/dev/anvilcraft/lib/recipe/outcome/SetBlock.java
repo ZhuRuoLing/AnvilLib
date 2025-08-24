@@ -6,7 +6,6 @@ import dev.anvilcraft.lib.init.reicpe.LibRecipeOutcomeTypes;
 import dev.anvilcraft.lib.recipe.cache.BlockCache;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeContext;
 import dev.anvilcraft.lib.util.CodecUtil;
-import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -24,29 +23,13 @@ import net.minecraft.world.phys.Vec3;
 /**
  * 设置方块配方结果类，用于定义在配方执行时设置方块的结果
  * 该类实现了 IRecipeOutcome 接口，可以根据偏移量和概率设置指定位置的方块
+ *
+ * @param state  方块状态
+ * @param nbt    NBT 数据
+ * @param offset 偏移量
+ * @param chance 概率
  */
-@Getter
-public class SetBlock implements IRecipeOutcome<SetBlock> {
-    /**
-     * 方块状态
-     */
-    private final BlockState state;
-
-    /**
-     * NBT 数据
-     */
-    private final CompoundTag nbt;
-
-    /**
-     * 偏移量
-     */
-    private final Vec3 offset;
-
-    /**
-     * 概率
-     */
-    private final NumberProvider chance;
-
+public record SetBlock(BlockState state, CompoundTag nbt, Vec3 offset, NumberProvider chance) implements IRecipeOutcome<SetBlock> {
     /**
      * 构造一个新的设置方块配方结果
      *
@@ -54,11 +37,7 @@ public class SetBlock implements IRecipeOutcome<SetBlock> {
      * @param offset 偏移量
      * @param chance 概率
      */
-    public SetBlock(BlockState state, CompoundTag nbt, Vec3 offset, NumberProvider chance) {
-        this.state = state;
-        this.nbt = nbt;
-        this.offset = offset;
-        this.chance = chance;
+    public SetBlock {
     }
 
     /**
@@ -110,16 +89,16 @@ public class SetBlock implements IRecipeOutcome<SetBlock> {
         private static final MapCodec<SetBlock> CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
                 CodecUtil.BLOCK_STATE_MAP_CODEC
-                    .forGetter(SetBlock::getState),
+                    .forGetter(SetBlock::state),
                 CompoundTag.CODEC
                     .optionalFieldOf("nbt", null)
-                    .forGetter(SetBlock::getNbt),
+                    .forGetter(SetBlock::nbt),
                 Vec3.CODEC
                     .fieldOf("offset")
-                    .forGetter(SetBlock::getOffset),
+                    .forGetter(SetBlock::offset),
                 CodecUtil.NUMBER_PROVIDER_CODEC
                     .optionalFieldOf("chance", ConstantValue.exactly(1.0f))
-                    .forGetter(SetBlock::getChance)
+                    .forGetter(SetBlock::chance)
             ).apply(instance, SetBlock::new));
 
         /**
@@ -127,13 +106,13 @@ public class SetBlock implements IRecipeOutcome<SetBlock> {
          */
         private static final StreamCodec<RegistryFriendlyByteBuf, SetBlock> STREAM_CODEC = StreamCodec.composite(
             CodecUtil.BLOCK_STATE_STREAM_CODEC,
-            SetBlock::getState,
+            SetBlock::state,
             ByteBufCodecs.COMPOUND_TAG,
-            SetBlock::getNbt,
+            SetBlock::nbt,
             CodecUtil.VEC3_STREAM_CODEC,
-            SetBlock::getOffset,
+            SetBlock::offset,
             CodecUtil.NUMBER_PROVIDER_STREAM_CODEC,
-            SetBlock::getChance,
+            SetBlock::chance,
             SetBlock::new
         );
 

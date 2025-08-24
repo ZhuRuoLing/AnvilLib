@@ -11,7 +11,6 @@ import dev.anvilcraft.lib.recipe.outcome.function.IOutcomeFunction;
 import dev.anvilcraft.lib.recipe.util.IRecipeResultOffsetBlock;
 import dev.anvilcraft.lib.recipe.util.InWorldRecipeContext;
 import dev.anvilcraft.lib.util.CodecUtil;
-import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
@@ -35,29 +34,14 @@ import java.util.List;
 /**
  * 生成物品配方结果类，用于定义在配方执行时生成物品的结果
  * 该类实现了 IRecipeOutcome 接口，可以根据偏移量和数量生成指定的物品
+ *
+ * @param item      物品堆
+ * @param offset    偏移量
+ * @param count     数量
+ * @param functions 函数列表
  */
-@Getter
-public class SpawnItem implements IRecipeOutcome<SpawnItem> {
-    /**
-     * 物品堆
-     */
-    private final ItemStack item;
-
-    /**
-     * 偏移量
-     */
-    private final Vec3 offset;
-
-    /**
-     * 数量
-     */
-    private final NumberProvider count;
-
-    /**
-     * 函数列表
-     */
-    private final List<IOutcomeFunction<?>> functions;
-
+public record SpawnItem(ItemStack item, Vec3 offset, NumberProvider count, List<IOutcomeFunction<?>> functions)
+    implements IRecipeOutcome<SpawnItem> {
     /**
      * 构造一个新的生成物品配方结果
      *
@@ -65,11 +49,7 @@ public class SpawnItem implements IRecipeOutcome<SpawnItem> {
      * @param offset 偏移量
      * @param count  数量
      */
-    public SpawnItem(ItemStack item, Vec3 offset, NumberProvider count, List<IOutcomeFunction<?>> functions) {
-        this.item = item;
-        this.offset = offset;
-        this.count = count;
-        this.functions = functions;
+    public SpawnItem {
     }
 
     /**
@@ -140,20 +120,20 @@ public class SpawnItem implements IRecipeOutcome<SpawnItem> {
         private static final MapCodec<SpawnItem> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                 ItemStack.ITEM_NON_AIR_CODEC
                     .fieldOf("item")
-                    .forGetter(spawnItem -> spawnItem.getItem().getItemHolder()),
+                    .forGetter(spawnItem -> spawnItem.item().getItemHolder()),
                 DataComponentPatch.CODEC
                     .optionalFieldOf("components", DataComponentPatch.EMPTY)
-                    .forGetter(spawnItem -> spawnItem.getItem().getComponentsPatch()),
+                    .forGetter(spawnItem -> spawnItem.item().getComponentsPatch()),
                 Vec3.CODEC
                     .fieldOf("offset")
-                    .forGetter(SpawnItem::getOffset),
+                    .forGetter(SpawnItem::offset),
                 CodecUtil.NUMBER_PROVIDER_CODEC
                     .optionalFieldOf("count", ConstantValue.exactly(1.0f))
-                    .forGetter(SpawnItem::getCount),
+                    .forGetter(SpawnItem::count),
                 IOutcomeFunction.CODEC
                     .listOf()
-                    .fieldOf("functions")
-                    .forGetter(SpawnItem::getFunctions)
+                    .optionalFieldOf("functions", List.of())
+                    .forGetter(SpawnItem::functions)
             ).apply(instance, SpawnItem::new)
         );
 
@@ -162,13 +142,13 @@ public class SpawnItem implements IRecipeOutcome<SpawnItem> {
          */
         public static final StreamCodec<RegistryFriendlyByteBuf, SpawnItem> STREAM_CODEC = StreamCodec.composite(
             ItemStack.STREAM_CODEC,
-            SpawnItem::getItem,
+            SpawnItem::item,
             CodecUtil.VEC3_STREAM_CODEC,
-            SpawnItem::getOffset,
+            SpawnItem::offset,
             CodecUtil.NUMBER_PROVIDER_STREAM_CODEC,
-            SpawnItem::getCount,
+            SpawnItem::count,
             CodecUtil.codec2Stream(IOutcomeFunction.CODEC).apply(ByteBufCodecs.list()),
-            SpawnItem::getFunctions,
+            SpawnItem::functions,
             SpawnItem::new
         );
 

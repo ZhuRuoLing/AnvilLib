@@ -26,12 +26,16 @@ import java.util.Optional;
  * <p>
  * 用于定义物品匹配规则，包括物品类型、数量范围、组件和子谓词
  * </p>
+ * @param items         物品集合
+ * @param count         数量范围
+ * @param components    数据组件谓词
+ * @param subPredicates 子谓词映射
  */
 public record ItemPredicate(
-    Optional<HolderSet<Item>> items, // 物品集合
-    MinMaxBounds.Ints count, // 数量范围
-    DataComponentPredicate components, // 数据组件谓词
-    Map<ItemSubPredicate.Type<?>, ItemSubPredicate> subPredicates // 子谓词映射
+    Optional<HolderSet<Item>> items,
+    MinMaxBounds.Ints count,
+    DataComponentPredicate components,
+    Map<ItemSubPredicate.Type<?>, ItemSubPredicate> subPredicates
 ) implements IItemStackPredicate {
     /**
      * ItemPredicate编解码器
