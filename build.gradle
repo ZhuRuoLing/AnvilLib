@@ -38,7 +38,7 @@ neoForge {
 
     interfaceInjectionData {
         from 'src/main/resources/interface_injections.json'
-        publish file('interface_injections.json')
+        publish file('src/main/resources/interface_injections.json')
     }
 
     // Default run configurations.
