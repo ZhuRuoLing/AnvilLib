@@ -16,6 +16,8 @@ public class ConfigData {
     public static final String TOML_TITLE_STRING = "%s.configuration.section.%s.%s.toml.title";
     public static final String OPTION_STRING = "%s.configuration.%s";
     public static final String TOOLTIP_STRING = OPTION_STRING + ".tooltip";
+    public static final String COLLAPSIBLE_OBJECT_BUTTON_STRING = "%s.configuration.%s.tooltip";
+    public static final String COLLAPSIBLE_OBJECT_TOOLTIP_STRING = "%s.configuration.%s.tooltip";
 
     public static final Set<String> ADDED = new HashSet<>();
 
@@ -58,9 +60,6 @@ public class ConfigData {
     private static void providerAdd(ProviderProxy proxy, String modId, ModConfig.Type type, Field[] fields, @Nullable String parent) {
         for (Field field : fields) {
             String fieldName = FormattingUtil.toLowerCaseUnder(field.getName());
-            if (field.isAnnotationPresent(CollapsibleObject.class)) {
-                ConfigData.readConfigClass(proxy, modId, type, field.getType(), fieldName);
-            }
             String name;
             if (field.isAnnotationPresent(SerializedName.class)) {
                 name = field.getAnnotation(SerializedName.class).value();
@@ -68,6 +67,12 @@ public class ConfigData {
                 name = FormattingUtil.toEnglishName(fieldName);
             }
             if (parent != null) fieldName = parent + "." + fieldName;
+            boolean flag = field.isAnnotationPresent(CollapsibleObject.class);
+            if (flag) {
+                proxy.add(COLLAPSIBLE_OBJECT_BUTTON_STRING.formatted(modId, fieldName), name);
+                proxy.add(COLLAPSIBLE_OBJECT_TOOLTIP_STRING.formatted(modId, fieldName), name);
+                ConfigData.readConfigClass(proxy, modId, type, field.getType(), fieldName);
+            }
             proxy.add(OPTION_STRING.formatted(modId, fieldName), name);
             if (field.isAnnotationPresent(Comment.class)) {
                 Comment comment = field.getAnnotation(Comment.class);
