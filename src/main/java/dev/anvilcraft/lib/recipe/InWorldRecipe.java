@@ -237,7 +237,10 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
         } else {
             flag = ShapelessMatcher.incompatible(this.conflicting, context);
         }
-        if (!flag) context.getStack().clear();
+        if (!flag) {
+            context.getStack().clear();
+        }
+        context.getStack().forEach(predicate -> predicate.clearStack(context));
         return flag;
     }
 

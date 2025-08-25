@@ -145,12 +145,26 @@ public class ICacheInputOutputImpl implements ICacheInput, ICacheOutput {
         ItemStack stack = ItemStack.EMPTY;
         for (ICacheElement element : operation.elements()) {
             ItemStack stack1 = element.rollbackGrow();
-            if (stack.isEmpty()) stack = stack1;
-            else stack.grow(stack1.getCount());
+            if (stack.isEmpty()) {
+                stack = stack1;
+            } else {
+                stack.grow(stack1.getCount());
+            }
         }
         SpawnOperation spawnOperation = this.spawnSimulateStack.pop();
         stack.grow(spawnOperation.count());
         return stack;
+    }
+
+    /**
+     * 清空操作栈
+     */
+    @Override
+    public void clearStack() {
+        this.growSimulateStack.clear();
+        this.shrinkSimulateStack.clear();
+        this.spawnSimulateStack.clear();
+        this.elements.forEach(ICacheElement::clearStack);
     }
 
     /**

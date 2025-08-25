@@ -30,14 +30,18 @@ public class ConfigManager {
     private static final Map<String, ConfigManager> INSTANCES = new ConcurrentHashMap<>();
 
     private final Map<Object, ConfigRecord> configSpecMap = new HashMap<>();
+    private final String modId;
 
-    public static <T> T register(Supplier<T> configFactory) {
+    private ConfigManager(String modId) {
+        this.modId = modId;
+    }
+
+    public static <T> T register(String modId, Supplier<T> configFactory) {
         ModContainer container = ModLoadingContext.get().getActiveContainer();
-        String modId = container.getModId();
         ConfigManager manager = INSTANCES.computeIfAbsent(
             modId, id -> {
-                ConfigManager configManager = new ConfigManager();
-                configManager.register(Objects.requireNonNull(container.getEventBus()), container);
+                ConfigManager configManager = new ConfigManager(id);
+                configManager.register(Objects.requireNonNull(container.getEventBus()));
                 return configManager;
             }
         );
@@ -60,21 +64,26 @@ public class ConfigManager {
                 log.error(e.getMessage(), e);
             }
             ModConfigSpec spec = builder.build();
-            this.configSpecMap.put(configObj, new ConfigRecord(type, spec, configObj, valuesBuilder.build()));
+            this.configSpecMap.put(configObj, new ConfigRecord(name, type, spec, configObj, valuesBuilder.build()));
         }
         return configObj;
     }
 
-    public void register(IEventBus bus, ModContainer container) {
-        bus.addListener(
-            FMLConstructModEvent.class,
-            event -> {
-                for (Map.Entry<Object, ConfigRecord> entry : this.configSpecMap.entrySet()) {
-                    container.registerConfig(entry.getValue().type(), entry.getValue().spec());
-                }
-            }
-        );
+    public void register(IEventBus bus) {
         bus.register(this);
+    }
+
+    @SubscribeEvent
+    public void onModConstruct(FMLConstructModEvent event) {
+        ModContainer container = ModLoadingContext.get().getActiveContainer();
+        if (!this.modId.equals(container.getModId())) return;
+        for (Map.Entry<Object, ConfigRecord> entry : this.configSpecMap.entrySet()) {
+            ConfigRecord value = entry.getValue();
+            if (value.registered().get()) return;
+            value.registered().set(true);
+            log.info("Registering {} for {}", value.getFileName(), container.getModId());
+            container.registerConfig(value.type(), value.spec(), value.getFileName());
+        }
     }
 
     @SubscribeEvent

@@ -124,6 +124,15 @@ public abstract class AbstractCacheElement implements ICacheElement {
     }
 
     /**
+     * 清空操作栈
+     */
+    @Override
+    public void clearStack() {
+        this.growSimulateStack.clear();
+        this.shrinkSimulateStack.clear();
+    }
+
+    /**
      * 判断是否满足指定谓词条件
      *
      * @param stack 物品谓词

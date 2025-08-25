@@ -61,6 +61,12 @@ public class HasItemIngredient extends HasItemBase<HasItemIngredient, ItemIngred
     }
 
     @Override
+    public void clearStack(InWorldRecipeContext context) {
+        ICacheInput input = this.getItem(context);
+        input.clearStack();
+    }
+
+    @Override
     public void accept(InWorldRecipeContext context) {
         super.accept(context);
         context.putAcceptor(ItemCache.ITEM_CACHE.location(), ItemCache.DEFAULT_ACCEPTOR);

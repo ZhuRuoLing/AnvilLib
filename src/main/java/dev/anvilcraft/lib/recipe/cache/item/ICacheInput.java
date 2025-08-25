@@ -24,6 +24,11 @@ public interface ICacheInput {
     int rollbackShrink();
 
     /**
+     * 清空操作栈
+     */
+    void clearStack();
+
+    /**
      * 同步更改
      */
     void sync();

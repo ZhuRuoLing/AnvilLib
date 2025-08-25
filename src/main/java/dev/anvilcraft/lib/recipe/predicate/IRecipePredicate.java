@@ -52,6 +52,11 @@ public interface IRecipePredicate<P extends IRecipePredicate<P>>
     }
 
     /**
+     * 清空操作栈
+     */
+    default void clearStack(InWorldRecipeContext context){}
+
+    /**
      * 获取配方谓词的类型
      *
      * @return 配方谓词类型
