@@ -14,8 +14,11 @@ public record ConfigField(
     public void load() {
         boolean isFinal = this.field.accessFlags().contains(AccessFlag.FINAL);
         boolean isStatic = this.field.accessFlags().contains(AccessFlag.STATIC);
+        if (isFinal) return;
         boolean isPublic = this.field.accessFlags().contains(AccessFlag.PUBLIC);
-        if (isFinal || !isPublic) return;
+        if (!isPublic) {
+            this.field.setAccessible(true);
+        }
         try {
             if (isStatic) {
                 ConfigField.cast(null, this.field, this.value.get());
@@ -24,6 +27,10 @@ public record ConfigField(
             }
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (!isPublic) {
+                this.field.setAccessible(false);
+            }
         }
     }
 

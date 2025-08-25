@@ -8,8 +8,11 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -18,10 +21,30 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 @Slf4j
 public class ConfigManager {
+    private static final Map<String, ConfigManager> INSTANCES = new ConcurrentHashMap<>();
+
     private final Map<Object, ConfigRecord> configSpecMap = new HashMap<>();
+
+    public static <T> T register(Supplier<T> configFactory) {
+        ModContainer container = ModLoadingContext.get().getActiveContainer();
+        String modId = container.getModId();
+        ConfigManager manager = INSTANCES.computeIfAbsent(
+            modId, id -> {
+                ConfigManager configManager = new ConfigManager();
+                configManager.register(Objects.requireNonNull(container.getEventBus()), container);
+                return configManager;
+            }
+        );
+        T config = manager.register(configFactory.get());
+        if (FMLLoader.getDist().isClient()) manager.registerScreen(container);
+        return config;
+    }
 
     public <T> T register(T configObj) {
         Class<?> configClass = configObj.getClass();
@@ -43,9 +66,14 @@ public class ConfigManager {
     }
 
     public void register(IEventBus bus, ModContainer container) {
-        for (Map.Entry<Object, ConfigRecord> entry : this.configSpecMap.entrySet()) {
-            container.registerConfig(entry.getValue().type(), entry.getValue().spec());
-        }
+        bus.addListener(
+            FMLConstructModEvent.class,
+            event -> {
+                for (Map.Entry<Object, ConfigRecord> entry : this.configSpecMap.entrySet()) {
+                    container.registerConfig(entry.getValue().type(), entry.getValue().spec());
+                }
+            }
+        );
         bus.register(this);
     }
 
