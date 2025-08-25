@@ -16,7 +16,7 @@ public class ConfigData {
     public static final String TOML_TITLE_STRING = "%s.configuration.section.%s.%s.toml.title";
     public static final String OPTION_STRING = "%s.configuration.%s";
     public static final String TOOLTIP_STRING = OPTION_STRING + ".tooltip";
-    public static final String COLLAPSIBLE_OBJECT_BUTTON_STRING = "%s.configuration.%s.tooltip";
+    public static final String COLLAPSIBLE_OBJECT_BUTTON_STRING = "%s.configuration.%s.button";
     public static final String COLLAPSIBLE_OBJECT_TOOLTIP_STRING = "%s.configuration.%s.tooltip";
 
     public static final Set<String> ADDED = new HashSet<>();
