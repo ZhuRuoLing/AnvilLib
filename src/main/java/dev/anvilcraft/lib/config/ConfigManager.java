@@ -106,6 +106,7 @@ public class ConfigManager {
         Class<?> configClass = configObj.getClass();
         Field[] fields = configClass.getDeclaredFields();
         for (Field field : fields) {
+            field.setAccessible(true);
             String fieldName = FormattingUtil.toLowerCaseUnder(field.getName());
             Object object = field.get(configObj);
             if (field.isAnnotationPresent(Comment.class)) {
