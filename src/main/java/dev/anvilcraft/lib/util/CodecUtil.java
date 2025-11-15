@@ -102,16 +102,17 @@ public abstract class CodecUtil {
     );
 
     public static final Codec<NumberProvider> NUMBER_PROVIDER_CODEC = Codec.either(
+        NumberProviders.CODEC,
         Codec.INT.xmap(
             ConstantValue::new,
             value -> Math.round(value.value())
-        ), NumberProviders.CODEC
+        )
     ).xmap(
         Either::unwrap, provider -> {
             if (!(provider instanceof ConstantValue(float value)) || value - Math.floor(value) >= 1E-5) {
-                return Either.right(provider);
+                return Either.left(provider);
             }
-            return Either.left((ConstantValue) provider);
+            return Either.right((ConstantValue) provider);
         }
     );
 
