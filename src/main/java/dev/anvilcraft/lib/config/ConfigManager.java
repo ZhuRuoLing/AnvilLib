@@ -120,7 +120,7 @@ public class ConfigManager {
                 builder.push(fieldName);
                 ConfigManager.register(builder, modId, fieldName, object, values);
                 builder.pop();
-                return;
+                continue;
             }
             ModConfigSpec.ConfigValue<?> value = ConfigManager.define(builder, fieldName, field, object);
             values.add(new ConfigField(configObj, field, value));
