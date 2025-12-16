@@ -1,5 +1,8 @@
 {
   "net/minecraft/world/item/crafting/RecipeManager": [
     "dev/anvilcraft/lib/injection/IRecipeManagerExtension"
+  ],
+  "net/minecraft/world/level/block/piston/PistonMovingBlockEntity": [
+    "dev/anvilcraft/lib/injection/IPistonMovingBlockEntityExtension"
   ]
 }
