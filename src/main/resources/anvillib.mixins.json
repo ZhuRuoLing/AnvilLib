@@ -6,7 +6,9 @@
   "refmap": "anvillib.refmap.json",
   "mixins": [
     "ItemEntityMixin",
-    "RecipeManagerMixin"
+    "RecipeManagerMixin",
+    "piston.PistonBaseBlockMixin",
+    "piston.PistonMovingBlockEntityMixin"
   ],
   "client": [
   ],
