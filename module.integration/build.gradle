@@ -163,6 +163,12 @@ publishing {
             from components.java
 
             artifact sourcesJar
+
+            versionMapping {
+                allVariants {
+                    fromResolutionResult()
+                }
+            }
         }
     }
     repositories {
