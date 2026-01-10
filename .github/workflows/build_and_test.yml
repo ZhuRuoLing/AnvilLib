@@ -1,0 +1,110 @@
+name: Build and Test
+on:
+  workflow_call:
+    inputs:
+      module:
+        description: 'Module to build'
+        required: true
+        type: string
+      module_id:
+        description: 'Module ID to build'
+        required: true
+        type: string
+      mod_id:
+        description: 'Mod ID'
+        required: true
+        type: string
+      ci_build:
+        description: 'CI Build'
+        required: true
+        type: boolean
+      pr_build:
+        description: 'PR Build'
+        required: true
+        type: boolean
+      gametest:
+        description: 'Gametest'
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      maven_url:
+        description: 'Maven URL'
+        required: true
+      maven_user:
+        description: 'Maven User'
+        required: true
+      maven_pass:
+        description: 'Maven Password'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NOT_DEV: true
+      CI_BUILD: ${{ inputs.ci_build }}
+      PR_BUILD: ${{ inputs.pr_build }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v3
+
+      - name: Read Properties
+        id: 'properties'
+        uses: christian-draeger/read-properties@1.1.1
+        with:
+          path: gradle.properties
+          properties: 'java_version'
+
+      - name: Setup Java ${{ steps.properties.outputs.java_version }}
+        uses: actions/setup-java@v3.6.0
+        with:
+          distribution: zulu
+          java-version: ${{ steps.properties.outputs.java_version }}
+
+      - name: make gradle wrapper executable
+        if: ${{ runner.os != 'Windows' }}
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build
+        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.1:build
+
+      - name: Get Version
+        id: version
+        run: |
+          MESSAGE=$(ls module.${{ inputs.module }}/build/libs/* | grep sources.jar -v | grep shadow.jar -v | grep slim.jar -v | awk -F '${{ inputs.mod_id }}-neoforge-|.jar' '{print $2}')
+          echo "version=$MESSAGE" >> $GITHUB_OUTPUT
+
+      - name: capture build artifacts
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: "${{ inputs.module_id }} ${{ steps.version.outputs.version }}"
+          path: module.${{ inputs.module }}/build/libs/${{ inputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar
+
+      - name: Publish to maven
+        if: ${{ !inputs.pr_build }}
+        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.1:publish
+        env:
+          MAVEN_URL: ${{ secrets.maven_url }}
+          MAVEN_USERNAME: ${{ secrets.maven_user }}
+          MAVEN_PASSWORD: ${{ secrets.maven_pass }}
+        continue-on-error: true
+
+      - name: gametest
+        if: ${{ inputs.ci_build && inputs.gametest }}
+        uses: Anvil-Dev/dedicated-server-launch-test@1.21.1-neoforge
+        with:
+          mod: module.${{ inputs.module }}/build/libs/${{ inputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar
+
+      - name: Upload Release Jar
+        if: ${{ !inputs.ci_build && !inputs.pr_build }}
+        uses: softprops/action-gh-release@v0.1.15
+        with:
+          files: |
+            module.${{ inputs.module }}/build/libs/${{ inputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar

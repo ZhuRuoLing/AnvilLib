@@ -10,4 +10,14 @@ plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
 }
 
-rootProject.name = mod_id + "-neoforge" + "-" + minecraft_version
+include 'module.config'
+include 'module.integration'
+include 'module.moveable-entity-block'
+include 'module.recipe'
+include 'module.main'
+
+project(':module.config').name = 'anvillib-config-neoforge-1.21.1'
+project(':module.integration').name = 'anvillib-integration-neoforge-1.21.1'
+project(':module.moveable-entity-block').name = 'anvillib-moveable-entity-block-neoforge-1.21.1'
+project(':module.recipe').name = 'anvillib-recipe-neoforge-1.21.1'
+project(':module.main').name = 'anvillib-neoforge-1.21.1'

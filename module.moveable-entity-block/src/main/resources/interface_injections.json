@@ -1,0 +1,5 @@
+{
+  "net/minecraft/world/level/block/piston/PistonMovingBlockEntity": [
+    "dev/anvilcraft/lib/piston/injection/IPistonMovingBlockEntityExtension"
+  ]
+}

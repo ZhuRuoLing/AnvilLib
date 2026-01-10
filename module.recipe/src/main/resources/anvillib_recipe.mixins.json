@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.anvilcraft.lib.recipe.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "anvillib.refmap.json",
+  "mixins": [
+    "ItemEntityMixin",
+    "RecipeManagerMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

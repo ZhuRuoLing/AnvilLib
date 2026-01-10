@@ -1,0 +1,36 @@
+package dev.anvilcraft.lib.recipe.cache;
+
+import dev.anvilcraft.lib.recipe.AnvilLibRecipe;
+import dev.anvilcraft.lib.recipe.util.InWorldRecipeContext;
+import dev.anvilcraft.lib.recipe.util.InWorldRecipeData;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+public class TagCache {
+    public static final InWorldRecipeData<TagCache> TAG_CACHE = InWorldRecipeData.of(AnvilLibRecipe.of("tag_cache"), TagCache::of);
+    public final Map<ResourceLocation, Tag> tags = new HashMap<>();
+
+    public TagCache() {
+    }
+
+    private static TagCache of(InWorldRecipeContext level, InWorldRecipeData<TagCache> key) {
+        return new TagCache();
+    }
+
+    public @Nullable Tag getTag(ResourceLocation id) {
+        return this.tags.get(id);
+    }
+
+    public void putTag(ResourceLocation id, Tag tag) {
+        this.tags.put(id, tag);
+    }
+
+    public void computeIfAbsent(ResourceLocation id, Function<ResourceLocation, Tag> tag) {
+        this.tags.computeIfAbsent(id, tag);
+    }
+}
