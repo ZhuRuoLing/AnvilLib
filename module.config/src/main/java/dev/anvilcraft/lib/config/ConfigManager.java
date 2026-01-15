@@ -8,6 +8,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
@@ -17,13 +18,14 @@ import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
 @Slf4j
 public class ConfigManager {
@@ -37,11 +39,19 @@ public class ConfigManager {
     }
 
     public static <T> T register(String modId, Supplier<T> configFactory) {
-        ModContainer container = ModLoadingContext.get().getActiveContainer();
+        Optional<? extends ModContainer> byId = ModList.get().getModContainerById(modId);
+        ModContainer container;
+        if (byId.isPresent()) {
+            container = byId.get();
+        } else {
+            log.warn("Mod container not found for mod id {}", modId);
+            return configFactory.get();
+        }
+        IEventBus bus = container.getEventBus();
         ConfigManager manager = INSTANCES.computeIfAbsent(
             modId, id -> {
                 ConfigManager configManager = new ConfigManager(id);
-                configManager.register(Objects.requireNonNull(container.getEventBus()));
+                configManager.register(Objects.requireNonNull(bus));
                 return configManager;
             }
         );
