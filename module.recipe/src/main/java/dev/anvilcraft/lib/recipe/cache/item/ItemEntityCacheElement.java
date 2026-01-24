@@ -1,6 +1,7 @@
 package dev.anvilcraft.lib.recipe.cache.item;
 
 import dev.anvilcraft.lib.recipe.event.ItemCacheEvent;
+import dev.anvilcraft.lib.recipe.mixin.ItemEntityAccessor;
 import dev.anvilcraft.lib.recipe.cache.ItemCache;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -66,6 +67,7 @@ public class ItemEntityCacheElement extends AbstractCacheElement implements ICac
     public void sync() {
         this.growSimulateStack.clear();
         this.shrinkSimulateStack.clear();
+        ((ItemEntityAccessor) this.entity).setAge(0);
         this.entity.setItem(this.simulate);
         if (this.isInLevel) return;
         NeoForge.EVENT_BUS.post(new ItemCacheEvent.SpawnItemEntity(this.cache, this.entity));
