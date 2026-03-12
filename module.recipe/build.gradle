@@ -224,9 +224,6 @@ jreleaser {
     signing {
         active = 'ALWAYS'
         armored = true
-        mode = 'MEMORY'
-        passphrase = System.getenv('SIGNING_PASSWORD')
-        secretKey = System.getenv('SIGNING_KEY')
     }
 
     deploy {
@@ -236,8 +233,6 @@ jreleaser {
                     active = 'ALWAYS'
                     url = 'https://central.sonatype.com/api/v1/publisher'
                     stagingRepository('build/staging-deploy')
-                    username = System.getenv('MAVEN_CENTRAL_USERNAME')
-                    password = System.getenv('MAVEN_CENTRAL_PASSWORD')
                 }
             }
         }

@@ -46,6 +46,9 @@ on:
       signing_key:
         description: 'Signing Key'
         required: true
+      signing_public_key:
+        description: 'Signing Public Key'
+        required: true
       signing_password:
         description: 'Signing Password'
         required: true
@@ -112,10 +115,11 @@ jobs:
         if: ${{ !inputs.pr_build }}
         run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.1:jreleaserPublish --no-configuration-cache
         env:
-          MAVEN_CENTRAL_USERNAME: ${{ secrets.maven_central_username }}
-          MAVEN_CENTRAL_PASSWORD: ${{ secrets.maven_central_password }}
-          SIGNING_KEY: ${{ secrets.signing_key }}
-          SIGNING_PASSWORD: ${{ secrets.signing_password }}
+          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.maven_central_username }}
+          JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.maven_central_password }}
+          JRELEASER_GPG_SECRET_KEY: ${{ secrets.signing_key }}
+          JRELEASER_GPG_PASSPHRASE: ${{ secrets.signing_password }}
+          JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.signing_public_key }}
         continue-on-error: true
 
       - name: gametest

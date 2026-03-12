@@ -28,6 +28,7 @@ jobs:
       maven_central_username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
       maven_central_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
       signing_key: ${{ secrets.SIGNING_KEY }}
+      signing_public_key: ${{ secrets.SIGNING_PUBLIC_KEY }}
       signing_password: ${{ secrets.SIGNING_PASSWORD }}
 
   integration:
@@ -45,6 +46,7 @@ jobs:
       maven_central_username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
       maven_central_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
       signing_key: ${{ secrets.SIGNING_KEY }}
+      signing_public_key: ${{ secrets.SIGNING_PUBLIC_KEY }}
       signing_password: ${{ secrets.SIGNING_PASSWORD }}
 
   moveable-entity-block:
@@ -62,6 +64,7 @@ jobs:
       maven_central_username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
       maven_central_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
       signing_key: ${{ secrets.SIGNING_KEY }}
+      signing_public_key: ${{ secrets.SIGNING_PUBLIC_KEY }}
       signing_password: ${{ secrets.SIGNING_PASSWORD }}
 
   recipe:
@@ -81,6 +84,7 @@ jobs:
       maven_central_username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
       maven_central_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
       signing_key: ${{ secrets.SIGNING_KEY }}
+      signing_public_key: ${{ secrets.SIGNING_PUBLIC_KEY }}
       signing_password: ${{ secrets.SIGNING_PASSWORD }}
 
   main:
@@ -104,4 +108,5 @@ jobs:
       maven_central_username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
       maven_central_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
       signing_key: ${{ secrets.SIGNING_KEY }}
+      signing_public_key: ${{ secrets.SIGNING_PUBLIC_KEY }}
       signing_password: ${{ secrets.SIGNING_PASSWORD }}
