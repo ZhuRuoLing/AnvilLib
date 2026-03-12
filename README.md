@@ -1,7 +1,7 @@
 # AnvilLib **中文** | [English](README.en.md)
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-green.svg)](https://minecraft.net/)
-[![Maven Central](https://img.shields.io/maven-central/v/dev.anvilcraft.lib/anvillib-neoforge-1.21.1)](https://central.sonatype.com/search?q=anvillib)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.2-green.svg)](https://minecraft.net/)
+[![Maven Central](https://img.shields.io/maven-central/v/dev.anvilcraft.lib/anvillib-neoforge-1.21.2)](https://central.sonatype.com/search?q=anvillib)
 [![NeoForge](https://img.shields.io/badge/NeoForge-21.1.x-orange.svg)](https://neoforged.net/)
 [![License](https://img.shields.io/badge/License-MIT%20License-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
@@ -148,14 +148,14 @@ repositories {
 
 dependencies {
     // 完整库
-    implementation "dev.anvilcraft.lib:anvillib-neoforge-1.21.1:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-neoforge-1.21.2:2.0.0"
 
     // 或按需引入单独模块
-    implementation "dev.anvilcraft.lib:anvillib-config-neoforge-1.21.1:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-integration-neoforge-1.21.1:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-recipe-neoforge-1.21.1:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-1.21.1:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-registrum-neoforge-1.21.1:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-config-neoforge-1.21.2:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-integration-neoforge-1.21.2:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-recipe-neoforge-1.21.2:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-1.21.2:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-registrum-neoforge-1.21.2:2.0.0"
 }
 ```
 
@@ -167,7 +167,7 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.anvilcraft.lib:anvillib-neoforge-1.21.1:2.0.0")
+    implementation("dev.anvilcraft.lib:anvillib-neoforge-1.21.2:2.0.0")
 }
 ```
 
@@ -185,7 +185,7 @@ cd AnvilLib
 ## 环境要求
 
 - Java 21+
-- Minecraft 1.21.1
+- Minecraft 1.21.2
 - NeoForge 21.1.x
 
 ## 许可证
