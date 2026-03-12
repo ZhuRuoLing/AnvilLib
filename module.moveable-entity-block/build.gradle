@@ -145,6 +145,17 @@ tasks.register('sourcesJar', Jar) {
     archiveClassifier = "sources"
 }
 
+tasks.register('javadocJar', Jar) {
+    from javadoc.destinationDir
+    dependsOn javadoc
+    archiveClassifier = "javadoc"
+}
+
+javadoc {
+    options.encoding = 'UTF-8'
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
 jar {
     from(rootProject.file("LICENSE"))
     from(rootProject.file("ASSETS_LICENSE"))
@@ -155,6 +166,7 @@ jar {
 artifacts {
     archives tasks.jar
     archives tasks.sourcesJar
+    archives tasks.javadocJar
 }
 
 def this_name = base.archivesName.get()
@@ -166,6 +178,7 @@ publishing {
             from components.java
 
             artifact sourcesJar
+            artifact javadocJar
 
             versionMapping {
                 allVariants {
