@@ -106,6 +106,12 @@ jobs:
           MAVEN_URL: ${{ secrets.maven_url }}
           MAVEN_USERNAME: ${{ secrets.maven_user }}
           MAVEN_PASSWORD: ${{ secrets.maven_pass }}
+        continue-on-error: true
+
+      - name: Publish to maven central
+        if: ${{ !inputs.pr_build }}
+        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.1:jreleaserDeploy
+        env:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.maven_central_username }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.maven_central_password }}
           SIGNING_KEY: ${{ secrets.signing_key }}
