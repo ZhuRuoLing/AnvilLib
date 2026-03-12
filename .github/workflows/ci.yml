@@ -160,6 +160,8 @@ jobs:
       maven_url: ${{ secrets.MAVEN_URL }}
       maven_user: ${{ secrets.MAVEN_USER }}
       maven_pass: ${{ secrets.MAVEN_PASS }}
+      curseforge_token: ${{ secrets.CURSEFORGE_TOKEN }}
+      modrinth_token: ${{ secrets.MODRINTH_TOKEN }}
   main-maven-central-deploy:
     uses: ./.github/workflows/publish_maven_central.yml
     needs:

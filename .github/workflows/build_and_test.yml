@@ -37,6 +37,12 @@ on:
       maven_pass:
         description: 'Maven Password'
         required: true
+      curseforge_token:
+        description: 'Curseforge Token'
+        required: true
+      modrinth_token:
+        description: 'Modrinth Token'
+        required: true
 
 jobs:
   build:
@@ -114,3 +120,7 @@ jobs:
         with:
           files: |
             module.${{ inputs.module }}/build/libs/${{ inputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar
+
+      - name: Upload MCMOD
+        if: ${{ inputs.module == 'main' }}
+        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.1:publishMods

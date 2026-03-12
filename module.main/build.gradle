@@ -7,6 +7,7 @@ plugins {
     alias libs.plugins.lombok
     alias libs.plugins.machete
     id 'org.jreleaser' version '1.23.0'
+    id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
 
 String buildType = 'snapshot'
@@ -279,4 +280,26 @@ machete {
 
 lombok {
     version = "1.18.34"
+}
+
+publishMods {
+    file = jar.archiveFile
+    changelog = "Update"
+    type = BETA
+    modLoaders.add("neoforge")
+
+    additionalFiles.from(sourcesJar.archiveFile)
+    additionalFiles.from(javadocJar.archiveFile)
+
+    curseforge {
+        accessToken = System.getenv("CURSEFORGE_TOKEN")
+        projectId = "1484302"
+        minecraftVersions.add(project.minecraft_version)
+    }
+
+    modrinth {
+        accessToken = System.getenv("MODRINTH_TOKEN")
+        projectId = "nKAcAL9b"
+        minecraftVersions.add(project.minecraft_version)
+    }
 }
