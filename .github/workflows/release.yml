@@ -1,7 +1,7 @@
 name: CI for Mod
 on:
   workflow_dispatch:
-  push:
+  release:
     branches:
       - dev/**
       # - releases/**
