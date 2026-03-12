@@ -3,7 +3,8 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - releases/**
+      - dev/**
+      # - releases/**
     paths:
       - module.*/src/**
       - module.*/build.gradle
