@@ -124,3 +124,6 @@ jobs:
       - name: Upload MCMOD
         if: ${{ inputs.module == 'main' }}
         run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.1:publishMods
+        env:
+          CURSEFORGE_TOKEN: ${{ secrets.curseforge_token }}
+          MODRINTH_TOKEN: ${{ secrets.modrinth_token }}
