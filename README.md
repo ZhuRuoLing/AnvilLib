@@ -1,6 +1,7 @@
 # AnvilLib
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-green.svg)](https://minecraft.net/)
+[![Maven Central](https://img.shields.io/maven-central/v/dev.anvilcraft.lib/anvillib-neoforge-1.21.1)](https://central.sonatype.com/search?q=anvillib)
 [![NeoForge](https://img.shields.io/badge/NeoForge-21.1.x-orange.svg)](https://neoforged.net/)
 [![License](https://img.shields.io/badge/License-MIT%20License-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
