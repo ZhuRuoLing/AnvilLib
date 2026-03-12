@@ -105,7 +105,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      * @return A new {@link BlockBuilder} with reasonable default data generators.
      */
     public static <T extends Block, P> BlockBuilder<T, P> create(AbstractRegistrum<?> owner, P parent, String name, BuilderCallback callback, NonNullFunction<BlockBehaviour.Properties, T> factory) {
-        return new BlockBuilder<>(owner, parent, name, callback, factory, () -> BlockBehaviour.Properties.of())
+        return new BlockBuilder<>(owner, parent, name, callback, factory, BlockBehaviour.Properties::of)
                 .defaultBlockstate().defaultLoot().defaultLang();
     }
 
@@ -171,7 +171,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
         RegistrumDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             OneTimeEventReceiver.addModListener(getOwner(), FMLClientSetupEvent.class, $ -> {
                 if (renderLayers.size() == 1) {
-                    final RenderType layer = renderLayers.get(0).get().get();
+                    final RenderType layer = renderLayers.getFirst().get().get();
                     ItemBlockRenderTypes.setRenderLayer(entry, layer);
                 } else if (renderLayers.size() > 1) {
                     final Set<RenderType> layers = renderLayers.stream()

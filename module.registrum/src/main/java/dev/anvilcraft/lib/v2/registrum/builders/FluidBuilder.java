@@ -210,9 +210,8 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
     public static <T extends BaseFlowingFluid, P> FluidBuilder<T, P> create(
         AbstractRegistrum<?> owner, P parent, String name, BuilderCallback callback, ResourceLocation stillTexture, ResourceLocation flowingTexture,
         FluidTypeFactory typeFactory, NonNullFunction<BaseFlowingFluid.Properties, T> fluidFactory) {
-        FluidBuilder<T, P> ret = new FluidBuilder<>(owner, parent, name, callback, stillTexture, flowingTexture, typeFactory, fluidFactory)
+        return new FluidBuilder<>(owner, parent, name, callback, stillTexture, flowingTexture, typeFactory, fluidFactory)
             .defaultLang().defaultSource().defaultBlock().defaultBucket();
-        return ret;
     }
 
     /**
@@ -251,9 +250,8 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
     public static <T extends BaseFlowingFluid, P> FluidBuilder<T, P> create(
         AbstractRegistrum<?> owner, P parent, String name, BuilderCallback callback, ResourceLocation stillTexture, ResourceLocation flowingTexture,
         NonNullSupplier<FluidType> fluidType, NonNullFunction<BaseFlowingFluid.Properties, T> fluidFactory) {
-        FluidBuilder<T, P> ret = new FluidBuilder<>(owner, parent, name, callback, stillTexture, flowingTexture, fluidType, fluidFactory)
+        return new FluidBuilder<>(owner, parent, name, callback, stillTexture, flowingTexture, fluidType, fluidFactory)
                 .defaultLang().defaultSource().defaultBlock().defaultBucket();
-        return ret;
     }
 
     private final String sourceName, bucketName;
@@ -356,9 +354,6 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
         return lang(f -> f.getFluidType().getDescriptionId(), name);
     }
 
-    
-    
-    @SuppressWarnings("deprecation")
     public FluidBuilder<T, P> renderType(Supplier<Supplier<RenderType>> layer) {
         RegistrumDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get().get()), "Invalid render type: " + layer);
@@ -371,7 +366,6 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
         return this;
     }
 
-    @SuppressWarnings("deprecation")
     protected void registerRenderType(T entry) {
         RegistrumDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             OneTimeEventReceiver.addModListener(getOwner(), FMLClientSetupEvent.class, $ -> {

@@ -88,7 +88,7 @@ public class RegistrumDataProvider implements DataProvider {
             for (Map.Entry<@NonnullType ProviderType<?>, RegistrumProvider> e : subProviders.entrySet()) {
                 log.debug(DebugMarkers.DATA, "Generating data for type: {}", getTypeName(e.getKey()));
                 list.add(e.getValue().run(cache));
-            };
+            }
 
             return CompletableFuture.allOf(list.toArray(CompletableFuture[]::new));
         });

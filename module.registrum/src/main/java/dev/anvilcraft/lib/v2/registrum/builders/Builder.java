@@ -84,7 +84,7 @@ public interface Builder<R, T extends R, P, S extends Builder<R, T, P, S>> exten
      */
     @Override
     default RegistryEntry<R, T> get() {
-        return getOwner().<R, T> get(getName(), getRegistryKey());
+        return getOwner().<R, T>get(getName(), getRegistryKey());
     }
     
     /**

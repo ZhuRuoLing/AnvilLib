@@ -14,7 +14,6 @@ package dev.anvilcraft.lib.v2.registrum.providers;
 
 import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
 import dev.anvilcraft.lib.v2.registrum.providers.loot.RegistrumLootTableProvider;
-import net.minecraft.FieldsAreNonnullByDefault;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullBiFunction;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullFunction;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullUnaryOperator;
@@ -23,6 +22,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.block.Block;
@@ -31,8 +31,6 @@ import net.neoforged.fml.LogicalSide;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
-import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -48,8 +46,6 @@ import java.util.function.Function;
  */
 @FunctionalInterface
 @SuppressWarnings("deprecation")
-@FieldsAreNonnullByDefault
-@ParametersAreNonnullByDefault
 public interface ProviderType<T extends RegistrumProvider> {
 
     // SERVER DATA
@@ -60,6 +56,7 @@ public interface ProviderType<T extends RegistrumProvider> {
     ProviderType<RegistrumLootTableProvider> LOOT = registerServerData("loot", RegistrumLootTableProvider::new);
     ProviderType<RegistrumTagsProvider.IntrinsicImpl<Block>> BLOCK_TAGS = registerIntrinsicTag("tags/block", "blocks", Registries.BLOCK, block -> block.builtInRegistryHolder().key());
     ProviderType<RegistrumTagsProvider.Impl<Enchantment>> ENCHANTMENT_TAGS = registerDynamicTag("tags/enchantment", "enchantments", Registries.ENCHANTMENT);
+    ProviderType<RegistrumTagsProvider.Impl<DamageType>> DAMAGE_TYPE_TAGS = registerDynamicTag("tags/damage_type", "damage_types", Registries.DAMAGE_TYPE);
     ProviderType<RegistrumItemTagsProvider> ITEM_TAGS = registerTag("tags/item", Registries.ITEM, c -> new RegistrumItemTagsProvider(c.parent(), c.type(), "items", c.output(), c.provider(), c.get(BLOCK_TAGS).contentsGetter(), c.fileHelper()));
     ProviderType<RegistrumTagsProvider.IntrinsicImpl<Fluid>> FLUID_TAGS = registerIntrinsicTag("tags/fluid", "fluids", Registries.FLUID, fluid -> fluid.builtInRegistryHolder().key());
     ProviderType<RegistrumTagsProvider.IntrinsicImpl<EntityType<?>>> ENTITY_TAGS = registerIntrinsicTag("tags/entity", "entity_types", Registries.ENTITY_TYPE, entityType -> entityType.builtInRegistryHolder().key());
@@ -119,12 +116,11 @@ public interface ProviderType<T extends RegistrumProvider> {
 
     // TODO this is clunky af
     @Deprecated
-    @Nonnull
     static <T extends RegistrumProvider> ProviderType<T> registerDelegate(String name, NonNullUnaryOperator<ProviderType<T>> type) {
         ProviderType<T> ret = new ProviderType<T>() {
 
             @Override
-            public T create(@Nonnull AbstractRegistrum<?> parent, GatherDataEvent event, Map<ProviderType<?>, RegistrumProvider> existing) {
+            public T create(AbstractRegistrum<?> parent, GatherDataEvent event, Map<ProviderType<?>, RegistrumProvider> existing) {
                 return type.apply(this).create(parent, event, existing);
             }
         };
@@ -132,12 +128,11 @@ public interface ProviderType<T extends RegistrumProvider> {
     }
 
     @Deprecated
-    @Nonnull
     static <T extends RegistrumProvider> ProviderType<T> register(String name, NonNullFunction<ProviderType<T>, NonNullBiFunction<AbstractRegistrum<?>, GatherDataEvent, T>> type) {
         ProviderType<T> ret = new ProviderType<T>() {
 
             @Override
-            public T create(@Nonnull AbstractRegistrum<?> parent, GatherDataEvent event, Map<ProviderType<?>, RegistrumProvider> existing) {
+            public T create(AbstractRegistrum<?> parent, GatherDataEvent event, Map<ProviderType<?>, RegistrumProvider> existing) {
                 return type.apply(this).apply(parent, event);
             }
         };
@@ -145,37 +140,26 @@ public interface ProviderType<T extends RegistrumProvider> {
     }
 
     @Deprecated
-    @Nonnull
     static <T extends RegistrumProvider> ProviderType<T> register(String name, NonNullBiFunction<AbstractRegistrum<?>, GatherDataEvent, T> type) {
-        ProviderType<T> ret = new ProviderType<T>() {
-
-            @Override
-            public T create(AbstractRegistrum<?> parent, GatherDataEvent event, Map<ProviderType<?>, RegistrumProvider> existing) {
-                return type.apply(parent, event);
-            }
-        };
+        ProviderType<T> ret = (parent, event, existing) -> type.apply(parent, event);
         return register(name, ret);
     }
 
     @Deprecated
-    @Nonnull
     static <T extends RegistrumProvider> ProviderType<T> register(String name, ProviderType<T> type) {
         RegistrumDataProvider.TYPES.put(name, type);
         return type;
     }
 
-    @Nonnull
     static <T extends RegistrumProvider> ProviderType<T> registerServerData(String name, SimpleServerDataFactory<T> factory) {
         return register(name, factory.asProvider());
     }
 
-    @Nonnull
     static <T extends RegistrumProvider> ProviderType<T> registerProvider(String name, DependencyAwareProviderType<T> type) {
         RegistrumDataProvider.TYPES.put(name, type);
         return type;
     }
 
-    @Nonnull
     static <T, R extends RegistrumTagsProvider<T>> ProviderType<R> registerTag(String name, ResourceKey<? extends Registry<T>> key, DependencyAwareProviderType<R> type) {
         if (RegistrumDataProvider.TAG_TYPES.containsKey(key)) {
             return (ProviderType<R>) RegistrumDataProvider.TAG_TYPES.get(key);
@@ -185,12 +169,10 @@ public interface ProviderType<T extends RegistrumProvider> {
         return type;
     }
 
-    @Nonnull
     static <T> ProviderType<RegistrumTagsProvider.IntrinsicImpl<T>> registerIntrinsicTag(String providerName, String typeName, ResourceKey<? extends Registry<T>> registry, Function<T, ResourceKey<T>> keyExtractor) {
         return registerTag(providerName, registry, c -> new RegistrumTagsProvider.IntrinsicImpl<>(c.parent(), c.type(), typeName, c.output(), registry, c.provider(), keyExtractor, c.fileHelper()));
     }
 
-    @Nonnull
     static <T> ProviderType<RegistrumTagsProvider.Impl<T>> registerDynamicTag(String providerName, String typeName, ResourceKey<Registry<T>> registry) {
         return registerTag(providerName, registry, c -> new RegistrumTagsProvider.Impl<>(c.parent(), c.type(), typeName, c.output(), registry, c.provider(), c.fileHelper()));
     }

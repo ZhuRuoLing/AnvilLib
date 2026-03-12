@@ -54,7 +54,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P> extends AbstractBuilde
 
     public interface BlockEntityFactory<T extends BlockEntity> {
 
-        public T create(BlockEntityType<T> type, BlockPos pos, BlockState state);
+        T create(BlockEntityType<T> type, BlockPos pos, BlockState state);
 
     }
 

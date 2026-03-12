@@ -48,14 +48,14 @@ public class RegistrumLootTableProvider extends LootTableProvider implements Reg
 
     public interface LootType<T extends RegistrumLootTables> {
 
-        static LootType<RegistrumBlockLootTables> BLOCK = register("block", LootContextParamSets.BLOCK, RegistrumBlockLootTables::new);
-        static LootType<RegistrumEntityLootTables> ENTITY = register("entity", LootContextParamSets.ENTITY, RegistrumEntityLootTables::new);
+        LootType<RegistrumBlockLootTables> BLOCK = register("block", LootContextParamSets.BLOCK, RegistrumBlockLootTables::new);
+        LootType<RegistrumEntityLootTables> ENTITY = register("entity", LootContextParamSets.ENTITY, RegistrumEntityLootTables::new);
 
         T getLootCreator(HolderLookup.Provider provider, AbstractRegistrum<?> parent, Consumer<T> callback);
 
         LootContextParamSet getLootSet();
 
-        static <T extends RegistrumLootTables> LootType<T> register(String name, LootContextParamSet set, TriFunction<HolderLookup.Provider, AbstractRegistrum, Consumer<T>, T> factory) {
+        static <T extends RegistrumLootTables> LootType<T> register(String name, LootContextParamSet set, TriFunction<HolderLookup.Provider, AbstractRegistrum<?>, Consumer<T>, T> factory) {
             LootType<T> type = new LootType<T>() {
                 @Override
                 public T getLootCreator(HolderLookup.Provider provider, AbstractRegistrum<?> parent, Consumer<T> callback) {

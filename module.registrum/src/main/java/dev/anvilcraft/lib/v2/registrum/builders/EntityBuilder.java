@@ -186,7 +186,6 @@ public class EntityBuilder<T extends Entity, P> extends AbstractBuilder<EntityTy
      * @throws IllegalStateException
      *             When called more than once
      */
-    @SuppressWarnings("unchecked")
     public EntityBuilder<T, P> spawnPlacement(SpawnPlacementType type, Heightmap.Types heightmap, SpawnPredicate<T> predicate, RegisterSpawnPlacementsEvent.Operation operation) {
         if (spawnConfigured) {
             throw new IllegalStateException("Cannot configure spawn placement more than once");
