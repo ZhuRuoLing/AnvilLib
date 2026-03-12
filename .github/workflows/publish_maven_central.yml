@@ -1,0 +1,66 @@
+name: Publish to Maven Central
+on:
+  workflow_call:
+    inputs:
+      module:
+        description: 'Module to build'
+        required: true
+        type: string
+      module_id:
+        description: 'Module ID to build'
+        required: true
+        type: string
+    secrets:
+      maven_central_username:
+        description: 'Maven Central Username'
+        required: true
+      maven_central_password:
+        description: 'Maven Central Password'
+        required: true
+      signing_key:
+        description: 'Signing Key'
+        required: true
+      signing_public_key:
+        description: 'Signing Public Key'
+        required: true
+      signing_password:
+        description: 'Signing Password'
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read Properties
+        id: 'properties'
+        uses: christian-draeger/read-properties@1.1.1
+        with:
+          path: gradle.properties
+          properties: 'java_version'
+
+      - name: Setup Java ${{ steps.properties.outputs.java_version }}
+        uses: actions/setup-java@v3.6.0
+        with:
+          distribution: zulu
+          java-version: ${{ steps.properties.outputs.java_version }}
+
+      - name: Make gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Download built artifacts (fixed name)
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.module_id }}-deploy
+          path: module.${{ inputs.module }}/build/staging-deploy/
+
+      - name: Publish to Maven Central
+        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.1:jreleaserDeploy --no-configuration-cache
+        env:
+          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.maven_central_username }}
+          JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.maven_central_password }}
+          JRELEASER_GPG_SECRET_KEY: ${{ secrets.signing_key }}
+          JRELEASER_GPG_PASSPHRASE: ${{ secrets.signing_password }}
+          JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.signing_public_key }}

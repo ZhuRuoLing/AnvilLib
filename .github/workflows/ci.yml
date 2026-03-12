@@ -26,6 +26,14 @@ jobs:
       maven_url: ${{ secrets.MAVEN_URL }}
       maven_user: ${{ secrets.MAVEN_USER }}
       maven_pass: ${{ secrets.MAVEN_PASS }}
+  config-maven-central-deploy:
+    uses: ./.github/workflows/publish_maven_central.yml
+    needs:
+      - config
+    with:
+      module: config
+      module_id: anvillib-config
+    secrets:
       maven_central_username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
       maven_central_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
       signing_key: ${{ secrets.SIGNING_KEY }}
@@ -43,6 +51,14 @@ jobs:
       maven_url: ${{ secrets.MAVEN_URL }}
       maven_user: ${{ secrets.MAVEN_USER }}
       maven_pass: ${{ secrets.MAVEN_PASS }}
+  integration-maven-central-deploy:
+    uses: ./.github/workflows/publish_maven_central.yml
+    needs:
+      - integration
+    with:
+      module: integration
+      module_id: anvillib-integration
+    secrets:
       maven_central_username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
       maven_central_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
       signing_key: ${{ secrets.SIGNING_KEY }}
@@ -60,6 +76,14 @@ jobs:
       maven_url: ${{ secrets.MAVEN_URL }}
       maven_user: ${{ secrets.MAVEN_USER }}
       maven_pass: ${{ secrets.MAVEN_PASS }}
+  moveable-entity-block-maven-central-deploy:
+    uses: ./.github/workflows/publish_maven_central.yml
+    needs:
+      - moveable-entity-block
+    with:
+      module: moveable-entity-block
+      module_id: anvillib-moveable-entity-block
+    secrets:
       maven_central_username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
       maven_central_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
       signing_key: ${{ secrets.SIGNING_KEY }}
@@ -79,6 +103,14 @@ jobs:
       maven_url: ${{ secrets.MAVEN_URL }}
       maven_user: ${{ secrets.MAVEN_USER }}
       maven_pass: ${{ secrets.MAVEN_PASS }}
+  recipe-maven-central-deploy:
+    uses: ./.github/workflows/publish_maven_central.yml
+    needs:
+      - recipe
+    with:
+      module: recipe
+      module_id: anvillib-recipe
+    secrets:
       maven_central_username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
       maven_central_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
       signing_key: ${{ secrets.SIGNING_KEY }}
@@ -102,6 +134,14 @@ jobs:
       maven_url: ${{ secrets.MAVEN_URL }}
       maven_user: ${{ secrets.MAVEN_USER }}
       maven_pass: ${{ secrets.MAVEN_PASS }}
+  main-maven-central-deploy:
+    uses: ./.github/workflows/publish_maven_central.yml
+    needs:
+      - main
+    with:
+      module: main
+      module_id: anvillib
+    secrets:
       maven_central_username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
       maven_central_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
       signing_key: ${{ secrets.SIGNING_KEY }}
