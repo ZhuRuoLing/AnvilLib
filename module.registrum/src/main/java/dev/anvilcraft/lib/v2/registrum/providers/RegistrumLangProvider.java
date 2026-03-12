@@ -32,6 +32,7 @@ import net.neoforged.neoforge.common.data.LanguageProvider;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -40,10 +41,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 
 public class RegistrumLangProvider extends LanguageProvider implements RegistrumProvider {
 
+    // Automatic en_ud generation
     private static final String NORMAL_CHARS =
         /* lowercase */ "abcdefghijklmnñopqrstuvwxyz" +
         /* uppercase */ "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
@@ -54,10 +55,14 @@ public class RegistrumLangProvider extends LanguageProvider implements Registrum
         /* uppercase */ "ⱯᗺƆᗡƎℲ⅁HIՐꞰꞀWNOԀꝹᴚS⟘∩ɅMX⅄Z" +
         /*  numbers  */ "0⥝ᘔƐ߈ϛ9ㄥ86" +
         /*  special  */ "‾'⸵˙¿¡/\\,„)(][}{><";
+
     // The regex is from java.util.regex.Formatter
-    private static final Pattern PLACEHOLDER_REGEX = Pattern.compile("%(\\d+\\$)?([-#+ 0,(<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])");
+    private static final Pattern PLACEHOLDER_REGEX = Pattern.compile(
+        "%(\\d+\\$)?([-#+ 0,(<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])"
+    );
 
     static {
+        //noinspection ConstantValue
         if (NORMAL_CHARS.length() != UPSIDE_DOWN_CHARS.length()) {
             throw new AssertionError("Char maps do not match in length!");
         }
@@ -85,10 +90,7 @@ public class RegistrumLangProvider extends LanguageProvider implements Registrum
 
         List<int[]> placeholders = new ArrayList<>();
         while (matcher.find()) {
-            placeholders.add(new int[]{
-                matcher.start(),
-                matcher.end()
-            });
+            placeholders.add(new int[]{matcher.start(), matcher.end()});
         }
 
         List<String> segments = new ArrayList<>();
@@ -178,8 +180,6 @@ public class RegistrumLangProvider extends LanguageProvider implements Registrum
         addTooltip(block, tooltip);
     }
 
-    // Automatic en_ud generation
-
     public void addBlockWithTooltip(NonNullSupplier<? extends Block> block, String name, String tooltip) {
         addBlock(block, name);
         addTooltip(block, tooltip);
@@ -218,7 +218,6 @@ public class RegistrumLangProvider extends LanguageProvider implements Registrum
     }
 
     private static class AccessibleLanguageProvider extends LanguageProvider {
-
         public AccessibleLanguageProvider(PackOutput packOutput, String modid, String locale) {
             super(packOutput, modid, locale);
         }
