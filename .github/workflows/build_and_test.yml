@@ -37,9 +37,6 @@ on:
       maven_pass:
         description: 'Maven Password'
         required: true
-      signing_key:
-        description: 'Signing Key'
-        required: true
       maven_central_url:
         description: 'Maven Central URL'
         required: true
@@ -48,6 +45,12 @@ on:
         required: true
       maven_central_password:
         description: 'Maven Central Password'
+        required: true
+      signing_key:
+        description: 'Signing Key'
+        required: true
+      signing_password:
+        description: 'Signing Password'
         required: true
 
 jobs:
@@ -110,6 +113,7 @@ jobs:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.maven_central_username }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.maven_central_password }}
           SIGNING_KEY: ${{ secrets.signing_key }}
+          SIGNING_PASSWORD: ${{ secrets.signing_password }}
         continue-on-error: true
 
       - name: gametest
