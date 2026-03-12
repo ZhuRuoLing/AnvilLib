@@ -3,12 +3,13 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
+    id 'signing'
     alias libs.plugins.modDevGradle
     alias libs.plugins.lombok
     alias libs.plugins.machete
 }
 
-String buildType = 'build'
+String buildType = 'snapshot'
 String buildNumber
 if (System.getenv("CI_BUILD") == 'false') buildNumber = null
 else {
@@ -17,6 +18,7 @@ else {
 }
 version = "${mod_version}" + (buildNumber != null ? "+${buildType}.${buildNumber}" : "")
 group = mod_group_id
+def this_description = mod_description
 
 base {
     archivesName = "${project.mod_id}-neoforge-${libs.versions.minecraft.get()}"
@@ -169,6 +171,26 @@ publishing {
                     fromResolutionResult()
                 }
             }
+
+            pom {
+                name = project.name
+                description = this_description
+                url = 'https://github.com/Anvil-Dev/AnvilLib'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/license/mit'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'Anvil-Dev'
+                        name = 'AnvilCraft Dev'
+                        email = 'admin@anvilcraft.dev'
+                    }
+                }
+            }
         }
     }
     repositories {
@@ -185,6 +207,30 @@ publishing {
         } else {
             mavenLocal()
         }
+
+        def MAVEN_CENTRAL_URL = System.getenv("MAVEN_CENTRAL_URL")
+        if (MAVEN_CENTRAL_URL != null) {
+            maven {
+                url MAVEN_CENTRAL_URL
+                credentials {
+                    username System.getenv("MAVEN_CENTRAL_USERNAME")
+                    password System.getenv("MAVEN_CENTRAL_PASSWORD")
+                }
+            }
+        }
+    }
+}
+
+signing {
+    // 对名为 "mavenJava" 的 publication 进行签名
+    sign publishing.publications.mavenJava
+
+    // 在 CI 环境（如 GitHub Actions）中，通常使用内存中的 GPG 密钥
+    // 从环境变量或 gradle.properties 中读取密钥
+    def signingKey = System.getenv("SIGNING_KET")
+    def signingPassword = System.getenv("SIGNING_PASSWORD")
+    if (signingKey && signingPassword) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
     }
 }
 
