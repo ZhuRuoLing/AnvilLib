@@ -110,7 +110,7 @@ jobs:
 
       - name: Publish to maven central
         if: ${{ !inputs.pr_build }}
-        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.1:jreleaserDeploy
+        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.1:jreleaserPublish --no-configuration-cache
         env:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.maven_central_username }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.maven_central_password }}

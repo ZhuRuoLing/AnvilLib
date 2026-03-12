@@ -18,7 +18,6 @@ else {
 }
 version = "${mod_version}" + (buildNumber != null ? "+${buildType}.${buildNumber}" : "")
 group = mod_group_id
-def this_description = mod_description
 
 base {
     archivesName = "${project.mod_id}-neoforge-${libs.versions.minecraft.get()}"
@@ -169,6 +168,9 @@ artifacts {
     archives tasks.sourcesJar
 }
 
+def this_name = base.archivesName.get()
+def this_description = mod_description
+
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
@@ -183,7 +185,7 @@ publishing {
             }
 
             pom {
-                name = project.name
+                name = this_name
                 description = this_description
                 url = 'https://github.com/Anvil-Dev/AnvilLib'
 
@@ -219,9 +221,8 @@ publishing {
                     password System.getenv("MAVEN_PASSWORD")
                 }
             }
-        } else {
-            mavenLocal()
         }
+        mavenLocal()
     }
 }
 
