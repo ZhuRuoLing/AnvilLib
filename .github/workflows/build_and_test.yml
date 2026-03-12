@@ -39,10 +39,10 @@ on:
         required: true
       curseforge_token:
         description: 'Curseforge Token'
-        required: true
+        required: false
       modrinth_token:
         description: 'Modrinth Token'
-        required: true
+        required: false
 
 jobs:
   build:
