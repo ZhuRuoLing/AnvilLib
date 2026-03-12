@@ -122,6 +122,9 @@ jobs:
           JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.signing_public_key }}
         continue-on-error: true
 
+      - name: Echo Trace Log
+        run: cat /home/runner/work/AnvilLib/AnvilLib/module.config/build/jreleaser/trace.log
+
       - name: gametest
         if: ${{ inputs.ci_build && inputs.gametest }}
         uses: Anvil-Dev/dedicated-server-launch-test@1.21.1-neoforge
