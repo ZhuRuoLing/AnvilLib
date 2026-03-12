@@ -212,6 +212,10 @@ publishing {
             }
         }
         mavenLocal()
+        maven {
+            name = "staging"
+            url = layout.buildDirectory.dir("staging-deploy")
+        }
     }
 }
 
