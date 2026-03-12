@@ -117,8 +117,6 @@ jobs:
       signing_public_key: ${{ secrets.SIGNING_PUBLIC_KEY }}
       signing_password: ${{ secrets.SIGNING_PASSWORD }}
   registrum:
-    needs:
-      - config
     uses: ./.github/workflows/build_and_test.yml
     with:
       module: registrum
