@@ -238,9 +238,8 @@ signing {
 
     // 在 CI 环境（如 GitHub Actions）中，通常使用内存中的 GPG 密钥
     // 从环境变量或 gradle.properties 中读取密钥
-    def signingKey = System.getenv("SIGNING_KET")
+    def signingKey = System.getenv("SIGNING_KEY")
     if (signingKey) {
-        useGpgCmd()
         useInMemoryPgpKeys(signingKey, null)
     }
 }
