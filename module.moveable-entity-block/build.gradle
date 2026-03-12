@@ -3,10 +3,10 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'signing'
     alias libs.plugins.modDevGradle
     alias libs.plugins.lombok
     alias libs.plugins.machete
+    id 'org.jreleaser' version '1.23.0'
 }
 
 String buildType = 'snapshot'
@@ -158,7 +158,6 @@ artifacts {
     archives tasks.sourcesJar
 }
 
-// Example configuration to allow publishing using the maven-publish plugin
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
@@ -190,6 +189,11 @@ publishing {
                         email = 'admin@anvilcraft.dev'
                     }
                 }
+                scm {
+                    url = 'https://github.com/Anvil-Dev/AnvilLib'
+                    connection = 'https://github.com/Anvil-Dev/AnvilLib.git'
+                    developerConnection = 'https://github.com/Anvil-Dev/AnvilLib.git'
+                }
             }
         }
     }
@@ -202,35 +206,35 @@ publishing {
                 credentials {
                     username System.getenv("MAVEN_USERNAME")
                     password System.getenv("MAVEN_PASSWORD")
+                    username = System.getenv('MAVEN_CENTRAL_USERNAME')
+                    password = System.getenv('MAVEN_CENTRAL_PASSWORD')
                 }
             }
         } else {
             mavenLocal()
         }
-
-        def MAVEN_CENTRAL_USERNAME = System.getenv("MAVEN_CENTRAL_USERNAME")
-        def MAVEN_CENTRAL_PASSWORD = System.getenv("MAVEN_CENTRAL_PASSWORD")
-        if (MAVEN_CENTRAL_USERNAME && MAVEN_CENTRAL_PASSWORD) {
-            mavenCentral {
-                credentials {
-                    username System.getenv("MAVEN_CENTRAL_USERNAME")
-                    password System.getenv("MAVEN_CENTRAL_PASSWORD")
-                }
-            }
-        }
     }
 }
 
-signing {
-    // 对名为 "mavenJava" 的 publication 进行签名
-    sign publishing.publications.mavenJava
+jreleaser {
+    signing {
+        active = 'ALWAYS'
+        armored = true
+        mode = 'MEMORY'
+        passphrase = System.getenv('SIGNING_PASSWORD')
+        secretKey = System.getenv('SIGNING_KEY')
+    }
 
-    // 在 CI 环境（如 GitHub Actions）中，通常使用内存中的 GPG 密钥
-    // 从环境变量或 gradle.properties 中读取密钥
-    def signingKey = System.getenv("SIGNING_KEY")
-    def signingPassword = System.getenv("SIGNING_PASSWORD")
-    if (signingKey && signingPassword) {
-        useInMemoryPgpKeys(signingKey, signingPassword)
+    deploy {
+        maven {
+            mavenCentral {
+                sonatype {
+                    active = 'ALWAYS'
+                    url = 'https://central.sonatype.com/api/v1/publisher'
+                    stagingRepository('build/staging-deploy')
+                }
+            }
+        }
     }
 }
 
