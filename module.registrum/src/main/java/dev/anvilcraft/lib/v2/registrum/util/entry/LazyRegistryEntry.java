@@ -1,0 +1,39 @@
+/*
+ * Original work copyright (c) 2019 tterrag1098 (Registrate)
+ * Modified work copyright (c) 2025 IThundxr (Registrate fork)
+ * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Original File: https://github.com/IThundxr/Registrate/blob/1.21/dev/src/main/java/com/tterrag/registrate/util/entry/LazyRegistryEntry.java
+ */
+
+package dev.anvilcraft.lib.v2.registrum.util.entry;
+
+import javax.annotation.Nullable;
+
+import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
+
+public class LazyRegistryEntry<R, T extends R> implements NonNullSupplier<T> {
+    
+    @Nullable
+    private NonNullSupplier<? extends RegistryEntry<R, T>> supplier;
+    @Nullable
+    private RegistryEntry<R, T> value;
+
+    public LazyRegistryEntry(NonNullSupplier<? extends RegistryEntry<R, T>> supplier) {
+        this.supplier = supplier;
+    }
+    
+    @Override
+    public T get() {
+        NonNullSupplier<? extends RegistryEntry<R, T>> supplier = this.supplier;
+        if (supplier != null) {
+            this.value = supplier.get();
+            this.supplier = null;
+        }
+        return this.value.get();
+    }
+}

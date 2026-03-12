@@ -116,12 +116,40 @@ jobs:
       signing_key: ${{ secrets.SIGNING_KEY }}
       signing_public_key: ${{ secrets.SIGNING_PUBLIC_KEY }}
       signing_password: ${{ secrets.SIGNING_PASSWORD }}
+  registrum:
+    needs:
+      - config
+    uses: ./.github/workflows/build_and_test.yml
+    with:
+      module: registrum
+      module_id: anvillib-registrum
+      mod_id: anvillib_registrum
+      ci_build: false
+      pr_build: false
+    secrets:
+      maven_url: ${{ secrets.MAVEN_URL }}
+      maven_user: ${{ secrets.MAVEN_USER }}
+      maven_pass: ${{ secrets.MAVEN_PASS }}
+  registrum-maven-central-deploy:
+    uses: ./.github/workflows/publish_maven_central.yml
+    needs:
+      - registrum
+    with:
+      module: registrum
+      module_id: anvillib-registrum
+    secrets:
+      maven_central_username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+      maven_central_password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+      signing_key: ${{ secrets.SIGNING_KEY }}
+      signing_public_key: ${{ secrets.SIGNING_PUBLIC_KEY }}
+      signing_password: ${{ secrets.SIGNING_PASSWORD }}
   main:
     needs:
       - config
       - integration
       - moveable-entity-block
       - recipe
+      - registrum
     uses: ./.github/workflows/build_and_test.yml
     with:
       module: main
