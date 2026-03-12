@@ -219,10 +219,10 @@ publishing {
             mavenLocal()
         }
 
-        def MAVEN_CENTRAL_URL = System.getenv("MAVEN_CENTRAL_URL")
-        if (MAVEN_CENTRAL_URL != null) {
-            maven {
-                url MAVEN_CENTRAL_URL
+        def MAVEN_CENTRAL_USERNAME = System.getenv("MAVEN_CENTRAL_USERNAME")
+        def MAVEN_CENTRAL_PASSWORD = System.getenv("MAVEN_CENTRAL_PASSWORD")
+        if (MAVEN_CENTRAL_USERNAME && MAVEN_CENTRAL_PASSWORD) {
+            mavenCentral {
                 credentials {
                     username System.getenv("MAVEN_CENTRAL_USERNAME")
                     password System.getenv("MAVEN_CENTRAL_PASSWORD")

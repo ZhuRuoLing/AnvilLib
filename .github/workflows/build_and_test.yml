@@ -37,9 +37,6 @@ on:
       maven_pass:
         description: 'Maven Password'
         required: true
-      maven_central_url:
-        description: 'Maven Central URL'
-        required: true
       maven_central_username:
         description: 'Maven Central Username'
         required: true
@@ -109,7 +106,6 @@ jobs:
           MAVEN_URL: ${{ secrets.maven_url }}
           MAVEN_USERNAME: ${{ secrets.maven_user }}
           MAVEN_PASSWORD: ${{ secrets.maven_pass }}
-          MAVEN_CENTRAL_URL: ${{ secrets.maven_central_url }}
           MAVEN_CENTRAL_USERNAME: ${{ secrets.maven_central_username }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.maven_central_password }}
           SIGNING_KEY: ${{ secrets.signing_key }}
