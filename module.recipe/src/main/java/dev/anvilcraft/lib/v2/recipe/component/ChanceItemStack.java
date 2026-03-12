@@ -12,6 +12,8 @@ import net.minecraft.core.component.PatchedDataComponentMap;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.context.ContextKeySet;
+import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
@@ -136,7 +138,7 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
      * ChanceItemStack的编解码器
      */
     public static final Codec<ChanceItemStack> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-        ItemStack.ITEM_NON_AIR_CODEC.fieldOf("id").forGetter(ChanceItemStack::getItemHolder),
+        Item.CODEC.fieldOf("id").forGetter(ChanceItemStack::getItemHolder),
         DataComponentPatch.CODEC.optionalFieldOf("components", DataComponentPatch.EMPTY).forGetter(ChanceItemStack::getComponentsPatch),
         CodecUtil.NUMBER_PROVIDER_CODEC.optionalFieldOf("count", ConstantValue.exactly(1.0f)).forGetter(ChanceItemStack::count)
     ).apply(instance, ChanceItemStack::new));
@@ -204,7 +206,14 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
     }
 
     public ItemStack getResult(ServerLevel level) {
-        LootContext context = new LootContext.Builder(new LootParams(level, Map.of(), Map.of(), 0)).create(Optional.empty());
+        LootContext context = new LootContext.Builder(
+            new LootParams(
+                level,
+                new ContextMap.Builder().create(new ContextKeySet.Builder().build()),
+                Map.of(),
+                0
+            )
+        ).create(Optional.empty());
         return this.stack().copyWithCount(Math.clamp(this.count().getInt(context), 1, 99));
     }
 }

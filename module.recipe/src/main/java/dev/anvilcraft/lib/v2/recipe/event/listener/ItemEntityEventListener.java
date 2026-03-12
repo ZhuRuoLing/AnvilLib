@@ -17,7 +17,7 @@ public class ItemEntityEventListener {
     public static void onItemEntityInToBlock(@NotNull ItemEntityEvent.InToBlock event) {
         Level level = event.getLevel();
         if (!(level instanceof ServerLevel serverLevel)) return;
-        InWorldRecipeManager manager = level.getRecipeManager().anvillib$getInWorldRecipeManager();
+        InWorldRecipeManager manager = serverLevel.recipeAccess().anvillib$getInWorldRecipeManager();
         InWorldRecipeContext context = new InWorldRecipeContext(serverLevel, event.getPos(), event.getEntity());
         manager.trigger(LibRecipeTriggers.ITEM_INTO_BLOCK, context);
         context.accept();

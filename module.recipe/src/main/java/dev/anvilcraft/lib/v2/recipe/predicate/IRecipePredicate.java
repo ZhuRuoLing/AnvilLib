@@ -23,7 +23,7 @@ public interface IRecipePredicate<P extends IRecipePredicate<P>>
     Codec<IRecipePredicate<?>> CODEC = LibRegistries.PREDICATE_TYPE_REGISTRY.byNameCodec()
         .dispatch(
             IRecipePredicate::getType,
-            type -> Objects.requireNonNull(LibRegistries.PREDICATE_TYPE_REGISTRY.get(type.getId())).codec()
+            type -> Objects.requireNonNull(LibRegistries.PREDICATE_TYPE_REGISTRY.getValue(type.getId())).codec()
         );
 
     /**

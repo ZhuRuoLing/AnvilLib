@@ -6,6 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.anvilcraft.lib.v2.recipe.util.CodecUtil;
 import net.minecraft.advancements.critereon.ItemSubPredicate;
 import net.minecraft.advancements.critereon.MinMaxBounds;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.RegistryCodecs;
 import net.minecraft.core.component.DataComponentPredicate;
@@ -18,6 +19,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -120,7 +123,10 @@ public record ItemPredicate(
          * @return 构建器实例
          */
         public Builder of(TagKey<Item> tag) {
-            this.items = Optional.of(BuiltInRegistries.ITEM.getOrCreateTag(tag));
+            List<Holder<Item>> holders = new ArrayList<>();
+            BuiltInRegistries.ITEM.getTagOrEmpty(tag).forEach(holders::add);
+            //noinspection deprecation
+            this.items = Optional.of(HolderSet.direct((item) -> item.value().builtInRegistryHolder(), holders));
             return this;
         }
 

@@ -16,6 +16,7 @@ public interface IRecipeManagerExtension {
         throw new AssertionError();
     }
 
+    @Deprecated
     default HolderLookup.Provider anvillib$getRegistries() {
         throw new AssertionError();
     }

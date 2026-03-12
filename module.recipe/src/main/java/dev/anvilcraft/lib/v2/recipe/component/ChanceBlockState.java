@@ -9,6 +9,8 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.context.ContextKeySet;
+import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootContext;
@@ -110,7 +112,14 @@ public record ChanceBlockState(BlockState state, CompoundTag nbt, NumberProvider
     }
 
     public @Nullable Map.Entry<BlockState, CompoundTag> getResult(ServerLevel level) {
-        LootContext context = new LootContext.Builder(new LootParams(level, Map.of(), Map.of(), 0)).create(Optional.empty());
+        LootContext context = new LootContext.Builder(
+            new LootParams(
+                level,
+                new ContextMap.Builder().create(new ContextKeySet.Builder().build()),
+                Map.of(),
+                0
+            )
+        ).create(Optional.empty());
         if (level.getRandom().nextFloat() > this.chance.getFloat(context)) return null;
         return Map.entry(this.state, this.nbt);
     }

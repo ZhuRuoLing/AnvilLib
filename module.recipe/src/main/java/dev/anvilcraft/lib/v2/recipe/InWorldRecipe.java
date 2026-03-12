@@ -19,7 +19,10 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
@@ -37,7 +40,6 @@ import java.util.Objects;
  */
 @EqualsAndHashCode
 @ToString
-@SuppressWarnings("ClassCanBeRecord")
 public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized {
     /**
      * 配方图标
@@ -71,6 +73,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
      * 最大效率
      */
     private final int maxEfficiency;
+    private PlacementInfo placementInfo;
 
     /**
      * 构造一个新的世界内配方
@@ -266,29 +269,6 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
     }
 
     /**
-     * 判断配方是否可以在指定尺寸的工作台中制作
-     *
-     * @param i  宽度
-     * @param i1 高度
-     * @return 是否可以制作
-     */
-    @Override
-    public boolean canCraftInDimensions(int i, int i1) {
-        return true;
-    }
-
-    /**
-     * 获取配方结果物品堆
-     *
-     * @param provider 数据提供器
-     * @return 配方结果物品堆
-     */
-    @Override
-    public ItemStack getResultItem(HolderLookup.Provider provider) {
-        return this.icon.copy();
-    }
-
-    /**
      * 获取配方序列化器
      *
      * @return 配方序列化器
@@ -306,6 +286,20 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
     @Override
     public RecipeType<? extends InWorldRecipe> getType() {
         return LibRecipeTypes.IN_WORLD_RECIPE.get();
+    }
+
+    @Override
+    public PlacementInfo placementInfo() {
+        if (this.placementInfo == null) {
+            this.placementInfo = PlacementInfo.createFromOptionals(List.of());
+        }
+
+        return this.placementInfo;
+    }
+
+    @Override
+    public RecipeBookCategory recipeBookCategory() {
+        return RecipeBookCategories.CRAFTING_MISC;
     }
 
     public @Unmodifiable ItemStack icon() {
@@ -431,14 +425,14 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
          */
         private static InWorldRecipe decode(RegistryFriendlyByteBuf buf) {
             ItemStack icon = ItemStack.STREAM_CODEC.decode(buf);
-            IRecipeTrigger trigger = Objects.requireNonNull(LibRegistries.TRIGGER_REGISTRY.get(buf.readResourceLocation()));
+            IRecipeTrigger trigger = Objects.requireNonNull(LibRegistries.TRIGGER_REGISTRY.getValue(buf.readResourceLocation()));
             List<IRecipePredicate<?>> conflicting = decodeRecipePredicateList(buf);
             List<IRecipePredicate<?>> nonConflicting = decodeRecipePredicateList(buf);
             List<IRecipeOutcome<?>> outcomes = new ArrayList<>();
             int outcomesSize = buf.readVarInt();
             for (int i = 0; i < outcomesSize; i++) {
                 ResourceLocation location = buf.readResourceLocation();
-                IRecipeOutcome.Type<?> type = LibRegistries.OUTCOME_TYPE_REGISTRY.get(location);
+                IRecipeOutcome.Type<?> type = LibRegistries.OUTCOME_TYPE_REGISTRY.getValue(location);
                 if (type == null) throw new IllegalArgumentException("Unknown outcome type: " + location);
                 IRecipeOutcome<?> outcome = type.streamCodec().decode(buf);
                 outcomes.add(outcome);
@@ -468,7 +462,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
             List<IRecipePredicate<?>> predicates = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 ResourceLocation location = buf.readResourceLocation();
-                IRecipePredicate.Type<?> type = LibRegistries.PREDICATE_TYPE_REGISTRY.get(location);
+                IRecipePredicate.Type<?> type = LibRegistries.PREDICATE_TYPE_REGISTRY.getValue(location);
                 if (type == null) throw new IllegalArgumentException("Unknown predicate type: " + location);
                 IRecipePredicate<?> predicate = type.streamCodec().decode(buf);
                 predicates.add(predicate);

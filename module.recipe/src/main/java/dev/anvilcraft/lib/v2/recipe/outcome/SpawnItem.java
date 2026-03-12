@@ -118,7 +118,7 @@ public record SpawnItem(ItemStack item, Vec3 offset, NumberProvider count, List<
          * Map编解码器
          */
         private static final MapCodec<SpawnItem> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                ItemStack.ITEM_NON_AIR_CODEC
+                Item.CODEC
                     .fieldOf("item")
                     .forGetter(spawnItem -> spawnItem.item().getItemHolder()),
                 DataComponentPatch.CODEC

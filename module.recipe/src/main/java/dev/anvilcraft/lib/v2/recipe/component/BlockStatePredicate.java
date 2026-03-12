@@ -292,7 +292,9 @@ public class BlockStatePredicate {
          * @return 构建器实例
          */
         public Builder of(TagKey<Block> tag) {
-            this.blocks = BuiltInRegistries.BLOCK.getOrCreateTag(tag);
+            List<Holder<Block>> blocks = new ArrayList<>();
+            BuiltInRegistries.BLOCK.getTagOrEmpty(tag).forEach(blocks::add);
+            this.blocks = HolderSet.direct(v -> v, blocks);
             return this;
         }
 

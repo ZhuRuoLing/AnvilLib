@@ -8,6 +8,7 @@ import dev.anvilcraft.lib.v2.recipe.util.CodecUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.advancements.critereon.ItemSubPredicate;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.RegistryCodecs;
 import net.minecraft.core.component.DataComponentPredicate;
@@ -24,6 +25,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -181,7 +183,10 @@ public record ItemIngredientPredicate(
          * @return 构建器实例
          */
         public Builder of(TagKey<Item> tag) {
-            this.items = Optional.of(BuiltInRegistries.ITEM.getOrCreateTag(tag));
+            List<Holder<Item>> holders = new ArrayList<>();
+            BuiltInRegistries.ITEM.getTagOrEmpty(tag).forEach(holders::add);
+            //noinspection deprecation
+            this.items = Optional.of(HolderSet.direct((item) -> item.value().builtInRegistryHolder(), holders));
             return this;
         }
 

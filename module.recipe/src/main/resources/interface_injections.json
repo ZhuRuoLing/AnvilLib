@@ -1,5 +1,8 @@
 {
   "net/minecraft/world/item/crafting/RecipeManager": [
     "dev/anvilcraft/lib/v2/recipe/injection/IRecipeManagerExtension"
+  ],
+  "net/minecraft/world/item/crafting/RecipeMap": [
+    "dev/anvilcraft/lib/v2/recipe/injection/IRecipeMapExtension"
   ]
 }
