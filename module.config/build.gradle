@@ -229,6 +229,7 @@ signing {
     // 从环境变量或 gradle.properties 中读取密钥
     def signingKey = System.getenv("SIGNING_KET")
     if (signingKey) {
+        useGpgCmd()
         useInMemoryPgpKeys(signingKey, null)
     }
 }
