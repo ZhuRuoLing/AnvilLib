@@ -45,23 +45,28 @@ import java.util.stream.Collectors;
 
 public class RegistrumLangProvider extends LanguageProvider implements RegistrumProvider {
 
-    private static class AccessibleLanguageProvider extends LanguageProvider {
+    private static final String NORMAL_CHARS =
+        /* lowercase */ "abcdefghijklmnñopqrstuvwxyz" +
+        /* uppercase */ "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+        /*  numbers  */ "0123456789" +
+        /*  special  */ "_,;.?!/\\'\"()[]{}<>";
+    private static final String UPSIDE_DOWN_CHARS =
+        /* lowercase */ "ɐqɔpǝɟᵷɥᴉɾʞꞁɯuuodbɹsʇnʌʍxʎz" +
+        /* uppercase */ "ⱯᗺƆᗡƎℲ⅁HIՐꞰꞀWNOԀꝹᴚS⟘∩ɅMX⅄Z" +
+        /*  numbers  */ "0⥝ᘔƐ߈ϛ9ㄥ86" +
+        /*  special  */ "‾'⸵˙¿¡/\\,„)(][}{><";
+    // The regex is from java.util.regex.Formatter
+    private static final Pattern PLACEHOLDER_REGEX = Pattern.compile(
+        "%(\\d+\\$)?([-#+ 0,(<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])"
+    );
 
-        public AccessibleLanguageProvider(PackOutput packOutput, String modid, String locale) {
-            super(packOutput, modid, locale);
+    static {
+        if (NORMAL_CHARS.length() != UPSIDE_DOWN_CHARS.length()) {
+            throw new AssertionError("Char maps do not match in length!");
         }
-
-        @Override
-        public void add(@Nullable String key, @Nullable String value) {
-            super.add(key, value);
-        }
-
-        @Override
-        protected void addTranslations() {}
     }
 
     private final AbstractRegistrum<?> owner;
-
     private final AccessibleLanguageProvider upsideDown;
 
     public RegistrumLangProvider(AbstractRegistrum<?> owner, PackOutput packOutput) {
@@ -70,101 +75,11 @@ public class RegistrumLangProvider extends LanguageProvider implements Registrum
         this.upsideDown = new AccessibleLanguageProvider(packOutput, owner.getModid(), "en_ud");
     }
 
-    @Override
-    public LogicalSide getSide() {
-        return LogicalSide.CLIENT;
-    }
-
-    @Override
-    public String getName() {
-        return "Lang (en_us/en_ud)";
-    }
-
-    @Override
-    protected void addTranslations() {
-        owner.genData(ProviderType.LANG, this);
-    }
-
     public static String toEnglishName(String internalName) {
         return Arrays.stream(internalName.toLowerCase(Locale.ROOT).split("_"))
-                .map(StringUtils::capitalize)
-                .collect(Collectors.joining(" "));
+            .map(StringUtils::capitalize)
+            .collect(Collectors.joining(" "));
     }
-
-    @SuppressWarnings("unchecked")
-    public <T> String getAutomaticName(NonNullSupplier<? extends T> sup, ResourceKey<? extends Registry<T>> registry) {
-        return toEnglishName(((Registry<Registry<T>>) BuiltInRegistries.REGISTRY).get(registry.location()).getKey(sup.get()).getPath());
-    }
-
-    public void addBlock(NonNullSupplier<? extends Block> block) {
-        addBlock(block, getAutomaticName(block, Registries.BLOCK));
-    }
-
-    public void addBlockWithTooltip(NonNullSupplier<? extends Block> block, String tooltip) {
-        addBlock(block);
-        addTooltip(block, tooltip);
-    }
-
-    public void addBlockWithTooltip(NonNullSupplier<? extends Block> block, String name, String tooltip) {
-        addBlock(block, name);
-        addTooltip(block, tooltip);
-    }
-
-    public void addItem(NonNullSupplier<? extends Item> item) {
-        addItem(item, getAutomaticName(item, Registries.ITEM));
-    }
-
-    public void addItemWithTooltip(NonNullSupplier<? extends Item> block, String name, List<@NonnullType String> tooltip) {
-        addItem(block, name);
-        addTooltip(block, tooltip);
-    }
-
-    public void addTooltip(NonNullSupplier<? extends ItemLike> item, String tooltip) {
-        add(item.get().asItem().getDescriptionId() + ".desc", tooltip);
-    }
-
-    public void addTooltip(NonNullSupplier<? extends ItemLike> item, List<@NonnullType String> tooltip) {
-        for (int i = 0; i < tooltip.size(); i++) {
-            add(item.get().asItem().getDescriptionId() + ".desc." + i, tooltip.get(i));
-        }
-    }
-
-    public void add(CreativeModeTab tab, String name) {
-        var contents = tab.getDisplayName().getContents();
-        if (contents instanceof TranslatableContents lang) {
-            add(lang.getKey(), name);
-        } else {
-            throw new IllegalArgumentException("Creative tab does not have a translatable name: " + tab.getDisplayName());
-        }
-    }
-
-    public void addEntityType(NonNullSupplier<? extends EntityType<?>> entity) {
-        addEntityType(entity, getAutomaticName(entity, Registries.ENTITY_TYPE));
-    }
-
-    // Automatic en_ud generation
-
-    private static final String NORMAL_CHARS =
-            /* lowercase */ "abcdefghijklmnñopqrstuvwxyz" +
-            /* uppercase */ "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-            /*  numbers  */ "0123456789" +
-            /*  special  */ "_,;.?!/\\'\"()[]{}<>";
-    private static final String UPSIDE_DOWN_CHARS =
-            /* lowercase */ "ɐqɔpǝɟᵷɥᴉɾʞꞁɯuuodbɹsʇnʌʍxʎz" +
-            /* uppercase */ "ⱯᗺƆᗡƎℲ⅁HIՐꞰꞀWNOԀꝹᴚS⟘∩ɅMX⅄Z" +
-            /*  numbers  */ "0⥝ᘔƐ߈ϛ9ㄥ86" +
-            /*  special  */ "‾'⸵˙¿¡/\\,„)(][}{><";
-
-    static {
-        if (NORMAL_CHARS.length() != UPSIDE_DOWN_CHARS.length()) {
-            throw new AssertionError("Char maps do not match in length!");
-        }
-    }
-
-    // The regex is from java.util.regex.Formatter
-    private static final Pattern PLACEHOLDER_REGEX = Pattern.compile(
-        "%(\\d+\\$)?([-#+ 0,(<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])"
-    );
 
     public static String toUpsideDown(String str) {
         if (str.isEmpty()) return str;
@@ -173,7 +88,10 @@ public class RegistrumLangProvider extends LanguageProvider implements Registrum
 
         List<int[]> placeholders = new ArrayList<>();
         while (matcher.find()) {
-            placeholders.add(new int[]{matcher.start(), matcher.end()});
+            placeholders.add(new int[]{
+                matcher.start(),
+                matcher.end()
+            });
         }
 
         List<String> segments = new ArrayList<>();
@@ -217,13 +135,97 @@ public class RegistrumLangProvider extends LanguageProvider implements Registrum
     }
 
     @Override
-    public void add(String key, String value) {
-        super.add(key, value);
-        upsideDown.add(key, toUpsideDown(value));
+    public LogicalSide getSide() {
+        return LogicalSide.CLIENT;
+    }
+
+    @Override
+    protected void addTranslations() {
+        owner.genData(ProviderType.LANG, this);
     }
 
     @Override
     public CompletableFuture<?> run(CachedOutput cache) {
         return CompletableFuture.allOf(super.run(cache), upsideDown.run(cache));
+    }
+
+    @Override
+    public String getName() {
+        return "Lang (en_us/en_ud)";
+    }
+
+    @Override
+    public void add(String key, String value) {
+        super.add(key, value);
+        upsideDown.add(key, toUpsideDown(value));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> String getAutomaticName(NonNullSupplier<? extends T> sup, ResourceKey<? extends Registry<T>> registry) {
+        return toEnglishName(((Registry<Registry<T>>) BuiltInRegistries.REGISTRY).get(registry.location()).getKey(sup.get()).getPath());
+    }
+
+    public void addBlock(NonNullSupplier<? extends Block> block) {
+        addBlock(block, getAutomaticName(block, Registries.BLOCK));
+    }
+
+    public void addBlockWithTooltip(NonNullSupplier<? extends Block> block, String tooltip) {
+        addBlock(block);
+        addTooltip(block, tooltip);
+    }
+
+    // Automatic en_ud generation
+
+    public void addBlockWithTooltip(NonNullSupplier<? extends Block> block, String name, String tooltip) {
+        addBlock(block, name);
+        addTooltip(block, tooltip);
+    }
+
+    public void addItem(NonNullSupplier<? extends Item> item) {
+        addItem(item, getAutomaticName(item, Registries.ITEM));
+    }
+
+    public void addItemWithTooltip(NonNullSupplier<? extends Item> block, String name, List<@NonnullType String> tooltip) {
+        addItem(block, name);
+        addTooltip(block, tooltip);
+    }
+
+    public void addTooltip(NonNullSupplier<? extends ItemLike> item, String tooltip) {
+        add(item.get().asItem().getDescriptionId() + ".desc", tooltip);
+    }
+
+    public void addTooltip(NonNullSupplier<? extends ItemLike> item, List<@NonnullType String> tooltip) {
+        for (int i = 0; i < tooltip.size(); i++) {
+            add(item.get().asItem().getDescriptionId() + ".desc." + i, tooltip.get(i));
+        }
+    }
+
+    public void add(CreativeModeTab tab, String name) {
+        var contents = tab.getDisplayName().getContents();
+        if (contents instanceof TranslatableContents lang) {
+            add(lang.getKey(), name);
+        } else {
+            throw new IllegalArgumentException("Creative tab does not have a translatable name: " + tab.getDisplayName());
+        }
+    }
+
+    public void addEntityType(NonNullSupplier<? extends EntityType<?>> entity) {
+        addEntityType(entity, getAutomaticName(entity, Registries.ENTITY_TYPE));
+    }
+
+    private static class AccessibleLanguageProvider extends LanguageProvider {
+
+        public AccessibleLanguageProvider(PackOutput packOutput, String modid, String locale) {
+            super(packOutput, modid, locale);
+        }
+
+        @Override
+        protected void addTranslations() {
+        }
+
+        @Override
+        public void add(@Nullable String key, @Nullable String value) {
+            super.add(key, value);
+        }
     }
 }

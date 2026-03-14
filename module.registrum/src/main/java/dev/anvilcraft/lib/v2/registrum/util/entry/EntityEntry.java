@@ -26,15 +26,15 @@ public class EntityEntry<T extends Entity> extends RegistryEntry<EntityType<?>, 
         super(owner, delegate);
     }
 
+    public static <T extends Entity> EntityEntry<T> cast(RegistryEntry<EntityType<?>, EntityType<T>> entry) {
+        return RegistryEntry.cast(EntityEntry.class, entry);
+    }
+
     public @Nullable T create(Level world) {
         return get().create(world);
     }
 
     public boolean is(Entity t) {
         return t != null && t.getType() == get();
-    }
-
-    public static <T extends Entity> EntityEntry<T> cast(RegistryEntry<EntityType<?>, EntityType<T>> entry) {
-        return RegistryEntry.cast(EntityEntry.class, entry);
     }
 }

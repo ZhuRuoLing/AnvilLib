@@ -35,7 +35,8 @@ public class FluidEntry<T extends BaseFlowingFluid> extends RegistryEntry<Fluid,
         BlockEntry<? extends Block> block = null;
         try {
             block = BlockEntry.cast(getSibling(BuiltInRegistries.BLOCK));
-        } catch (IllegalArgumentException e) {} // TODO add way to get entry optionally
+        } catch (IllegalArgumentException e) {
+        } // TODO add way to get entry optionally
         this.block = block;
     }
 
@@ -53,12 +54,22 @@ public class FluidEntry<T extends BaseFlowingFluid> extends RegistryEntry<Fluid,
         return get().getFluidType();
     }
 
-    @SuppressWarnings({ "unchecked", "null" })
+    @SuppressWarnings(
+        {
+            "unchecked",
+            "null"
+        }
+    )
     public <B extends Block> Optional<B> getBlock() {
         return (Optional<B>) Optional.ofNullable(block).map(RegistryEntry::get);
     }
 
-    @SuppressWarnings({ "unchecked", "null" })
+    @SuppressWarnings(
+        {
+            "unchecked",
+            "null"
+        }
+    )
     public <I extends Item> Optional<I> getBucket() {
         return Optional.ofNullable((I) get().getBucket());
     }

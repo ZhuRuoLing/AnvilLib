@@ -54,65 +54,66 @@ public interface ProviderType<T extends RegistrumProvider> {
     ProviderType<RegistrumRecipeProvider> RECIPE = registerServerData("recipe", RegistrumRecipeProvider::new);
     ProviderType<RegistrumAdvancementProvider> ADVANCEMENT = registerServerData("advancement", RegistrumAdvancementProvider::new);
     ProviderType<RegistrumLootTableProvider> LOOT = registerServerData("loot", RegistrumLootTableProvider::new);
-    ProviderType<RegistrumTagsProvider.IntrinsicImpl<Block>> BLOCK_TAGS = registerIntrinsicTag("tags/block", "blocks", Registries.BLOCK, block -> block.builtInRegistryHolder().key());
-    ProviderType<RegistrumTagsProvider.Impl<Enchantment>> ENCHANTMENT_TAGS = registerDynamicTag("tags/enchantment", "enchantments", Registries.ENCHANTMENT);
-    ProviderType<RegistrumTagsProvider.Impl<DamageType>> DAMAGE_TYPE_TAGS = registerDynamicTag("tags/damage_type", "damage_types", Registries.DAMAGE_TYPE);
-    ProviderType<RegistrumItemTagsProvider> ITEM_TAGS = registerTag("tags/item", Registries.ITEM, c -> new RegistrumItemTagsProvider(c.parent(), c.type(), "items", c.output(), c.provider(), c.get(BLOCK_TAGS).contentsGetter(), c.fileHelper()));
-    ProviderType<RegistrumTagsProvider.IntrinsicImpl<Fluid>> FLUID_TAGS = registerIntrinsicTag("tags/fluid", "fluids", Registries.FLUID, fluid -> fluid.builtInRegistryHolder().key());
-    ProviderType<RegistrumTagsProvider.IntrinsicImpl<EntityType<?>>> ENTITY_TAGS = registerIntrinsicTag("tags/entity", "entity_types", Registries.ENTITY_TYPE, entityType -> entityType.builtInRegistryHolder().key());
-    ProviderType<RegistrumGenericProvider> GENERIC_SERVER = registerProvider("registrate_generic_server_provider",  c -> new RegistrumGenericProvider(c.parent(), c.event(), LogicalSide.SERVER, c.type()));
+    ProviderType<RegistrumTagsProvider.IntrinsicImpl<Block>> BLOCK_TAGS = registerIntrinsicTag(
+        "tags/block",
+        "blocks",
+        Registries.BLOCK,
+        block -> block.builtInRegistryHolder().key()
+    );
+    ProviderType<RegistrumTagsProvider.Impl<Enchantment>> ENCHANTMENT_TAGS = registerDynamicTag(
+        "tags/enchantment",
+        "enchantments",
+        Registries.ENCHANTMENT
+    );
+    ProviderType<RegistrumTagsProvider.Impl<DamageType>> DAMAGE_TYPE_TAGS = registerDynamicTag(
+        "tags/damage_type",
+        "damage_types",
+        Registries.DAMAGE_TYPE
+    );
+    ProviderType<RegistrumItemTagsProvider> ITEM_TAGS = registerTag(
+        "tags/item",
+        Registries.ITEM,
+        c -> new RegistrumItemTagsProvider(
+            c.parent(),
+            c.type(),
+            "items",
+            c.output(),
+            c.provider(),
+            c.get(BLOCK_TAGS).contentsGetter(),
+            c.fileHelper()
+        )
+    );
+    ProviderType<RegistrumTagsProvider.IntrinsicImpl<Fluid>> FLUID_TAGS = registerIntrinsicTag(
+        "tags/fluid",
+        "fluids",
+        Registries.FLUID,
+        fluid -> fluid.builtInRegistryHolder().key()
+    );
+    ProviderType<RegistrumTagsProvider.IntrinsicImpl<EntityType<?>>> ENTITY_TAGS = registerIntrinsicTag(
+        "tags/entity",
+        "entity_types",
+        Registries.ENTITY_TYPE,
+        entityType -> entityType.builtInRegistryHolder().key()
+    );
+    ProviderType<RegistrumGenericProvider> GENERIC_SERVER = registerProvider(
+        "registrate_generic_server_provider",
+        c -> new RegistrumGenericProvider(c.parent(), c.event(), LogicalSide.SERVER, c.type())
+    );
 
     // CLIENT DATA
-    ProviderType<RegistrumBlockstateProvider> BLOCKSTATE = registerProvider("blockstate", c -> new RegistrumBlockstateProvider(c.parent(), c.output(), c.fileHelper()));
-    ProviderType<RegistrumItemModelProvider> ITEM_MODEL = registerProvider("item_model", c -> new RegistrumItemModelProvider(c.parent(), c.output(), c.get(BLOCKSTATE).getExistingFileHelper()));
+    ProviderType<RegistrumBlockstateProvider> BLOCKSTATE = registerProvider(
+        "blockstate",
+        c -> new RegistrumBlockstateProvider(c.parent(), c.output(), c.fileHelper())
+    );
+    ProviderType<RegistrumItemModelProvider> ITEM_MODEL = registerProvider(
+        "item_model",
+        c -> new RegistrumItemModelProvider(c.parent(), c.output(), c.get(BLOCKSTATE).getExistingFileHelper())
+    );
     ProviderType<RegistrumLangProvider> LANG = registerProvider("lang", c -> new RegistrumLangProvider(c.parent(), c.output()));
-    ProviderType<RegistrumGenericProvider> GENERIC_CLIENT = registerProvider("registrate_generic_client_provider", c -> new RegistrumGenericProvider(c.parent(), c.event(), LogicalSide.CLIENT, c.type()));
-
-    record Context<T extends RegistrumProvider>(ProviderType<T> type, AbstractRegistrum<?> parent,
-                                                @Deprecated GatherDataEvent event,
-                                                Map<ProviderType<?>, RegistrumProvider> existing,
-                                                PackOutput output, ExistingFileHelper fileHelper,
-                                                CompletableFuture<HolderLookup.Provider> provider) {
-
-        public <R extends RegistrumProvider> R get(ProviderType<R> other) {
-            return (R) existing().get(other);
-        }
-
-    }
-
-    default T create(Context<T> context) {
-        return create(context.parent(), context.event(), context.existing());
-    }
-
-    @Deprecated
-    T create(AbstractRegistrum<?> parent, GatherDataEvent event, Map<ProviderType<?>, RegistrumProvider> existing);
-
-    interface DependencyAwareProviderType<T extends RegistrumProvider> extends ProviderType<T> {
-
-        @Override
-        default T create(AbstractRegistrum<?> parent, GatherDataEvent event, Map<ProviderType<?>, RegistrumProvider> existing) {
-            return create(new Context<>(this, parent, event, existing, event.getGenerator().getPackOutput(), event.getExistingFileHelper(), event.getLookupProvider()));
-        }
-
-        @Override
-        T create(Context<T> context);
-
-    }
-
-    interface SimpleServerDataFactory<T extends RegistrumProvider> extends DependencyAwareProviderType<T> {
-
-        T create(AbstractRegistrum<?> parent, PackOutput output, CompletableFuture<HolderLookup.Provider> provider);
-
-        @Override
-        default T create(Context<T> context) {
-            return create(context.parent(), context.output(), context.provider());
-        }
-
-        default ProviderType<T> asProvider() {
-            return this;
-        }
-
-    }
+    ProviderType<RegistrumGenericProvider> GENERIC_CLIENT = registerProvider(
+        "registrate_generic_client_provider",
+        c -> new RegistrumGenericProvider(c.parent(), c.event(), LogicalSide.CLIENT, c.type())
+    );
 
     // TODO this is clunky af
     @Deprecated
@@ -128,7 +129,10 @@ public interface ProviderType<T extends RegistrumProvider> {
     }
 
     @Deprecated
-    static <T extends RegistrumProvider> ProviderType<T> register(String name, NonNullFunction<ProviderType<T>, NonNullBiFunction<AbstractRegistrum<?>, GatherDataEvent, T>> type) {
+    static <T extends RegistrumProvider> ProviderType<T> register(
+        String name,
+        NonNullFunction<ProviderType<T>, NonNullBiFunction<AbstractRegistrum<?>, GatherDataEvent, T>> type
+    ) {
         ProviderType<T> ret = new ProviderType<T>() {
 
             @Override
@@ -140,7 +144,10 @@ public interface ProviderType<T extends RegistrumProvider> {
     }
 
     @Deprecated
-    static <T extends RegistrumProvider> ProviderType<T> register(String name, NonNullBiFunction<AbstractRegistrum<?>, GatherDataEvent, T> type) {
+    static <T extends RegistrumProvider> ProviderType<T> register(
+        String name,
+        NonNullBiFunction<AbstractRegistrum<?>, GatherDataEvent, T> type
+    ) {
         ProviderType<T> ret = (parent, event, existing) -> type.apply(parent, event);
         return register(name, ret);
     }
@@ -160,7 +167,11 @@ public interface ProviderType<T extends RegistrumProvider> {
         return type;
     }
 
-    static <T, R extends RegistrumTagsProvider<T>> ProviderType<R> registerTag(String name, ResourceKey<? extends Registry<T>> key, DependencyAwareProviderType<R> type) {
+    static <T, R extends RegistrumTagsProvider<T>> ProviderType<R> registerTag(
+        String name,
+        ResourceKey<? extends Registry<T>> key,
+        DependencyAwareProviderType<R> type
+    ) {
         if (RegistrumDataProvider.TAG_TYPES.containsKey(key)) {
             return (ProviderType<R>) RegistrumDataProvider.TAG_TYPES.get(key);
         }
@@ -169,16 +180,112 @@ public interface ProviderType<T extends RegistrumProvider> {
         return type;
     }
 
-    static <T> ProviderType<RegistrumTagsProvider.IntrinsicImpl<T>> registerIntrinsicTag(String providerName, String typeName, ResourceKey<? extends Registry<T>> registry, Function<T, ResourceKey<T>> keyExtractor) {
-        return registerTag(providerName, registry, c -> new RegistrumTagsProvider.IntrinsicImpl<>(c.parent(), c.type(), typeName, c.output(), registry, c.provider(), keyExtractor, c.fileHelper()));
+    static <T> ProviderType<RegistrumTagsProvider.IntrinsicImpl<T>> registerIntrinsicTag(
+        String providerName,
+        String typeName,
+        ResourceKey<? extends Registry<T>> registry,
+        Function<T, ResourceKey<T>> keyExtractor
+    ) {
+        return registerTag(
+            providerName,
+            registry,
+            c -> new RegistrumTagsProvider.IntrinsicImpl<>(
+                c.parent(),
+                c.type(),
+                typeName,
+                c.output(),
+                registry,
+                c.provider(),
+                keyExtractor,
+                c.fileHelper()
+            )
+        );
     }
 
-    static <T> ProviderType<RegistrumTagsProvider.Impl<T>> registerDynamicTag(String providerName, String typeName, ResourceKey<Registry<T>> registry) {
-        return registerTag(providerName, registry, c -> new RegistrumTagsProvider.Impl<>(c.parent(), c.type(), typeName, c.output(), registry, c.provider(), c.fileHelper()));
+    static <T> ProviderType<RegistrumTagsProvider.Impl<T>> registerDynamicTag(
+        String providerName,
+        String typeName,
+        ResourceKey<Registry<T>> registry
+    ) {
+        return registerTag(
+            providerName,
+            registry,
+            c -> new RegistrumTagsProvider.Impl<>(c.parent(), c.type(), typeName, c.output(), registry, c.provider(), c.fileHelper())
+        );
     }
 
-    static <T extends RegistrumProvider> T create(ProviderType<T> type, AbstractRegistrum<?> parent, GatherDataEvent event, Map<ProviderType<?>, RegistrumProvider> existing, CompletableFuture<HolderLookup.Provider> provider) {
-        return type.create(new Context<>(type, parent, event, existing, event.getGenerator().getPackOutput(), event.getExistingFileHelper(), provider));
+    static <T extends RegistrumProvider> T create(
+        ProviderType<T> type,
+        AbstractRegistrum<?> parent,
+        GatherDataEvent event,
+        Map<ProviderType<?>, RegistrumProvider> existing,
+        CompletableFuture<HolderLookup.Provider> provider
+    ) {
+        return type.create(new Context<>(
+            type,
+            parent,
+            event,
+            existing,
+            event.getGenerator().getPackOutput(),
+            event.getExistingFileHelper(),
+            provider
+        ));
+    }
+
+    default T create(Context<T> context) {
+        return create(context.parent(), context.event(), context.existing());
+    }
+
+    @Deprecated
+    T create(AbstractRegistrum<?> parent, GatherDataEvent event, Map<ProviderType<?>, RegistrumProvider> existing);
+
+    interface DependencyAwareProviderType<T extends RegistrumProvider> extends ProviderType<T> {
+
+        @Override
+        T create(Context<T> context);
+
+        @Override
+        default T create(AbstractRegistrum<?> parent, GatherDataEvent event, Map<ProviderType<?>, RegistrumProvider> existing) {
+            return create(new Context<>(
+                this,
+                parent,
+                event,
+                existing,
+                event.getGenerator().getPackOutput(),
+                event.getExistingFileHelper(),
+                event.getLookupProvider()
+            ));
+        }
+
+    }
+
+    interface SimpleServerDataFactory<T extends RegistrumProvider> extends DependencyAwareProviderType<T> {
+
+        T create(AbstractRegistrum<?> parent, PackOutput output, CompletableFuture<HolderLookup.Provider> provider);
+
+        @Override
+        default T create(Context<T> context) {
+            return create(context.parent(), context.output(), context.provider());
+        }
+
+        default ProviderType<T> asProvider() {
+            return this;
+        }
+
+    }
+
+    record Context<T extends RegistrumProvider>(
+        ProviderType<T> type, AbstractRegistrum<?> parent,
+        @Deprecated GatherDataEvent event,
+        Map<ProviderType<?>, RegistrumProvider> existing,
+        PackOutput output, ExistingFileHelper fileHelper,
+        CompletableFuture<HolderLookup.Provider> provider
+    ) {
+
+        public <R extends RegistrumProvider> R get(ProviderType<R> other) {
+            return (R) existing().get(other);
+        }
+
     }
 
 }

@@ -32,14 +32,22 @@ public interface RegistrumTagsProvider<T> extends RegistrumLookupFillerProvider 
 
     CompletableFuture<TagsProvider.TagLookup<T>> contentsGetter();
 
-	ResourceKey<? extends Registry<T>> registry();
+    ResourceKey<? extends Registry<T>> registry();
 
     class Impl<T> extends TagsProvider<T> implements RegistrumTagsProvider<T> {
         private final AbstractRegistrum<?> owner;
         private final ProviderType<? extends Impl<T>> type;
         private final String name;
 
-        public Impl(AbstractRegistrum<?> owner, ProviderType<? extends Impl<T>> type, String name, PackOutput packOutput, ResourceKey<? extends Registry<T>> registryIn, CompletableFuture<HolderLookup.Provider> registriesLookup, ExistingFileHelper existingFileHelper) {
+        public Impl(
+            AbstractRegistrum<?> owner,
+            ProviderType<? extends Impl<T>> type,
+            String name,
+            PackOutput packOutput,
+            ResourceKey<? extends Registry<T>> registryIn,
+            CompletableFuture<HolderLookup.Provider> registriesLookup,
+            ExistingFileHelper existingFileHelper
+        ) {
             super(packOutput, registryIn, registriesLookup, owner.getModid(), existingFileHelper);
 
             this.owner = owner;
@@ -68,23 +76,32 @@ public interface RegistrumTagsProvider<T> extends RegistrumLookupFillerProvider 
         }
 
         @Override
+        public ResourceKey<? extends Registry<T>> registry() {
+            return registryKey;
+        }
+
+        @Override
         public CompletableFuture<HolderLookup.Provider> getFilledProvider() {
             return createContentsProvider();
         }
 
-		@Override
-		public ResourceKey<? extends Registry<T>> registry() {
-			return registryKey;
-		}
-
-	}
+    }
 
     class IntrinsicImpl<T> extends IntrinsicHolderTagsProvider<T> implements RegistrumTagsProvider<T> {
         private final AbstractRegistrum<?> owner;
         private final ProviderType<? extends IntrinsicImpl<T>> type;
         private final String name;
 
-        public IntrinsicImpl(AbstractRegistrum<?> owner, ProviderType<? extends IntrinsicImpl<T>> type, String name, PackOutput packOutput, ResourceKey<? extends Registry<T>> registryIn, CompletableFuture<HolderLookup.Provider> registriesLookup, Function<T, ResourceKey<T>> keyExtractor, ExistingFileHelper existingFileHelper) {
+        public IntrinsicImpl(
+            AbstractRegistrum<?> owner,
+            ProviderType<? extends IntrinsicImpl<T>> type,
+            String name,
+            PackOutput packOutput,
+            ResourceKey<? extends Registry<T>> registryIn,
+            CompletableFuture<HolderLookup.Provider> registriesLookup,
+            Function<T, ResourceKey<T>> keyExtractor,
+            ExistingFileHelper existingFileHelper
+        ) {
             super(packOutput, registryIn, registriesLookup, keyExtractor, owner.getModid(), existingFileHelper);
 
             this.owner = owner;
@@ -113,14 +130,14 @@ public interface RegistrumTagsProvider<T> extends RegistrumLookupFillerProvider 
         }
 
         @Override
+        public ResourceKey<? extends Registry<T>> registry() {
+            return registryKey;
+        }
+
+        @Override
         public CompletableFuture<HolderLookup.Provider> getFilledProvider() {
             return createContentsProvider();
         }
 
-		@Override
-		public ResourceKey<? extends Registry<T>> registry() {
-			return registryKey;
-		}
-
-	}
+    }
 }

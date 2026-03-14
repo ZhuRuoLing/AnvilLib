@@ -54,11 +54,21 @@ public class RegistrumAdvancementProvider implements RegistrumProvider, Consumer
     private final List<CompletableFuture<?>> advancementsToSave = Lists.newArrayList();
     @Getter
     private HolderLookup.Provider provider;
+    private @Nullable CachedOutput cache;
+    private Set<ResourceLocation> seenAdvancements = new HashSet<>();
 
-    public RegistrumAdvancementProvider(AbstractRegistrum<?> owner, PackOutput packOutputIn, CompletableFuture<HolderLookup.Provider> registriesLookupIn) {
+    public RegistrumAdvancementProvider(
+        AbstractRegistrum<?> owner,
+        PackOutput packOutputIn,
+        CompletableFuture<HolderLookup.Provider> registriesLookupIn
+    ) {
         this.owner = owner;
         this.packOutput = packOutputIn;
         this.registriesLookup = registriesLookupIn;
+    }
+
+    private static Path getPath(Path pathIn, AdvancementHolder advancementIn) {
+        return pathIn.resolve("data/" + advancementIn.id().getNamespace() + "/advancement/" + advancementIn.id().getPath() + ".json");
     }
 
     public <T> Holder<T> resolve(ResourceKey<T> key) {
@@ -78,9 +88,6 @@ public class RegistrumAdvancementProvider implements RegistrumProvider, Consumer
         return owner.addLang("advancements", ResourceLocation.fromNamespaceAndPath(category, name), "description", desc);
     }
 
-    private @Nullable CachedOutput cache;
-    private Set<ResourceLocation> seenAdvancements = new HashSet<>();
-
     @Override
     public CompletableFuture<?> run(CachedOutput cache) {
         return registriesLookup.thenCompose(lookup -> {
@@ -97,6 +104,10 @@ public class RegistrumAdvancementProvider implements RegistrumProvider, Consumer
 
             return CompletableFuture.allOf(advancementsToSave.toArray(CompletableFuture[]::new));
         });
+    }
+
+    public String getName() {
+        return "Advancements";
     }
 
     @Override
@@ -117,17 +128,11 @@ public class RegistrumAdvancementProvider implements RegistrumProvider, Consumer
             } else if (conditions.isEmpty()) {
                 advancementsToSave.add(DataProvider.saveStable(cache, lookup, Advancement.CODEC, holder.value(), path));
             } else {
-                advancementsToSave.add(DataProvider.saveStable(cache, lookup, Advancement.CONDITIONAL_CODEC,
-                        Optional.of(new WithConditions<>(conditions, holder.value())), path));
+                advancementsToSave.add(DataProvider.saveStable(
+                    cache, lookup, Advancement.CONDITIONAL_CODEC,
+                    Optional.of(new WithConditions<>(conditions, holder.value())), path
+                ));
             }
         });
-    }
-
-    private static Path getPath(Path pathIn, AdvancementHolder advancementIn) {
-        return pathIn.resolve("data/" + advancementIn.id().getNamespace() + "/advancement/" + advancementIn.id().getPath() + ".json");
-    }
-
-    public String getName() {
-        return "Advancements";
     }
 }

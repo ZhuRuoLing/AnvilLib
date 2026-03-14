@@ -22,22 +22,22 @@ import java.util.concurrent.CompletableFuture;
 
 public class RegistrumDataMapProvider extends DataMapProvider implements RegistrumProvider {
 
-	private final AbstractRegistrum<?> parent;
+    private final AbstractRegistrum<?> parent;
 
-	protected RegistrumDataMapProvider(AbstractRegistrum<?> parent, PackOutput output, CompletableFuture<HolderLookup.Provider> pvd) {
-		super(output, pvd);
-		this.parent = parent;
-	}
+    protected RegistrumDataMapProvider(AbstractRegistrum<?> parent, PackOutput output, CompletableFuture<HolderLookup.Provider> pvd) {
+        super(output, pvd);
+        this.parent = parent;
+    }
 
-	@Override
-	public LogicalSide getSide() {
-		return LogicalSide.SERVER;
-	}
+    @Override
+    public LogicalSide getSide() {
+        return LogicalSide.SERVER;
+    }
 
     @Override
     @SuppressWarnings("removal")
-	protected void gather() {
-		parent.genData(ProviderType.DATA_MAP, this);
-	}
+    protected void gather() {
+        parent.genData(ProviderType.DATA_MAP, this);
+    }
 
 }

@@ -24,18 +24,22 @@ import java.util.concurrent.CompletableFuture;
 
 public class RegistrumDatapackProvider extends DatapackBuiltinEntriesProvider implements RegistrumLookupFillerProvider {
 
-	public RegistrumDatapackProvider(AbstractRegistrum<?> parent, PackOutput output, CompletableFuture<HolderLookup.Provider> provider) {
-		super(output, RegistryPatchGenerator.createLookup(provider, parent.getDataGenInitializer().getDatapackRegistryProviders()), Set.of(parent.getModid()));
-	}
+    public RegistrumDatapackProvider(AbstractRegistrum<?> parent, PackOutput output, CompletableFuture<HolderLookup.Provider> provider) {
+        super(
+            output,
+            RegistryPatchGenerator.createLookup(provider, parent.getDataGenInitializer().getDatapackRegistryProviders()),
+            Set.of(parent.getModid())
+        );
+    }
 
-	@Override
-	public CompletableFuture<HolderLookup.Provider> getFilledProvider() {
-		return getRegistryProvider();
-	}
+    @Override
+    public CompletableFuture<HolderLookup.Provider> getFilledProvider() {
+        return getRegistryProvider();
+    }
 
-	@Override
-	public LogicalSide getSide() {
-		return LogicalSide.SERVER;
-	}
+    @Override
+    public LogicalSide getSide() {
+        return LogicalSide.SERVER;
+    }
 
 }

@@ -27,8 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
-public final class RegistrumGenericProvider implements RegistrumProvider
-{
+public final class RegistrumGenericProvider implements RegistrumProvider {
     private final AbstractRegistrum<?> registrate;
     private final PackOutput output;
     private final CompletableFuture<HolderLookup.Provider> registries;
@@ -38,8 +37,12 @@ public final class RegistrumGenericProvider implements RegistrumProvider
     private final List<Generator> generators = Lists.newArrayList();
 
     @ApiStatus.Internal
-    RegistrumGenericProvider(AbstractRegistrum<?> registrate, GatherDataEvent event, LogicalSide side, ProviderType<RegistrumGenericProvider> providerType)
-    {
+    RegistrumGenericProvider(
+        AbstractRegistrum<?> registrate,
+        GatherDataEvent event,
+        LogicalSide side,
+        ProviderType<RegistrumGenericProvider> providerType
+    ) {
         this.registrate = registrate;
         this.side = side;
         this.providerType = providerType;
@@ -49,45 +52,43 @@ public final class RegistrumGenericProvider implements RegistrumProvider
         existingFileHelper = event.getExistingFileHelper();
     }
 
-    public RegistrumGenericProvider add(Generator generator)
-    {
+    public RegistrumGenericProvider add(Generator generator) {
         generators.add(generator);
         return this;
     }
 
     @Override
-    public LogicalSide getSide()
-    {
+    public LogicalSide getSide() {
         return side;
     }
 
     @Override
-    public CompletableFuture<?> run(CachedOutput cache)
-    {
+    public CompletableFuture<?> run(CachedOutput cache) {
         generators.clear();
         var data = new GeneratorData(output, registries, existingFileHelper);
         registrate.genData(providerType, this);
         return CompletableFuture.allOf(generators
-                .stream()
-                .map(generator -> generator.generate(data))
-                .map(provider -> provider.run(cache))
-                .toArray(CompletableFuture[]::new)
+            .stream()
+            .map(generator -> generator.generate(data))
+            .map(provider -> provider.run(cache))
+            .toArray(CompletableFuture[]::new)
         );
     }
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return "generic_%s_provider".formatted(side.name().toLowerCase(Locale.ROOT));
     }
 
-    public record GeneratorData(PackOutput output, CompletableFuture<HolderLookup.Provider> registries, ExistingFileHelper existingFileHelper)
-    {
+    @FunctionalInterface
+    public interface Generator {
+        DataProvider generate(GeneratorData data);
     }
 
-    @FunctionalInterface
-    public interface Generator
-    {
-        DataProvider generate(GeneratorData data);
+    public record GeneratorData(
+        PackOutput output,
+        CompletableFuture<HolderLookup.Provider> registries,
+        ExistingFileHelper existingFileHelper
+    ) {
     }
 }

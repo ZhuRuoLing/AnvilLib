@@ -26,8 +26,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 /**
  * Wraps a {@link DeferredHolder}, providing a cleaner API with null-safe access, and registrate-specific extensions such as {@link #getSibling(ResourceKey)}.
  *
- * @param <S>
- *            The type of the entry
+ * @param <S> The type of the entry
  */
 public class RegistryEntry<R, S extends R> extends DeferredHolder<R, S> implements NonNullSupplier<S> {
     private final AbstractRegistrum<?> owner;
@@ -36,27 +35,34 @@ public class RegistryEntry<R, S extends R> extends DeferredHolder<R, S> implemen
     public RegistryEntry(AbstractRegistrum<?> owner, DeferredHolder<R, S> key) {
         super(key.getKey());
 
-        if (owner == null)
+        if (owner == null) {
             throw new NullPointerException("Owner must not be null");
+        }
         this.owner = owner;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected static <E extends RegistryEntry<?, ?>> E cast(Class<? super E> clazz, RegistryEntry<?, ?> entry) {
+        if (clazz.isInstance(entry)) {
+            return (E) entry;
+        }
+        throw new IllegalArgumentException("Could not convert RegistryEntry: expecting " + clazz + ", found " + entry.getClass());
     }
 
     public <X, Y extends X> RegistryEntry<X, Y> getSibling(ResourceKey<? extends Registry<X>> registryType) {
         return owner.get(getId().getPath(), registryType);
     }
 
-    public <X, Y extends X> RegistryEntry<X,Y> getSibling(Registry<X> registry) {
+    public <X, Y extends X> RegistryEntry<X, Y> getSibling(Registry<X> registry) {
         return getSibling(registry.key());
     }
 
     /**
      * If an entry is present, and the entry matches the given predicate, return an {@link Optional<RegistryEntry>} describing the value, otherwise return an empty {@link Optional}.
      *
-     * @param predicate
-     *            a {@link Predicate predicate} to apply to the entry, if present
+     * @param predicate a {@link Predicate predicate} to apply to the entry, if present
      * @return an {@link RegistryEntry} describing the value of this {@link RegistryEntry} if the entry is present and matches the given predicate, otherwise an empty {@link RegistryEntry}
-     * @throws NullPointerException
-     *             if the predicate is null
+     * @throws NullPointerException if the predicate is null
      */
     public Optional<RegistryEntry<R, S>> filter(Predicate<R> predicate) {
         Objects.requireNonNull(predicate);
@@ -68,13 +74,5 @@ public class RegistryEntry<R, S extends R> extends DeferredHolder<R, S> implemen
 
     public <X> boolean is(X entry) {
         return get() == entry;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected static <E extends RegistryEntry<?, ?>> E cast(Class<? super E> clazz, RegistryEntry<?, ?> entry) {
-        if (clazz.isInstance(entry)) {
-            return (E) entry;
-        }
-        throw new IllegalArgumentException("Could not convert RegistryEntry: expecting " + clazz + ", found " + entry.getClass());
     }
 }

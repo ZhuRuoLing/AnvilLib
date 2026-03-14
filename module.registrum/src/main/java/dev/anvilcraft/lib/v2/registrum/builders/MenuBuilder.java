@@ -35,31 +35,31 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
-public class MenuBuilder<T extends AbstractContainerMenu, S extends Screen & MenuAccess<T>,  P> extends AbstractBuilder<MenuType<?>, MenuType<T>, P, MenuBuilder<T, S, P>> {
-    
-    public interface MenuFactory<T extends AbstractContainerMenu> {
-        
-        T create(MenuType<T> type, int windowId, Inventory inv);
-    }
+public class MenuBuilder<T extends AbstractContainerMenu, S extends Screen & MenuAccess<T>, P>
+    extends AbstractBuilder<MenuType<?>, MenuType<T>, P, MenuBuilder<T, S, P>> {
 
-    public interface ForgeMenuFactory<T extends AbstractContainerMenu> {
-
-        T create(MenuType<T> type, int windowId, Inventory inv, @Nullable RegistryFriendlyByteBuf buffer);
-    }
-    
-    public interface ScreenFactory<M extends AbstractContainerMenu, T extends Screen & MenuAccess<M>> {
-        
-        T create(M menu, Inventory inv, Component displayName);
-    }
-    
     private final ForgeMenuFactory<T> factory;
     private final NonNullSupplier<ScreenFactory<T, S>> screenFactory;
 
-    public MenuBuilder(AbstractRegistrum<?> owner, P parent, String name, BuilderCallback callback, MenuFactory<T> factory, NonNullSupplier<ScreenFactory<T, S>> screenFactory) {
+    public MenuBuilder(
+        AbstractRegistrum<?> owner,
+        P parent,
+        String name,
+        BuilderCallback callback,
+        MenuFactory<T> factory,
+        NonNullSupplier<ScreenFactory<T, S>> screenFactory
+    ) {
         this(owner, parent, name, callback, (type, windowId, inv, $) -> factory.create(type, windowId, inv), screenFactory);
     }
 
-    public MenuBuilder(AbstractRegistrum<?> owner, P parent, String name, BuilderCallback callback, ForgeMenuFactory<T> factory, NonNullSupplier<ScreenFactory<T, S>> screenFactory) {
+    public MenuBuilder(
+        AbstractRegistrum<?> owner,
+        P parent,
+        String name,
+        BuilderCallback callback,
+        ForgeMenuFactory<T> factory,
+        NonNullSupplier<ScreenFactory<T, S>> screenFactory
+    ) {
         super(owner, parent, name, callback, Registries.MENU);
         this.factory = factory;
         this.screenFactory = screenFactory;
@@ -70,13 +70,22 @@ public class MenuBuilder<T extends AbstractContainerMenu, S extends Screen & Men
         ForgeMenuFactory<T> factory = this.factory;
         final var supplier = this.asSupplier();
         MenuType<T> ret = IMenuTypeExtension.create((windowId, inv, buf) -> factory.create(supplier.get(), windowId, inv, buf));
-        RegistrumDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            ScreenFactory<T, S> screenFactory = this.screenFactory.get();
-            OneTimeEventReceiver.addModListener(this.getOwner(), RegisterMenuScreensEvent.class, event -> {
-                event.register(ret, screenFactory::create);
-            });
-        });
+        RegistrumDistExecutor.unsafeRunWhenOn(
+            Dist.CLIENT, () -> () -> {
+                ScreenFactory<T, S> screenFactory = this.screenFactory.get();
+                OneTimeEventReceiver.addModListener(
+                    this.getOwner(), RegisterMenuScreensEvent.class, event -> {
+                        event.register(ret, screenFactory::create);
+                    }
+                );
+            }
+        );
         return ret;
+    }
+
+    @Override
+    public MenuEntry<T> register() {
+        return (MenuEntry<T>) super.register();
     }
 
     @Override
@@ -84,8 +93,18 @@ public class MenuBuilder<T extends AbstractContainerMenu, S extends Screen & Men
         return new MenuEntry<>(getOwner(), delegate);
     }
 
-    @Override
-    public MenuEntry<T> register() {
-        return (MenuEntry<T>) super.register();
+    public interface MenuFactory<T extends AbstractContainerMenu> {
+
+        T create(MenuType<T> type, int windowId, Inventory inv);
+    }
+
+    public interface ForgeMenuFactory<T extends AbstractContainerMenu> {
+
+        T create(MenuType<T> type, int windowId, Inventory inv, @Nullable RegistryFriendlyByteBuf buffer);
+    }
+
+    public interface ScreenFactory<M extends AbstractContainerMenu, T extends Screen & MenuAccess<M>> {
+
+        T create(M menu, Inventory inv, Component displayName);
     }
 }

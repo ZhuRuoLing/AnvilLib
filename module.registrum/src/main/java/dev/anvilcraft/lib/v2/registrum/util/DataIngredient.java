@@ -43,49 +43,29 @@ import net.minecraft.world.level.ItemLike;
  * <strong>This class should not be used for any purpose other than data generation</strong>, it will throw an exception if it is serialized to a packet buffer.
  */
 public final class DataIngredient {
-    private interface Excludes {
-
-        void toNetwork(FriendlyByteBuf buffer);
-
-        boolean checkInvalidation();
-
-        void markValid();
-
-        boolean isVanilla();
-
-        ItemStack[] getItems();
-
-        Ingredient.Value[] getValues();
-    }
-
     @Delegate(excludes = Excludes.class)
     private final Ingredient parent;
     @Getter
     private final ResourceLocation id;
     private final Function<RegistrumRecipeProvider, Criterion<InventoryChangeTrigger.TriggerInstance>> criteriaFactory;
-
     private DataIngredient(Ingredient parent, ItemLike item) {
         this.parent = parent;
         this.id = BuiltInRegistries.ITEM.getKey(item.asItem());
         this.criteriaFactory = prov -> RegistrumRecipeProvider.has(item);
     }
-    
+
     private DataIngredient(Ingredient parent, TagKey<Item> tag) {
         this.parent = parent;
         this.id = tag.location();
         this.criteriaFactory = prov -> RegistrumRecipeProvider.has(tag);
     }
-    
+
     private DataIngredient(Ingredient parent, ResourceLocation id, ItemPredicate... predicates) {
         this.parent = parent;
         this.id = id;
         this.criteriaFactory = prov -> RegistrumRecipeProvider.inventoryTrigger(predicates);
     }
 
-    public Criterion<InventoryChangeTrigger.TriggerInstance> getCriterion(RegistrumRecipeProvider prov) {
-        return criteriaFactory.apply(prov);
-    }
-    
     @SuppressWarnings("unchecked")
     @SafeVarargs
     public static <T extends ItemLike> DataIngredient items(NonNullSupplier<? extends T> first, NonNullSupplier<? extends T>... others) {
@@ -104,20 +84,39 @@ public final class DataIngredient {
     public static DataIngredient tag(TagKey<Item> tag) {
         return ingredient(Ingredient.of(tag), tag);
     }
-    
+
     public static DataIngredient ingredient(Ingredient parent, ItemLike required) {
         return new DataIngredient(parent, required);
     }
-    
+
     public static DataIngredient ingredient(Ingredient parent, TagKey<Item> required) {
         return new DataIngredient(parent, required);
     }
-    
+
     public static DataIngredient ingredient(Ingredient parent, ResourceLocation id, ItemPredicate... criteria) {
         return new DataIngredient(parent, id, criteria);
     }
 
+    public Criterion<InventoryChangeTrigger.TriggerInstance> getCriterion(RegistrumRecipeProvider prov) {
+        return criteriaFactory.apply(prov);
+    }
+
     public Ingredient toVanilla() {
         return parent;
+    }
+
+    private interface Excludes {
+
+        void toNetwork(FriendlyByteBuf buffer);
+
+        boolean checkInvalidation();
+
+        void markValid();
+
+        boolean isVanilla();
+
+        ItemStack[] getItems();
+
+        Ingredient.Value[] getValues();
     }
 }

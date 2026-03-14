@@ -69,13 +69,33 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 
 /**
  * A builder for blocks, allows for customization of the {@link Block.Properties}, creation of block items, and configuration of data associated with blocks (loot tables, recipes, etc.).
- * 
- * @param <T>
- *            The type of block being built
- * @param <P>
- *            Parent object type
+ *
+ * @param <T> The type of block being built
+ * @param <P> Parent object type
  */
 public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, P, BlockBuilder<T, P>> {
+
+    private final NonNullFunction<BlockBehaviour.Properties, T> factory;
+    private NonNullSupplier<BlockBehaviour.Properties> initialProperties;
+    private NonNullFunction<BlockBehaviour.Properties, BlockBehaviour.Properties> propertiesCallback = NonNullUnaryOperator.identity();
+    private List<Supplier<Supplier<RenderType>>> renderLayers = new ArrayList<>(1);
+    @Nullable
+    private NonNullSupplier<Supplier<BlockColor>> colorHandler;
+    @Nullable
+    private Function<T, NonNullSupplier<Supplier<IClientBlockExtensions>>> clientExtensionFunc;
+
+    protected BlockBuilder(
+        AbstractRegistrum<?> owner,
+        P parent,
+        String name,
+        BuilderCallback callback,
+        NonNullFunction<BlockBehaviour.Properties, T> factory,
+        NonNullSupplier<BlockBehaviour.Properties> initialProperties
+    ) {
+        super(owner, parent, name, callback, Registries.BLOCK);
+        this.factory = factory;
+        this.initialProperties = initialProperties;
+    }
 
     /**
      * Create a new {@link BlockBuilder} and configure data. Used in lieu of adding side-effects to constructor, so that alternate initialization strategies can be done in subclasses.
@@ -87,41 +107,25 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      * <li>A self-dropping loot table (via {@link #defaultLoot()})</li>
      * <li>The default translation (via {@link #defaultLang()})</li>
      * </ul>
-     * 
-     * @param <T>
-     *            The type of the builder
-     * @param <P>
-     *            Parent object type
-     * @param owner
-     *            The owning {@link AbstractRegistrum} object
-     * @param parent
-     *            The parent object
-     * @param name
-     *            Name of the entry being built
-     * @param callback
-     *            A callback used to actually register the built entry
-     * @param factory
-     *            Factory to create the block
+     *
+     * @param <T>      The type of the builder
+     * @param <P>      Parent object type
+     * @param owner    The owning {@link AbstractRegistrum} object
+     * @param parent   The parent object
+     * @param name     Name of the entry being built
+     * @param callback A callback used to actually register the built entry
+     * @param factory  Factory to create the block
      * @return A new {@link BlockBuilder} with reasonable default data generators.
      */
-    public static <T extends Block, P> BlockBuilder<T, P> create(AbstractRegistrum<?> owner, P parent, String name, BuilderCallback callback, NonNullFunction<BlockBehaviour.Properties, T> factory) {
+    public static <T extends Block, P> BlockBuilder<T, P> create(
+        AbstractRegistrum<?> owner,
+        P parent,
+        String name,
+        BuilderCallback callback,
+        NonNullFunction<BlockBehaviour.Properties, T> factory
+    ) {
         return new BlockBuilder<>(owner, parent, name, callback, factory, BlockBehaviour.Properties::of)
-                .defaultBlockstate().defaultLoot().defaultLang();
-    }
-
-    private final NonNullFunction<BlockBehaviour.Properties, T> factory;
-    
-    private NonNullSupplier<BlockBehaviour.Properties> initialProperties;
-    private NonNullFunction<BlockBehaviour.Properties, BlockBehaviour.Properties> propertiesCallback = NonNullUnaryOperator.identity();
-    private List<Supplier<Supplier<RenderType>>> renderLayers = new ArrayList<>(1);
-
-    @Nullable
-    private NonNullSupplier<Supplier<BlockColor>> colorHandler;
-
-    protected BlockBuilder(AbstractRegistrum<?> owner, P parent, String name, BuilderCallback callback, NonNullFunction<BlockBehaviour.Properties, T> factory, NonNullSupplier<BlockBehaviour.Properties> initialProperties) {
-        super(owner, parent, name, callback, Registries.BLOCK);
-        this.factory = factory;
-        this.initialProperties = initialProperties;
+            .defaultBlockstate().defaultLoot().defaultLang();
     }
 
     /**
@@ -129,9 +133,8 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      * different operations.
      * <p>
      * If a different properties instance is returned, it will replace the existing one entirely.
-     * 
-     * @param func
-     *            The action to perform on the properties
+     *
+     * @param func The action to perform on the properties
      * @return this {@link BlockBuilder}
      */
     public BlockBuilder<T, P> properties(NonNullUnaryOperator<BlockBehaviour.Properties> func) {
@@ -141,9 +144,8 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
 
     /**
      * Replace the initial state of the block properties, without replacing or removing any modifications done via {@link #properties(NonNullUnaryOperator)}.
-     * 
-     * @param block
-     *            The block to create the initial properties from (via {@link Block.Properties#ofFullCopy(BlockBehaviour)})
+     *
+     * @param block The block to create the initial properties from (via {@link Block.Properties#ofFullCopy(BlockBehaviour)})
      * @return this {@link BlockBuilder}
      */
     public BlockBuilder<T, P> initialProperties(NonNullSupplier<? extends Block> block) {
@@ -152,13 +154,15 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
     }
 
     /**
-     * @deprecated Set your render type in your model's JSON ({@link net.neoforged.neoforge.client.model.generators.ModelBuilder#renderType(ResourceLocation)}) or override {@link net.minecraft.client.resources.model.BakedModel#getRenderTypes(BlockState, net.minecraft.util.RandomSource,  net.neoforged.neoforge.client.model.data.ModelData)}
+     * @deprecated Set your render type in your model's JSON ({@link net.neoforged.neoforge.client.model.generators.ModelBuilder#renderType(ResourceLocation)}) or override {@link net.minecraft.client.resources.model.BakedModel#getRenderTypes(BlockState, net.minecraft.util.RandomSource, net.neoforged.neoforge.client.model.data.ModelData)}
      */
     @Deprecated(forRemoval = true)
     public BlockBuilder<T, P> addLayer(Supplier<Supplier<RenderType>> layer) {
-        RegistrumDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get().get()), "Invalid block layer: " + layer);
-        });
+        RegistrumDistExecutor.unsafeRunWhenOn(
+            Dist.CLIENT, () -> () -> {
+                Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get().get()), "Invalid block layer: " + layer);
+            }
+        );
         if (this.renderLayers.isEmpty()) {
             onRegister(this::registerLayers);
         }
@@ -168,19 +172,23 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
 
     @SuppressWarnings("deprecation")
     protected void registerLayers(T entry) {
-        RegistrumDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            OneTimeEventReceiver.addModListener(getOwner(), FMLClientSetupEvent.class, $ -> {
-                if (renderLayers.size() == 1) {
-                    final RenderType layer = renderLayers.getFirst().get().get();
-                    ItemBlockRenderTypes.setRenderLayer(entry, layer);
-                } else if (renderLayers.size() > 1) {
-                    final Set<RenderType> layers = renderLayers.stream()
-                            .map(s -> s.get().get())
-                            .collect(Collectors.toSet());
-                    ItemBlockRenderTypes.setRenderLayer(entry, layers::contains);
-                }
-            });
-        });
+        RegistrumDistExecutor.unsafeRunWhenOn(
+            Dist.CLIENT, () -> () -> {
+                OneTimeEventReceiver.addModListener(
+                    getOwner(), FMLClientSetupEvent.class, $ -> {
+                        if (renderLayers.size() == 1) {
+                            final RenderType layer = renderLayers.getFirst().get().get();
+                            ItemBlockRenderTypes.setRenderLayer(entry, layer);
+                        } else if (renderLayers.size() > 1) {
+                            final Set<RenderType> layers = renderLayers.stream()
+                                .map(s -> s.get().get())
+                                .collect(Collectors.toSet());
+                            ItemBlockRenderTypes.setRenderLayer(entry, layers::contains);
+                        }
+                    }
+                );
+            }
+        );
     }
 
     /**
@@ -199,7 +207,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      * Create a standard {@link BlockItem} for this block, and return the builder for it so that further customization can be done.
      * <p>
      * The item will have no lang entry (since it would duplicate the block's) and a simple block item model (via {@link RegistrumItemModelProvider#blockItem(NonNullSupplier)}).
-     * 
+     *
      * @return the {@link ItemBuilder} for the {@link BlockItem}
      */
     public ItemBuilder<BlockItem, BlockBuilder<T, P>> item() {
@@ -210,40 +218,36 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      * Create a {@link BlockItem} for this block, which is created by the given factory, and return the builder for it so that further customization can be done.
      * <p>
      * By default, the item will have no lang entry (since it would duplicate the block's) and a simple block item model (via {@link RegistrumItemModelProvider#blockItem(NonNullSupplier)}).
-     * 
-     * @param <I>
-     *            The type of the item
-     * @param factory
-     *            A factory for the item, which accepts the block object and properties and returns a new item
+     *
+     * @param <I>     The type of the item
+     * @param factory A factory for the item, which accepts the block object and properties and returns a new item
      * @return the {@link ItemBuilder} for the {@link BlockItem}
      */
     public <I extends Item> ItemBuilder<I, BlockBuilder<T, P>> item(NonNullBiFunction<? super T, Item.Properties, ? extends I> factory) {
         final var sup = asSupplier();
-        return getOwner().<I, BlockBuilder<T, P>> item(this, getName(), p -> factory.apply(getEntry(), p))
-                .setData(ProviderType.LANG, NonNullBiConsumer.noop()) // FIXME Need a beetter API for "unsetting" providers
-                .model((ctx, prov) -> {
-                    Optional<String> model = getOwner().getDataProvider(ProviderType.BLOCKSTATE)
-                            .flatMap(p -> p.getExistingVariantBuilder(getEntry()))
-                            .map(b -> b.getModels().get(b.partialState()))
-                            .map(BlockStateProvider.ConfiguredModelList::toJSON)
-                            .filter(JsonElement::isJsonObject)
-                            .map(j -> j.getAsJsonObject().get("model"))
-                            .map(JsonElement::getAsString);
-                    if (model.isPresent()) {
-                        prov.withExistingParent(ctx.getName(), model.get());
-                    } else {
-                        prov.blockItem(sup);
-                    }
-                });
+        return getOwner().<I, BlockBuilder<T, P>>item(this, getName(), p -> factory.apply(getEntry(), p))
+            .setData(ProviderType.LANG, NonNullBiConsumer.noop()) // FIXME Need a beetter API for "unsetting" providers
+            .model((ctx, prov) -> {
+                Optional<String> model = getOwner().getDataProvider(ProviderType.BLOCKSTATE)
+                    .flatMap(p -> p.getExistingVariantBuilder(getEntry()))
+                    .map(b -> b.getModels().get(b.partialState()))
+                    .map(BlockStateProvider.ConfiguredModelList::toJSON)
+                    .filter(JsonElement::isJsonObject)
+                    .map(j -> j.getAsJsonObject().get("model"))
+                    .map(JsonElement::getAsString);
+                if (model.isPresent()) {
+                    prov.withExistingParent(ctx.getName(), model.get());
+                } else {
+                    prov.blockItem(sup);
+                }
+            });
     }
 
     /**
      * Create a {@link BlockEntity} for this block, which is created by the given factory, and assigned this block as its one and only valid block.
-     * 
-     * @param <BE>
-     *            The type of the block entity
-     * @param factory
-     *            A factory for the block entity
+     *
+     * @param <BE>    The type of the block entity
+     * @param factory A factory for the block entity
      * @return this {@link BlockBuilder}
      */
     public <BE extends BlockEntity> BlockBuilder<T, P> simpleBlockEntity(BlockEntityFactory<BE> factory) {
@@ -254,22 +258,19 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      * Create a {@link BlockEntity} for this block, which is created by the given factory, and assigned this block as its one and only valid block.
      * <p>
      * The created {@link BlockEntityBuilder} is returned for further configuration.
-     * 
-     * @param <BE>
-     *            The type of the block entity
-     * @param factory
-     *            A factory for the block entity
+     *
+     * @param <BE>    The type of the block entity
+     * @param factory A factory for the block entity
      * @return the {@link BlockEntityBuilder}
      */
     public <BE extends BlockEntity> BlockEntityBuilder<BE, BlockBuilder<T, P>> blockEntity(BlockEntityFactory<BE> factory) {
         return getOwner().<BE, BlockBuilder<T, P>>blockEntity(this, getName(), factory).validBlock(asSupplier());
     }
-    
+
     /**
      * Register a block color handler for this block. The {@link BlockColor} instance can be shared across many blocks.
-     * 
-     * @param colorHandler
-     *            The color handler to register for this block
+     *
+     * @param colorHandler The color handler to register for this block
      * @return this {@link BlockBuilder}
      */
     // TODO it might be worthwhile to abstract this more and add the capability to automatically copy to the item
@@ -280,20 +281,22 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
         this.colorHandler = colorHandler;
         return this;
     }
-    
+
     protected void registerBlockColor() {
-        OneTimeEventReceiver.addModListener(getOwner(), RegisterColorHandlersEvent.Block.class, e -> {
-            NonNullSupplier<Supplier<BlockColor>> colorHandler = this.colorHandler;
-            if (colorHandler != null) {
-                e.register(colorHandler.get().get(), getEntry());
+        OneTimeEventReceiver.addModListener(
+            getOwner(), RegisterColorHandlersEvent.Block.class, e -> {
+                NonNullSupplier<Supplier<BlockColor>> colorHandler = this.colorHandler;
+                if (colorHandler != null) {
+                    e.register(colorHandler.get().get(), getEntry());
+                }
             }
-        });
+        );
     }
 
     /**
      * Assign the default blockstate, which maps all states to a single model file (via {@link RegistrumBlockstateProvider#simpleBlock(Block)}). This is the default, so it is generally not necessary
      * to call, unless for undoing previous changes.
-     * 
+     *
      * @return this {@link BlockBuilder}
      */
     public BlockBuilder<T, P> defaultBlockstate() {
@@ -302,9 +305,8 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
 
     /**
      * Configure the blockstate/models for this block.
-     * 
-     * @param cons
-     *            The callback which will be invoked during data generation.
+     *
+     * @param cons The callback which will be invoked during data generation.
      * @return this {@link BlockBuilder}
      * @see #setData(ProviderType, NonNullBiConsumer)
      */
@@ -315,7 +317,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
     /**
      * Assign the default translation, as specified by {@link RegistrumLangProvider#getAutomaticName(NonNullSupplier, net.minecraft.resources.ResourceKey)}. This is the default, so it is generally
      * not necessary to call, unless for undoing previous changes.
-     * 
+     *
      * @return this {@link BlockBuilder}
      */
     public BlockBuilder<T, P> defaultLang() {
@@ -324,9 +326,8 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
 
     /**
      * Set the translation for this block.
-     * 
-     * @param name
-     *            A localized English name
+     *
+     * @param name A localized English name
      * @return this {@link BlockBuilder}
      */
     public BlockBuilder<T, P> lang(String name) {
@@ -336,7 +337,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
     /**
      * Assign the default loot table, as specified by {@link RegistrumBlockLootTables#dropSelf(Block)}. This is the default, so it is generally not necessary to call, unless for
      * undoing previous changes.
-     * 
+     *
      * @return this {@link BlockBuilder}
      */
     public BlockBuilder<T, P> defaultLoot() {
@@ -348,24 +349,26 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      * {@link RegistrumBlockLootTables}, for creating specifically block loot tables.
      * <p>
      * If the block does not have a loot table (i.e. {@link Block.Properties#noLootTable()} is called) this action will be <em>skipped</em>.
-     * 
-     * @param cons
-     *            The callback which will be invoked during block loot table creation.
+     *
+     * @param cons The callback which will be invoked during block loot table creation.
      * @return this {@link BlockBuilder}
      */
     public BlockBuilder<T, P> loot(NonNullBiConsumer<RegistrumBlockLootTables, T> cons) {
-        return setData(ProviderType.LOOT, (ctx, prov) -> prov.addLootAction(LootType.BLOCK, tb -> {
-            if (!ctx.getEntry().getLootTable().equals(BuiltInLootTables.EMPTY)) {
-                cons.accept(tb, ctx.getEntry());
-            }
-        }));
+        return setData(
+            ProviderType.LOOT, (ctx, prov) -> prov.addLootAction(
+                LootType.BLOCK, tb -> {
+                    if (!ctx.getEntry().getLootTable().equals(BuiltInLootTables.EMPTY)) {
+                        cons.accept(tb, ctx.getEntry());
+                    }
+                }
+            )
+        );
     }
 
     /**
      * Configure the recipe(s) for this block.
-     * 
-     * @param cons
-     *            The callback which will be invoked during data generation.
+     *
+     * @param cons The callback which will be invoked during data generation.
      * @return this {@link BlockBuilder}
      * @see #setData(ProviderType, NonNullBiConsumer)
      */
@@ -373,15 +376,11 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
         return setData(ProviderType.RECIPE, cons);
     }
 
-    @Nullable
-    private Function<T, NonNullSupplier<Supplier<IClientBlockExtensions>>> clientExtensionFunc;
-
     /**
      * Register a client extension for this block.
      * The {@link IClientBlockExtensions} instance can be shared across many items.
      *
-     * @param clientExtension
-     *            The client extension to register for this block
+     * @param clientExtension The client extension to register for this block
      * @return this {@link BlockBuilder}
      */
     public BlockBuilder<T, P> clientExtension(NonNullSupplier<Supplier<IClientBlockExtensions>> clientExtension) {
@@ -396,8 +395,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      * Register a client extension for this block.
      * The {@link IClientBlockExtensions} instance can be shared across many items.
      *
-     * @param clientExtension
-     *            The client extension to register for this block
+     * @param clientExtension The client extension to register for this block
      * @return this {@link BlockBuilder}
      */
     @Deprecated(forRemoval = true)
@@ -410,19 +408,20 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
     }
 
     protected void registerClientExtension() {
-        OneTimeEventReceiver.addModListener(getOwner(), RegisterClientExtensionsEvent.class, e -> {
-            if (this.clientExtensionFunc != null) {
-                NonNullSupplier<Supplier<IClientBlockExtensions>> clientExtension = this.clientExtensionFunc.apply(getEntry());
-                e.registerBlock(clientExtension.get().get(), getEntry());
+        OneTimeEventReceiver.addModListener(
+            getOwner(), RegisterClientExtensionsEvent.class, e -> {
+                if (this.clientExtensionFunc != null) {
+                    NonNullSupplier<Supplier<IClientBlockExtensions>> clientExtension = this.clientExtensionFunc.apply(getEntry());
+                    e.registerBlock(clientExtension.get().get(), getEntry());
+                }
             }
-        });
+        );
     }
 
     /**
      * Assign {@link TagKey}{@code s} to this block. Multiple calls will add additional tags.
-     * 
-     * @param tags
-     *            The tags to assign
+     *
+     * @param tags The tags to assign
      * @return this {@link BlockBuilder}
      */
     @SafeVarargs
@@ -439,12 +438,12 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
     }
 
     @Override
-    protected RegistryEntry<Block, T> createEntryWrapper(DeferredHolder<Block, T> delegate) {
-        return new BlockEntry<>(getOwner(), delegate);
+    public BlockEntry<T> register() {
+        return (BlockEntry<T>) super.register();
     }
 
     @Override
-    public BlockEntry<T> register() {
-        return (BlockEntry<T>) super.register();
+    protected RegistryEntry<Block, T> createEntryWrapper(DeferredHolder<Block, T> delegate) {
+        return new BlockEntry<>(getOwner(), delegate);
     }
 }

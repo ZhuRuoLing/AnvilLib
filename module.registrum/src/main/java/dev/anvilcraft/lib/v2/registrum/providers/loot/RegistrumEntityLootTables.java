@@ -34,10 +34,18 @@ public class RegistrumEntityLootTables extends VanillaEntityLoot implements Regi
     private final AbstractRegistrum<?> parent;
     private final Consumer<RegistrumEntityLootTables> callback;
 
-    public RegistrumEntityLootTables(HolderLookup.Provider p_346214_, AbstractRegistrum<?> parent, Consumer<RegistrumEntityLootTables> callback) {
+    public RegistrumEntityLootTables(
+        HolderLookup.Provider p_346214_,
+        AbstractRegistrum<?> parent,
+        Consumer<RegistrumEntityLootTables> callback
+    ) {
         super(p_346214_);
         this.parent = parent;
         this.callback = callback;
+    }
+
+    public static LootTable.Builder createSheepTable(ItemLike p_249422_) {
+        return EntityLootSubProvider.createSheepTable(p_249422_);
     }
 
     @Override
@@ -50,21 +58,27 @@ public class RegistrumEntityLootTables extends VanillaEntityLoot implements Regi
         return parent.getAll(Registries.ENTITY_TYPE).stream().map(Supplier::get);
     }
 
+    @Override
+    public void add(EntityType<?> p_248740_, LootTable.Builder p_249440_) {
+        super.add(p_248740_, p_249440_);
+    }
+
+    @Override
+    public void add(EntityType<?> p_252130_, ResourceKey<LootTable> p_335943_, LootTable.Builder p_249357_) {
+        super.add(p_252130_, p_335943_, p_249357_);
+    }
+
     public HolderLookup.Provider getRegistries() {
         return this.registries;
     }
 
-    public static LootTable.Builder createSheepTable(ItemLike p_249422_) { return EntityLootSubProvider.createSheepTable(p_249422_); }
+    @Override
+    public boolean canHaveLootTable(EntityType<?> p_249029_) {
+        return super.canHaveLootTable(p_249029_);
+    }
 
     @Override
-    public boolean canHaveLootTable(EntityType<?> p_249029_) { return super.canHaveLootTable(p_249029_); }
-
-    @Override
-    public LootItemCondition.Builder killedByFrogVariant(ResourceKey<FrogVariant> p_335676_) { return super.killedByFrogVariant(p_335676_); }
-
-    @Override
-    public void add(EntityType<?> p_248740_, LootTable.Builder p_249440_) { super.add(p_248740_, p_249440_); }
-
-    @Override
-    public void add(EntityType<?> p_252130_, ResourceKey<LootTable> p_335943_, LootTable.Builder p_249357_) { super.add(p_252130_, p_335943_, p_249357_); }
+    public LootItemCondition.Builder killedByFrogVariant(ResourceKey<FrogVariant> p_335676_) {
+        return super.killedByFrogVariant(p_335676_);
+    }
 }

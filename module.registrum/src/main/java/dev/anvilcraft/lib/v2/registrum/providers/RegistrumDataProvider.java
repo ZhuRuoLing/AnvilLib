@@ -41,15 +41,9 @@ public class RegistrumDataProvider implements DataProvider {
     static final BiMap<String, ProviderType<?>> TYPES = HashBiMap.create();
 
     static final Map<ResourceKey<? extends Registry<?>>, ProviderType<?>> TAG_TYPES = new ConcurrentHashMap<>();
-
-    public static @Nullable String getTypeName(ProviderType<?> type) {
-        return TYPES.inverse().get(type);
-    }
-
     private final String mod;
     private final Map<ProviderType<?>, RegistrumProvider> subProviders = new LinkedHashMap<>();
     private final CompletableFuture<HolderLookup.Provider> registriesLookup;
-
     public RegistrumDataProvider(AbstractRegistrum<?> parent, String modid, GatherDataEvent event) {
         this.mod = modid;
         this.registriesLookup = event.getLookupProvider();
@@ -64,13 +58,13 @@ public class RegistrumDataProvider implements DataProvider {
 
         log.debug(DebugMarkers.DATA, "Gathering providers for sides: {}", sides);
         Map<ProviderType<?>, RegistrumProvider> known = new HashMap<>();
-        for (DataProviderInitializer.Sorted sorted :parent.getDataGenInitializer().getSortedProviders()) {
+        for (DataProviderInitializer.Sorted sorted : parent.getDataGenInitializer().getSortedProviders()) {
             ProviderType<?> type = sorted.type();
             var lookup = registriesLookup;
             if (sorted.parent() != null) lookup = ((RegistrumLookupFillerProvider) known.get(sorted.parent())).getFilledProvider();
             RegistrumProvider prov = ProviderType.create(type, parent, event, known, lookup);
             if (prov instanceof RegistrumTagsProvider<?> tagsProvider && TAG_TYPES.get(tagsProvider.registry()) != type) {
-				throw new IllegalStateException("Tag providers must be registered through ProviderType::registerTag");
+                throw new IllegalStateException("Tag providers must be registered through ProviderType::registerTag");
             }
             known.put(type, prov);
             if (sides.contains(prov.getSide())) {
@@ -78,6 +72,10 @@ public class RegistrumDataProvider implements DataProvider {
                 subProviders.put(type, prov);
             }
         }
+    }
+
+    public static @Nullable String getTypeName(ProviderType<?> type) {
+        return TYPES.inverse().get(type);
     }
 
     @Override
@@ -96,7 +94,10 @@ public class RegistrumDataProvider implements DataProvider {
 
     @Override
     public String getName() {
-        return "Registrum Provider for " + mod + " [" + subProviders.values().stream().map(DataProvider::getName).collect(Collectors.joining(", ")) + "]";
+        return "Registrum Provider for " + mod + " [" + subProviders.values()
+            .stream()
+            .map(DataProvider::getName)
+            .collect(Collectors.joining(", ")) + "]";
     }
 
     @SuppressWarnings("unchecked")

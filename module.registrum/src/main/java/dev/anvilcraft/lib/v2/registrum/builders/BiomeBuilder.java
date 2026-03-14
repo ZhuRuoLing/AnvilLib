@@ -35,7 +35,7 @@ package dev.anvilcraft.lib.v2.registrum.builders;//package dev.anvilcraft.lib.v2
 //import net.minecraftforge.common.BiomeDictionary;
 //import net.minecraftforge.common.BiomeManager;
 //
-///**
+/// **
 // * A builder for biomes, allows for customization of the {@link Biome.Builder biome properties}, and configuration of data associated with biomes (lang).
 // * 
 // * @param <T>

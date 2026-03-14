@@ -32,77 +32,70 @@ import java.util.function.Function;
  * be returned from some final methods.
  * <p>
  * When a builder is completed via {@link #register()} or {@link #build()}, the object will be lazily registered (through the owning {@link AbstractRegistrum} object).
- * 
- * @param <R>
- *            Type of the registry for the current object. This is the concrete base class that all registry entries must extend, and the type used for the forge registry itself.
- * @param <T>
- *            Actual type of the object being built.
- * @param <P>
- *            Type of the parent object, this is returned from {@link #build()} and {@link #getParent()}.
- * @param <S>
- *            Self type
+ *
+ * @param <R> Type of the registry for the current object. This is the concrete base class that all registry entries must extend, and the type used for the forge registry itself.
+ * @param <T> Actual type of the object being built.
+ * @param <P> Type of the parent object, this is returned from {@link #build()} and {@link #getParent()}.
+ * @param <S> Self type
  */
 public interface Builder<R, T extends R, P, S extends Builder<R, T, P, S>> extends NonNullSupplier<RegistryEntry<R, T>> {
 
     /**
      * Complete the current entry, and return the {@link RegistryEntry} that will supply the built entry once it is available. The builder can be used afterwards, and changes made will reflect the
      * output, as long as it is before registration takes place (before forge registry events).
-     * 
+     *
      * @return The {@link RegistryEntry} supplying the built entry.
      */
     RegistryEntry<R, T> register();
 
     /**
      * The owning {@link AbstractRegistrum} that created this builder.
-     * 
+     *
      * @return the owner {@link AbstractRegistrum}
      */
     AbstractRegistrum<?> getOwner();
 
     /**
      * The parent object.
-     * 
+     *
      * @return the parent object of this builder
      */
     P getParent();
 
     /**
      * The name of the entry being created, and combined with the mod ID of the parent {@link AbstractRegistrum}, the registry name.
-     * 
+     *
      * @return the name of the current entry
      */
     String getName();
-    
+
     ResourceKey<? extends Registry<R>> getRegistryKey();
 
     /**
      * Get the {@link RegistryEntry} representing the entry built by this builder. Cannot be called before the builder is built.
-     * 
+     *
      * @return An {@link RegistryEntry} for this builder's entry
-     * @throws IllegalArgumentException
-     *             If this builder has not been built yet
+     * @throws IllegalArgumentException If this builder has not been built yet
      */
     @Override
     default RegistryEntry<R, T> get() {
         return getOwner().<R, T>get(getName(), getRegistryKey());
     }
-    
+
     /**
      * Get the actual entry built by this builder. Cannot be called before registration.
-     * 
+     *
      * @return This builder's entry
-     * @throws IllegalArgumentException
-     *             If this builder has not been built yet
-     * @throws NullPointerException
-     *             If the entry from this builder has not been registered yet
+     * @throws IllegalArgumentException If this builder has not been built yet
+     * @throws NullPointerException     If the entry from this builder has not been registered yet
      */
     default T getEntry() {
         return get().get();
     }
-    
+
     /**
      * Get a supplier for the entry created by this builder, which will not reference the builder after it has been resolved.
-     * 
+     *
      * @return A supplier for the entry
      */
     NonNullSupplier<T> asSupplier();
@@ -113,13 +106,10 @@ public interface Builder<R, T extends R, P, S extends Builder<R, T, P, S>> exten
      * If called multiple times for the same type, the existing callback will be <em>overwritten</em>.
      * <p>
      * This is mostly unneeded, and instead helper methods for specific data types should be used when possible.
-     * 
-     * @param <D>
-     *            The type of provider
-     * @param type
-     *            The {@link ProviderType} for the desired provider
-     * @param cons
-     *            The callback to execute when the provider is run
+     *
+     * @param <D>  The type of provider
+     * @param type The {@link ProviderType} for the desired provider
+     * @param cons The callback to execute when the provider is run
      * @return this builder
      */
     @SuppressWarnings("unchecked")
@@ -132,13 +122,10 @@ public interface Builder<R, T extends R, P, S extends Builder<R, T, P, S>> exten
      * Add a data provider callback which will be invoked when the provider of the given type executes.
      * <p>
      * Calling this multiple times for the same type will <em>not</em> overwrite an existing callback.
-     * 
-     * @param <D>
-     *            The type of provider
-     * @param type
-     *            The {@link ProviderType} for the desired provider
-     * @param cons
-     *            The callback to execute when the provider is run
+     *
+     * @param <D>  The type of provider
+     * @param type The {@link ProviderType} for the desired provider
+     * @param cons The callback to execute when the provider is run
      * @return this builder
      */
     @SuppressWarnings("unchecked")
@@ -152,8 +139,10 @@ public interface Builder<R, T extends R, P, S extends Builder<R, T, P, S>> exten
      */
     @SuppressWarnings("unchecked")
     default <D> S dataMap(DataMapType<R, D> type, D val) {
-        getOwner().addDataGenerator(ProviderType.DATA_MAP, e -> e.builder(type)
-                .add(DataGenContext.from(this).getId(), val, false));
+        getOwner().addDataGenerator(
+            ProviderType.DATA_MAP, e -> e.builder(type)
+                .add(DataGenContext.from(this).getId(), val, false)
+        );
         return (S) this;
     }
 
@@ -162,10 +151,12 @@ public interface Builder<R, T extends R, P, S extends Builder<R, T, P, S>> exten
      */
     @SuppressWarnings("unchecked")
     default <D> S dataMap(DataMapType<R, D> type, NonNullFunction<DataGenContext<R, T>, D> factory) {
-        getOwner().addDataGenerator(ProviderType.DATA_MAP, e -> {
-            var ctx = DataGenContext.from(this);
-            e.builder(type).add(ctx.getId(), factory.apply(ctx), false);
-        });
+        getOwner().addDataGenerator(
+            ProviderType.DATA_MAP, e -> {
+                var ctx = DataGenContext.from(this);
+                e.builder(type).add(ctx.getId(), factory.apply(ctx), false);
+            }
+        );
         return (S) this;
     }
 
@@ -174,9 +165,8 @@ public interface Builder<R, T extends R, P, S extends Builder<R, T, P, S>> exten
      * <p>
      * Builders which have had this method used on them (or another method which calls this one, such as {@link EntityBuilder#spawnEgg(int, int)}), <strong>must</strong> be registered, via
      * {@link #register()}, or errors will be thrown when these "dangling" register callbacks are discovered at register time.
-     * 
-     * @param callback
-     *            the callback to invoke
+     *
+     * @param callback the callback to invoke
      * @return this {@link Builder}
      */
     @SuppressWarnings("unchecked")
@@ -190,13 +180,10 @@ public interface Builder<R, T extends R, P, S extends Builder<R, T, P, S>> exten
      * <p>
      * Builders which have had this method used on them (or another method which calls this one, such as {@link EntityBuilder#spawnEgg(int, int)}), <strong>must</strong> be registered, via
      * {@link #register()}, or errors will be thrown when these "dangling" register callbacks are discovered at register time.
-     * 
-     * @param <OR>
-     *            The dependency registry type
-     * @param dependencyType
-     *            the base class for objects of the dependency registry. The callback will be invoked only after this registry has fired its registry events.
-     * @param callback
-     *            the callback to invoke
+     *
+     * @param <OR>           The dependency registry type
+     * @param dependencyType the base class for objects of the dependency registry. The callback will be invoked only after this registry has fired its registry events.
+     * @param callback       the callback to invoke
      * @return this {@link Builder}
      */
     default <OR> S onRegisterAfter(ResourceKey<? extends Registry<OR>> dependencyType, NonNullConsumer<? super T> callback) {
@@ -211,7 +198,7 @@ public interface Builder<R, T extends R, P, S extends Builder<R, T, P, S>> exten
 
     /**
      * Apply a transformation to this {@link Builder}. Useful to apply helper methods within a fluent chain, e.g.
-     * 
+     *
      * <pre>
      * {@code
      * public static final RegistryObject<MyBlock> MY_BLOCK = REGISTRATE.object("my_block")
@@ -220,17 +207,12 @@ public interface Builder<R, T extends R, P, S extends Builder<R, T, P, S>> exten
      *         .register();
      * }
      * </pre>
-     * 
-     * @param <R2>
-     *            Registry type
-     * @param <T2>
-     *            Entry type
-     * @param <P2>
-     *            Parent type
-     * @param <S2>
-     *            Self type
-     * @param func
-     *            The {@link Function function} to apply
+     *
+     * @param <R2> Registry type
+     * @param <T2> Entry type
+     * @param <P2> Parent type
+     * @param <S2> Self type
+     * @param func The {@link Function function} to apply
      * @return the {@link Builder} returned by the given function
      */
     @SuppressWarnings("unchecked")
@@ -241,7 +223,7 @@ public interface Builder<R, T extends R, P, S extends Builder<R, T, P, S>> exten
     /**
      * Register the entry and return the parent object. The {@link net.neoforged.neoforge.registries.DeferredHolder} will be created but not returned. It can be retrieved later with {@link AbstractRegistrum#get(ResourceKey)} or
      * {@link AbstractRegistrum#get(String, ResourceKey)}.
-     * 
+     *
      * @return the parent object
      */
     default P build() {

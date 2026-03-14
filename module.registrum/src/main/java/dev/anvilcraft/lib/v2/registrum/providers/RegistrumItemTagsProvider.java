@@ -32,7 +32,15 @@ public class RegistrumItemTagsProvider extends RegistrumTagsProvider.IntrinsicIm
     private final CompletableFuture<TagLookup<Block>> blockTags;
     private final Map<TagKey<Block>, TagKey<Item>> tagsToCopy = new HashMap<>();
 
-    public RegistrumItemTagsProvider(AbstractRegistrum<?> owner, ProviderType<RegistrumItemTagsProvider> type, String name, PackOutput output, CompletableFuture<HolderLookup.Provider> registriesLookup, CompletableFuture<TagLookup<Block>> blockTags, ExistingFileHelper existingFileHelper) {
+    public RegistrumItemTagsProvider(
+        AbstractRegistrum<?> owner,
+        ProviderType<RegistrumItemTagsProvider> type,
+        String name,
+        PackOutput output,
+        CompletableFuture<HolderLookup.Provider> registriesLookup,
+        CompletableFuture<TagLookup<Block>> blockTags,
+        ExistingFileHelper existingFileHelper
+    ) {
         super(owner, type, name, output, Registries.ITEM, registriesLookup, item -> item.builtInRegistryHolder().key(), existingFileHelper);
         this.blockTags = blockTags;
     }
@@ -43,15 +51,17 @@ public class RegistrumItemTagsProvider extends RegistrumTagsProvider.IntrinsicIm
 
     @Override
     protected CompletableFuture<HolderLookup.Provider> createContentsProvider() {
-        return super.createContentsProvider().thenCombineAsync(this.blockTags, (p_274766_, p_274767_) -> {
-            this.tagsToCopy.forEach((p_274763_, p_274764_) -> {
-                TagBuilder tagbuilder = this.getOrCreateRawBuilder(p_274764_);
-                Optional<TagBuilder> optional = p_274767_.apply(p_274763_);
-                optional.orElseThrow(() -> {
-                    return new IllegalStateException("Missing block tag " + p_274764_.location());
-                }).build().forEach(tagbuilder::add);
-            });
-            return p_274766_;
-        });
+        return super.createContentsProvider().thenCombineAsync(
+            this.blockTags, (p_274766_, p_274767_) -> {
+                this.tagsToCopy.forEach((p_274763_, p_274764_) -> {
+                    TagBuilder tagbuilder = this.getOrCreateRawBuilder(p_274764_);
+                    Optional<TagBuilder> optional = p_274767_.apply(p_274763_);
+                    optional.orElseThrow(() -> {
+                        return new IllegalStateException("Missing block tag " + p_274764_.location());
+                    }).build().forEach(tagbuilder::add);
+                });
+                return p_274766_;
+            }
+        );
     }
 }

@@ -32,6 +32,11 @@ import javax.annotation.meta.TypeQualifierDefault;
 @Nonnull
 @TypeQualifierDefault(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.PACKAGE, ElementType.TYPE})
+@Target(
+    {
+        ElementType.PACKAGE,
+        ElementType.TYPE
+    }
+)
 public @interface FieldsAreNonnullByDefault {
 }

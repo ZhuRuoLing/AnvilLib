@@ -17,7 +17,7 @@ import javax.annotation.Nullable;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
 
 public class LazyRegistryEntry<R, T extends R> implements NonNullSupplier<T> {
-    
+
     @Nullable
     private NonNullSupplier<? extends RegistryEntry<R, T>> supplier;
     @Nullable
@@ -26,7 +26,7 @@ public class LazyRegistryEntry<R, T extends R> implements NonNullSupplier<T> {
     public LazyRegistryEntry(NonNullSupplier<? extends RegistryEntry<R, T>> supplier) {
         this.supplier = supplier;
     }
-    
+
     @Override
     public T get() {
         NonNullSupplier<? extends RegistryEntry<R, T>> supplier = this.supplier;

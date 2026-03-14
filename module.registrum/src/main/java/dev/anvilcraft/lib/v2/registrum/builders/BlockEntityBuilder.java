@@ -44,72 +44,67 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 
 /**
  * A builder for block entities, allows for customization of the valid blocks.
- * 
- * @param <T>
- *            The type of block entity being built
- * @param <P>
- *            Parent object type
+ *
+ * @param <T> The type of block entity being built
+ * @param <P> Parent object type
  */
-public class BlockEntityBuilder<T extends BlockEntity, P> extends AbstractBuilder<BlockEntityType<?>, BlockEntityType<T>, P, BlockEntityBuilder<T, P>> {
+public class BlockEntityBuilder<T extends BlockEntity, P>
+    extends AbstractBuilder<BlockEntityType<?>, BlockEntityType<T>, P, BlockEntityBuilder<T, P>> {
 
-    public interface BlockEntityFactory<T extends BlockEntity> {
-
-        T create(BlockEntityType<T> type, BlockPos pos, BlockState state);
-
+    private final BlockEntityFactory<T> factory;
+    private final Set<NonNullSupplier<? extends Block>> validBlocks = new HashSet<>();
+    @Nullable
+    private NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T>>> renderer;
+    protected BlockEntityBuilder(
+        AbstractRegistrum<?> owner,
+        P parent,
+        String name,
+        BuilderCallback callback,
+        BlockEntityFactory<T> factory
+    ) {
+        super(owner, parent, name, callback, Registries.BLOCK_ENTITY_TYPE);
+        this.factory = factory;
     }
 
     /**
      * Create a new {@link BlockEntityBuilder} and configure data. Used in lieu of adding side-effects to constructor, so that alternate initialization strategies can be done in subclasses.
      * <p>
      * The block entity will be assigned the following data:
-     * 
-     * @param <T>
-     *            The type of the builder
-     * @param <P>
-     *            Parent object type
-     * @param owner
-     *            The owning {@link AbstractRegistrum} object
-     * @param parent
-     *            The parent object
-     * @param name
-     *            Name of the entry being built
-     * @param callback
-     *            A callback used to actually register the built entry
-     * @param factory
-     *            Factory to create the block entity
+     *
+     * @param <T>      The type of the builder
+     * @param <P>      Parent object type
+     * @param owner    The owning {@link AbstractRegistrum} object
+     * @param parent   The parent object
+     * @param name     Name of the entry being built
+     * @param callback A callback used to actually register the built entry
+     * @param factory  Factory to create the block entity
      * @return A new {@link BlockEntityBuilder} with reasonable default data generators.
      */
-    public static <T extends BlockEntity, P> BlockEntityBuilder<T, P> create(AbstractRegistrum<?> owner, P parent, String name, BuilderCallback callback, BlockEntityFactory<T> factory) {
+    public static <T extends BlockEntity, P> BlockEntityBuilder<T, P> create(
+        AbstractRegistrum<?> owner,
+        P parent,
+        String name,
+        BuilderCallback callback,
+        BlockEntityFactory<T> factory
+    ) {
         return new BlockEntityBuilder<>(owner, parent, name, callback, factory);
     }
 
-    private final BlockEntityFactory<T> factory;
-    private final Set<NonNullSupplier<? extends Block>> validBlocks = new HashSet<>();
-    @Nullable
-    private NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T>>> renderer;
-
-    protected BlockEntityBuilder(AbstractRegistrum<?> owner, P parent, String name, BuilderCallback callback, BlockEntityFactory<T> factory) {
-        super(owner, parent, name, callback, Registries.BLOCK_ENTITY_TYPE);
-        this.factory = factory;
-    }
-    
     /**
      * Add a valid block for this block entity.
-     * 
-     * @param block
-     *            A supplier for the block to add at registration time
+     *
+     * @param block A supplier for the block to add at registration time
      * @return this {@link BlockEntityBuilder}
      */
     public BlockEntityBuilder<T, P> validBlock(NonNullSupplier<? extends Block> block) {
         validBlocks.add(block);
         return this;
     }
-    
+
     /**
      * Add valid blocks for this block entity.
-     * 
-     * @param blocks
-     *            An array of suppliers for the block to add at registration time
+     *
+     * @param blocks An array of suppliers for the block to add at registration time
      * @return this {@link BlockEntityBuilder}
      */
     @SafeVarargs
@@ -117,16 +112,14 @@ public class BlockEntityBuilder<T extends BlockEntity, P> extends AbstractBuilde
         Arrays.stream(blocks).forEach(this::validBlock);
         return this;
     }
-    
+
     /**
      * Register an {@link BlockEntityRenderer} for this block entity.
      * <p>
-     * 
-     * @apiNote This requires the {@link Class} of the block entity object, which can only be gotten by inspecting an instance of it. Thus, the entity will be constructed to register the renderer.
-     * 
-     * @param renderer
-     *            A (server safe) supplier to an {@link Function} that will provide this block entity's renderer given the renderer dispatcher
+     *
+     * @param renderer A (server safe) supplier to an {@link Function} that will provide this block entity's renderer given the renderer dispatcher
      * @return this {@link BlockEntityBuilder}
+     * @apiNote This requires the {@link Class} of the block entity object, which can only be gotten by inspecting an instance of it. Thus, the entity will be constructed to register the renderer.
      */
     public BlockEntityBuilder<T, P> renderer(NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T>>> renderer) {
         if (this.renderer == null) { // First call only
@@ -135,14 +128,16 @@ public class BlockEntityBuilder<T extends BlockEntity, P> extends AbstractBuilde
         this.renderer = renderer;
         return this;
     }
-    
+
     protected void registerRenderer() {
-        OneTimeEventReceiver.addModListener(getOwner(), FMLClientSetupEvent.class, $ -> {
-            var renderer = this.renderer;
-            if (renderer != null) {
-                BlockEntityRenderers.register(getEntry(), renderer.get()::apply);
+        OneTimeEventReceiver.addModListener(
+            getOwner(), FMLClientSetupEvent.class, $ -> {
+                var renderer = this.renderer;
+                if (renderer != null) {
+                    BlockEntityRenderers.register(getEntry(), renderer.get()::apply);
+                }
             }
-        });
+        );
     }
 
     /**
@@ -160,8 +155,16 @@ public class BlockEntityBuilder<T extends BlockEntity, P> extends AbstractBuilde
     protected BlockEntityType<T> createEntry() {
         BlockEntityFactory<T> factory = this.factory;
         final var supplier = asSupplier();
-        return BlockEntityType.Builder.of((pos, state) -> factory.create(supplier.get(), pos, state), validBlocks.stream().map(NonNullSupplier::get).toArray(Block[]::new))
-                .build(null);
+        return BlockEntityType.Builder.of(
+                (pos, state) -> factory.create(supplier.get(), pos, state),
+                validBlocks.stream().map(NonNullSupplier::get).toArray(Block[]::new)
+            )
+            .build(null);
+    }
+
+    @Override
+    public BlockEntityEntry<T> register() {
+        return (BlockEntityEntry<T>) super.register();
     }
 
     @Override
@@ -169,8 +172,9 @@ public class BlockEntityBuilder<T extends BlockEntity, P> extends AbstractBuilde
         return new BlockEntityEntry<>(getOwner(), delegate);
     }
 
-    @Override
-    public BlockEntityEntry<T> register() {
-        return (BlockEntityEntry<T>) super.register();
+    public interface BlockEntityFactory<T extends BlockEntity> {
+
+        T create(BlockEntityType<T> type, BlockPos pos, BlockState state);
+
     }
 }

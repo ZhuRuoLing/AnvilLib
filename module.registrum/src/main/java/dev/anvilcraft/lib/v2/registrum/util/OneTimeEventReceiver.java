@@ -37,11 +37,27 @@ import java.util.function.Consumer;
 public class OneTimeEventReceiver<T extends Event> implements Consumer<@NonnullType T> {
 
 
-    public static <T extends Event & IModBusEvent> void addModListener(AbstractRegistrum<?> owner, Class<? super T> evtClass, Consumer<? super T> listener) {
+    private static final Table<AbstractRegistrum<?>, Class<?>, List<Pair<EventPriority, Consumer<?>>>> waitingModListeners = HashBasedTable.create();
+    private static final List<Triple<IEventBus, Object, Class<? extends Event>>> toUnregister = new ArrayList<>();
+    private static boolean seenModBus = false;
+    private final IEventBus bus;
+    private final Consumer<? super T> listener;
+    private final AtomicBoolean consumed = new AtomicBoolean();
+
+    public static <T extends Event & IModBusEvent> void addModListener(
+        AbstractRegistrum<?> owner,
+        Class<? super T> evtClass,
+        Consumer<? super T> listener
+    ) {
         OneTimeEventReceiver.<T>addModListener(owner, EventPriority.NORMAL, evtClass, listener);
     }
-    
-    public static <T extends Event & IModBusEvent> void addModListener(AbstractRegistrum<?> owner, EventPriority priority, Class<? super T> evtClass, Consumer<? super T> listener) {
+
+    public static <T extends Event & IModBusEvent> void addModListener(
+        AbstractRegistrum<?> owner,
+        EventPriority priority,
+        Class<? super T> evtClass,
+        Consumer<? super T> listener
+    ) {
         if (owner.getModEventBus() == null) {
             if (!waitingModListeners.contains(owner, evtClass)) {
                 waitingModListeners.put(owner, evtClass, new ArrayList<>());
@@ -54,49 +70,42 @@ public class OneTimeEventReceiver<T extends Event> implements Consumer<@NonnullT
             for (var waitingListener : waitingModListeners.row(owner).entrySet()) {
                 for (var pair : waitingListener.getValue()) {
                     //noinspection unchecked
-                    OneTimeEventReceiver.<T>addListener(owner.getModEventBus(), pair.getKey(), (Class<? super T>) waitingListener.getKey(), (Consumer<? super T>) pair.getValue());
+                    OneTimeEventReceiver.<T>addListener(
+                        owner.getModEventBus(),
+                        pair.getKey(),
+                        (Class<? super T>) waitingListener.getKey(),
+                        (Consumer<? super T>) pair.getValue()
+                    );
                 }
             }
             addModListener(owner, FMLLoadCompleteEvent.class, OneTimeEventReceiver::onLoadComplete);
         }
         OneTimeEventReceiver.<T>addListener(owner.getModEventBus(), priority, evtClass, listener);
     }
-    
+
     public static <T extends Event> void addForgeListener(Class<? super T> evtClass, Consumer<? super T> listener) {
         OneTimeEventReceiver.<T>addForgeListener(EventPriority.NORMAL, evtClass, listener);
     }
-    
+
     public static <T extends Event> void addForgeListener(EventPriority priority, Class<? super T> evtClass, Consumer<? super T> listener) {
         OneTimeEventReceiver.<T>addListener(NeoForge.EVENT_BUS, priority, evtClass, listener);
     }
-    
+
     @Deprecated
     public static <T extends Event> void addListener(IEventBus bus, Class<? super T> evtClass, Consumer<? super T> listener) {
         OneTimeEventReceiver.<T>addListener(bus, EventPriority.NORMAL, evtClass, listener);
     }
-    
+
     @SuppressWarnings("unchecked")
     @Deprecated
-    public static <T extends Event> void addListener(IEventBus bus, EventPriority priority, Class<? super T> evtClass, Consumer<? super T> listener) {
+    public static <T extends Event> void addListener(
+        IEventBus bus,
+        EventPriority priority,
+        Class<? super T> evtClass,
+        Consumer<? super T> listener
+    ) {
         bus.addListener(priority, false, (Class<T>) evtClass, new OneTimeEventReceiver<>(bus, listener));
     }
-
-    private static boolean seenModBus = false;
-    private static final Table<AbstractRegistrum<?>, Class<?>, List<Pair<EventPriority, Consumer<?>>>> waitingModListeners = HashBasedTable.create();
-
-    private final IEventBus bus;
-    private final Consumer<? super T> listener;
-    private final AtomicBoolean consumed = new AtomicBoolean();
-
-    @Override
-    public void accept(T event) {
-        if (consumed.compareAndSet(false, true)) {
-            listener.accept(event);
-            unregister(bus, this, event);
-        }
-    }
-
-    private static final List<Triple<IEventBus, Object, Class<? extends Event>>> toUnregister = new ArrayList<>();
 
     private static synchronized void unregister(IEventBus bus, Object listener, Event event) {
         unregister(bus, listener, event.getClass());
@@ -115,5 +124,13 @@ public class OneTimeEventReceiver<T extends Event> implements Consumer<@NonnullT
             toUnregister.forEach(t -> t.getLeft().unregister(t.getMiddle()));
             toUnregister.clear();
         });
+    }
+
+    @Override
+    public void accept(T event) {
+        if (consumed.compareAndSet(false, true)) {
+            listener.accept(event);
+            unregister(bus, this, event);
+        }
     }
 }

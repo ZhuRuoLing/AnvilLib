@@ -24,15 +24,15 @@ public class BlockEntry<T extends Block> extends ItemProviderEntry<Block, T> {
         super(owner, delegate);
     }
 
+    public static <T extends Block> BlockEntry<T> cast(RegistryEntry<Block, T> entry) {
+        return RegistryEntry.cast(BlockEntry.class, entry);
+    }
+
     public BlockState getDefaultState() {
         return get().defaultBlockState();
     }
 
     public boolean has(BlockState state) {
         return is(state.getBlock());
-    }
-    
-    public static <T extends Block> BlockEntry<T> cast(RegistryEntry<Block, T> entry) {
-        return RegistryEntry.cast(BlockEntry.class, entry);
     }
 }

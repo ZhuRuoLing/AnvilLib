@@ -55,14 +55,14 @@ public class RegistrumBlockstateProvider extends BlockStateProvider implements R
     @SuppressWarnings("null")
     public Optional<VariantBlockStateBuilder> getExistingVariantBuilder(Block block) {
         return Optional.ofNullable(registeredBlocks.get(block))
-                .filter(b -> b instanceof VariantBlockStateBuilder)
-                .map(b -> (VariantBlockStateBuilder) b);
+            .filter(b -> b instanceof VariantBlockStateBuilder)
+            .map(b -> (VariantBlockStateBuilder) b);
     }
 
     @SuppressWarnings("null")
     public Optional<MultiPartBlockStateBuilder> getExistingMultipartBuilder(Block block) {
         return Optional.ofNullable(registeredBlocks.get(block))
-                .filter(b -> b instanceof MultiPartBlockStateBuilder)
-                .map(b -> (MultiPartBlockStateBuilder) b);
+            .filter(b -> b instanceof MultiPartBlockStateBuilder)
+            .map(b -> (MultiPartBlockStateBuilder) b);
     }
 }
