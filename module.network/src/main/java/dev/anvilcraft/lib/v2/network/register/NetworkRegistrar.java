@@ -15,10 +15,10 @@ import java.lang.annotation.ElementType;
 
 /**
  * 网络包注册器
- * 
+ *
  * <p>应在 {@link net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent RegisterPayloadHandlersEvent} 的侦听器中使用</p>
- * 
- * @see NetworkRegistrar#register(PayloadRegistrar, String) 
+ *
+ * @see NetworkRegistrar#register(PayloadRegistrar, String)
  */
 @Slf4j
 public class NetworkRegistrar {
@@ -27,7 +27,7 @@ public class NetworkRegistrar {
 
     /**
      * 注册对应 {@code modId} 的模组中所有使用 {@link Network} 注解的软件包下的网络包
-     * 
+     *
      * @param registrar 网络包注册器。应通过
      * {@link
      * net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent#registrar(String)
@@ -43,7 +43,7 @@ public class NetworkRegistrar {
         for (ModFileScanData.AnnotationData annotation : scanData.getAnnotations()) {
             if (
                 !annotation.annotationType().getDescriptor().equals(ANNOTATION_NAME)
-                || annotation.targetType() != ElementType.PACKAGE
+                || annotation.targetType() != ElementType.TYPE
             ) {
                 continue;
             }
@@ -58,25 +58,26 @@ public class NetworkRegistrar {
                     default -> throw new IllegalArgumentException("Unknown packet protocol: " + protocolHolder.value());
                 };
             }
-            String packageName = annotation.memberName().substring(0, annotation.memberName().lastIndexOf('.') - 1);
+            String packageName = annotation.memberName().substring(0, annotation.memberName().lastIndexOf('.'));
             log.info("Considering network package {}", packageName);
 
             for (ModFileScanData.ClassData classData : scanData.getClasses()) {
-                if (!classData.clazz().getClassName().startsWith(packageName)) continue;
+                String className = classData.clazz().getClassName();
+                if (!className.substring(0, className.lastIndexOf('.')).equals(packageName)) continue;
 
-                String interfaceName = null;
+                boolean isPacket = false;
                 for (Type anInterface : classData.interfaces()) {
                     if (!anInterface.getDescriptor().startsWith(NetworkRegistrar.PACKET_PACKAGE_PREFIX)) continue;
-                    interfaceName = anInterface.getClassName();
+                    isPacket = true;
                     break;
                 }
-                if (interfaceName == null) continue;
+                if (!isPacket) continue;
 
                 try {
-                    Class<? extends IPacket> packetClass = (Class<? extends IPacket>) loader.loadClass(classData.clazz().getClassName());
+                    Class<? extends IPacket> packetClass = (Class<? extends IPacket>) loader.loadClass(className);
                     NetworkRegistrar.register(registrar, protocol, packetClass);
                 } catch (ClassNotFoundException e) {
-                    log.error("Cannot register packet {}", classData.clazz().getClassName(), e);
+                    log.error("Cannot find packet class {}", className, e);
                     throw new IllegalStateException();
                 }
             }
@@ -87,6 +88,7 @@ public class NetworkRegistrar {
         switch (protocol) {
             case CONFIGURATION -> {
                 PacketData<? super FriendlyByteBuf, T> data = PacketData.find(packetClass);
+                log.debug("Registered packet {} for 'CONFIGURATION', '{}'", data.type().id(), data.direction());
                 switch (data.direction()) {
                     case CLIENTBOUND -> registrar.configurationToClient(data.type(), data.streamCodec(), data.handler());
                     case SERVERBOUND -> registrar.configurationToServer(data.type(), data.streamCodec(), data.handler());
@@ -95,6 +97,7 @@ public class NetworkRegistrar {
             }
             case PLAY -> {
                 PacketData<? super RegistryFriendlyByteBuf, T> data = PacketData.find(packetClass);
+                log.debug("Registered packet {} for 'PLAY', '{}'", data.type().id(), data.direction());
                 switch (data.direction()) {
                     case CLIENTBOUND -> registrar.playToClient(data.type(), data.streamCodec(), data.handler());
                     case SERVERBOUND -> registrar.playToServer(data.type(), data.streamCodec(), data.handler());
@@ -103,6 +106,7 @@ public class NetworkRegistrar {
             }
             case COMMON -> {
                 PacketData<? super FriendlyByteBuf, T> data = PacketData.find(packetClass);
+                log.debug("Registered packet {} for 'COMMON', '{}'", data.type().id(), data.direction());
                 switch (data.direction()) {
                     case CLIENTBOUND -> registrar.commonToClient(data.type(), data.streamCodec(), data.handler());
                     case SERVERBOUND -> registrar.commonToServer(data.type(), data.streamCodec(), data.handler());

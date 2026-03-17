@@ -27,8 +27,7 @@ record PacketData<B extends ByteBuf, T extends IPacket>(
         CustomPacketPayload.Type<T> type = null;
         StreamCodec<B, T> codec = null;
         try {
-            Field[] fields = packetClass.getDeclaredFields();
-            for (Field field : fields) {
+            for (Field field : packetClass.getDeclaredFields()) {
                 Set<AccessFlag> accessFlags = field.accessFlags();
                 if (
                     !accessFlags.contains(AccessFlag.STATIC)
@@ -36,7 +35,7 @@ record PacketData<B extends ByteBuf, T extends IPacket>(
                 ) {
                     continue;
                 }
-                Class<?> declaringClass = field.getDeclaringClass();
+                Class<?> declaringClass = field.getType();
                 if (declaringClass.isAssignableFrom(CustomPacketPayload.Type.class)) {
                     field.setAccessible(true);
                     type = (CustomPacketPayload.Type<T>) field.get(null);
@@ -60,16 +59,16 @@ record PacketData<B extends ByteBuf, T extends IPacket>(
 
         PacketDirection direction;
         IPayloadHandler<T> handler;
-        if (packetClass.isAssignableFrom(IInsensitiveBiPacket.class)) {
+        if (IInsensitiveBiPacket.class.isAssignableFrom(packetClass)) {
             direction = PacketDirection.BIDIRECTIONAL;
             handler = (packet, ctx) -> ((IInsensitiveBiPacket) packet).bidirectionalHandler(ctx);
-        } else if (packetClass.isAssignableFrom(ISensitiveBiPacket.class)) {
+        } else if (ISensitiveBiPacket.class.isAssignableFrom(packetClass)) {
             direction = PacketDirection.BIDIRECTIONAL;
             handler = (packet, ctx) -> ((ISensitiveBiPacket) packet).bidirectionalHandler(ctx);
-        } else if (packetClass.isAssignableFrom(IClientboundPacket.class)) {
+        } else if (IClientboundPacket.class.isAssignableFrom(packetClass)) {
             direction = PacketDirection.CLIENTBOUND;
             handler = (packet, ctx) -> ((IClientboundPacket) packet).clientHandler(ctx);
-        } else if (packetClass.isAssignableFrom(IServerboundPacket.class)) {
+        } else if (IServerboundPacket.class.isAssignableFrom(packetClass)) {
             direction = PacketDirection.SERVERBOUND;
             handler = (packet, ctx) -> ((IServerboundPacket) packet).serverHandler(ctx);
         } else {
