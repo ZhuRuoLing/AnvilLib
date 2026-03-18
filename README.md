@@ -1,9 +1,9 @@
 # AnvilLib **中文** | [English](README.en.md)
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.2-green.svg)](https://minecraft.net/)
-[![Maven Central](https://img.shields.io/maven-central/v/dev.anvilcraft.lib/anvillib-neoforge-1.21.2)](https://central.sonatype.com/search?q=anvillib)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-green.svg)](https://minecraft.net/)
+[![Maven Central](https://img.shields.io/maven-central/v/dev.anvilcraft.lib/anvillib-neoforge-1.21.1)](https://central.sonatype.com/search?q=anvillib)
 [![NeoForge](https://img.shields.io/badge/NeoForge-21.1.x-orange.svg)](https://neoforged.net/)
-[![License](https://img.shields.io/badge/License-MIT%20License-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
+[![License](https://img.shields.io/badge/License-MIT%20License-blue.svg)](https://opensource.org/licenses/MIT)
 
 **AnvilLib** 是一个由 [Anvil Dev](https://github.com/Anvil-Dev) 开发的 NeoForge 模组库，为 Minecraft 模组开发者提供一系列实用的工具和框架。
 
@@ -15,9 +15,11 @@ AnvilLib 采用模块化设计，包含以下功能模块：
 |---------------------------|---------------|
 | **Config**                | 基于注解的配置系统     |
 | **Integration**           | 模组兼容性集成框架     |
+| **Network**               | 网络通信与数据包自动注册框架 |
 | **Recipe**                | 世界内配方系统       |
 | **Moveable Entity Block** | 可被活塞推动的方块实体支持 |
 | **Registrum**             | 简化的注册系统       |
+| **Main**                  | 聚合模块（包含全部子模块） |
 
 ## 模块介绍
 
@@ -68,6 +70,26 @@ public class JEIIntegration {
     public void init() {
         // JEI 集成逻辑
     }
+}
+```
+
+### Network 模块
+
+提供面向 NeoForge 的网络通信抽象，支持按包扫描并自动注册数据包。
+
+**主要特性：**
+
+- 使用 `IClientboundPacket` / `IServerboundPacket` / `IInsensitiveBiPacket` 定义通信方向
+- 通过 `NetworkRegistrar.register(...)` 自动注册同一包下的数据包
+- 支持 `PLAY` / `CONFIGURATION` / `COMMON` 三种协议通道
+
+**使用示例：**
+
+```java
+@SubscribeEvent
+public static void onRegisterPayload(RegisterPayloadHandlersEvent event) {
+    PayloadRegistrar registrar = event.registrar("1");
+    NetworkRegistrar.register(registrar, "my_mod");
 }
 ```
 
@@ -137,6 +159,17 @@ public static final RegistryEntry<Item> MY_ITEM = REGISTRUM
     .register();
 ```
 
+### Main 模块
+
+`anvillib-neoforge-1.21.1` 为聚合发行模块，默认打包并重导出以下子模块：
+
+- `config`
+- `integration`
+- `network`
+- `recipe`
+- `moveable-entity-block`
+- `registrum`
+
 ## 依赖引入
 
 ### Gradle (Groovy DSL)
@@ -148,14 +181,15 @@ repositories {
 
 dependencies {
     // 完整库
-    implementation "dev.anvilcraft.lib:anvillib-neoforge-1.21.2:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-neoforge-1.21.1:2.0.0"
 
     // 或按需引入单独模块
-    implementation "dev.anvilcraft.lib:anvillib-config-neoforge-1.21.2:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-integration-neoforge-1.21.2:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-recipe-neoforge-1.21.2:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-1.21.2:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-registrum-neoforge-1.21.2:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-config-neoforge-1.21.1:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-integration-neoforge-1.21.1:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-network-neoforge-1.21.1:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-recipe-neoforge-1.21.1:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-1.21.1:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-registrum-neoforge-1.21.1:2.0.0"
 }
 ```
 
@@ -167,9 +201,14 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.anvilcraft.lib:anvillib-neoforge-1.21.2:2.0.0")
+    implementation("dev.anvilcraft.lib:anvillib-neoforge-1.21.1:2.0.0")
+
+    // 按需引入示例
+    implementation("dev.anvilcraft.lib:anvillib-network-neoforge-1.21.1:2.0.0")
 }
 ```
+
+> 版本号建议与项目发布版本保持一致（当前工程配置为 `mod_version=2.0.0`）。
 
 ## 构建项目
 
@@ -178,14 +217,17 @@ dependencies {
 git clone https://github.com/Anvil-Dev/AnvilLib.git
 cd AnvilLib
 
-# 构建
+# macOS / Linux 构建
 ./gradlew build
+
+# Windows PowerShell / CMD 构建
+gradlew.bat build
 ```
 
 ## 环境要求
 
 - Java 21+
-- Minecraft 1.21.2
+- Minecraft 1.21.1
 - NeoForge 21.1.x
 
 ## 许可证

@@ -1,9 +1,9 @@
 # AnvilLib [中文](README.md) | **English**
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.2-green.svg)](https://minecraft.net/)
-[![Maven Central](https://img.shields.io/maven-central/v/dev.anvilcraft.lib/anvillib-neoforge-1.21.2)](https://central.sonatype.com/search?q=anvillib)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-green.svg)](https://minecraft.net/)
+[![Maven Central](https://img.shields.io/maven-central/v/dev.anvilcraft.lib/anvillib-neoforge-1.21.1)](https://central.sonatype.com/search?q=anvillib)
 [![NeoForge](https://img.shields.io/badge/NeoForge-21.1.x-orange.svg)](https://neoforged.net/)
-[![License](https://img.shields.io/badge/License-MIT%20License-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
+[![License](https://img.shields.io/badge/License-MIT%20License-blue.svg)](https://opensource.org/licenses/MIT)
 
 **AnvilLib** is a NeoForge mod library developed by [Anvil Dev](https://github.com/Anvil-Dev), providing Minecraft mod developers with a series of practical tools and frameworks.
 
@@ -15,9 +15,11 @@ AnvilLib adopts a modular design and includes the following functional modules:
 |---------------------------|---------------|
 | **Config**                | Annotation-based configuration system     |
 | **Integration**           | Mod compatibility integration framework     |
+| **Network**               | Networking API with automatic packet registration |
 | **Recipe**                | In-world recipe system       |
 | **Moveable Entity Block** | Support for block entities movable by pistons |
 | **Registrum**             | Simplified registration system       |
+| **Main**                  | Aggregated module that bundles all submodules |
 
 ## Module Introduction
 
@@ -36,7 +38,7 @@ Provides an annotation-based configuration management system to simplify the def
 **Usage Example:**
 
 ```java
-@Config(name = "my_mod", typebirdsprite_ModConfig.Type.COMMON)
+@Config(name = "my_mod", type = ModConfig.Type.COMMON)
 public class MyModConfig {
     @Comment("Enable debug mode")
     public boolean debugMode = false;
@@ -68,6 +70,26 @@ public class JEIIntegration {
     public void init() {
         // JEI integration logic
     }
+}
+```
+
+### Network Module
+
+Provides a NeoForge networking abstraction with package-based packet auto-registration.
+
+**Key Features:**
+
+- Define packet direction using `IClientboundPacket` / `IServerboundPacket` / `IInsensitiveBiPacket`
+- Automatically register packet classes in a package via `NetworkRegistrar.register(...)`
+- Supports `PLAY`, `CONFIGURATION`, and `COMMON` protocols
+
+**Usage Example:**
+
+```java
+@SubscribeEvent
+public static void onRegisterPayload(RegisterPayloadHandlersEvent event) {
+    PayloadRegistrar registrar = event.registrar("1");
+    NetworkRegistrar.register(registrar, "my_mod");
 }
 ```
 
@@ -137,6 +159,17 @@ public static final RegistryEntry<Item> MY_ITEM = REGISTRUM
     .register();
 ```
 
+### Main Module
+
+`anvillib-neoforge-1.21.1` is the aggregate artifact. It bundles and re-exports:
+
+- `config`
+- `integration`
+- `network`
+- `recipe`
+- `moveable-entity-block`
+- `registrum`
+
 ## Dependency Integration
 
 ### Gradle (Groovy DSL)
@@ -148,14 +181,15 @@ repositories {
 
 dependencies {
     // Full library
-    implementation "dev.anvilcraft.lib:anvillib-neoforge-1.21.2:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-neoforge-1.21.1:2.0.0"
 
     // Or import individual modules as needed
-    implementation "dev.anvilcraft.lib:anvillib-config-neoforge-1.21.2:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-integration-neoforge-1.21.2:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-recipe-neoforge-1.21.2:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-1.21.2:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-registrum-neoforge-1.21.2:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-config-neoforge-1.21.1:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-integration-neoforge-1.21.1:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-network-neoforge-1.21.1:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-recipe-neoforge-1.21.1:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-1.21.1:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-registrum-neoforge-1.21.1:2.0.0"
 }
 ```
 
@@ -167,9 +201,14 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.anvilcraft.lib:anvillib-neoforge-1.21.2:2.0.0")
+    implementation("dev.anvilcraft.lib:anvillib-neoforge-1.21.1:2.0.0")
+
+    // Optional single-module example
+    implementation("dev.anvilcraft.lib:anvillib-network-neoforge-1.21.1:2.0.0")
 }
 ```
+
+> Keep the dependency version aligned with release tags (current project property is `mod_version=2.0.0`).
 
 ## Building the Project
 
@@ -178,14 +217,17 @@ dependencies {
 git clone https://github.com/Anvil-Dev/AnvilLib.git
 cd AnvilLib
 
-# Build
+# Build on macOS / Linux
 ./gradlew build
+
+# Build on Windows (PowerShell / CMD)
+gradlew.bat build
 ```
 
 ## Requirements
 
 - Java 21+
-- Minecraft 1.21.2
+- Minecraft 1.21.1
 - NeoForge 21.1.x
 
 ## License
