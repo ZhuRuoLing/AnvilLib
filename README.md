@@ -11,15 +11,15 @@
 
 AnvilLib 采用模块化设计，包含以下功能模块：
 
-| 模块                        | 说明            |
-|---------------------------|---------------|
-| **Config**                | 基于注解的配置系统     |
-| **Integration**           | 模组兼容性集成框架     |
+| 模块                        | 说明             |
+|---------------------------|----------------|
+| **Config**                | 基于注解的配置系统      |
+| **Integration**           | 模组兼容性集成框架      |
 | **Network**               | 网络通信与数据包自动注册框架 |
-| **Recipe**                | 世界内配方系统       |
-| **Moveable Entity Block** | 可被活塞推动的方块实体支持 |
-| **Registrum**             | 简化的注册系统       |
-| **Main**                  | 聚合模块（包含全部子模块） |
+| **Recipe**                | 世界内配方系统        |
+| **Moveable Entity Block** | 可被活塞推动的方块实体支持  |
+| **Registrum**             | 简化的注册系统        |
+| **Main**                  | 聚合模块（包含全部子模块）  |
 
 ## 模块介绍
 
@@ -38,6 +38,7 @@ AnvilLib 采用模块化设计，包含以下功能模块：
 **使用示例：**
 
 ```java
+
 @Config(name = "my_mod", type = ModConfig.Type.COMMON)
 public class MyModConfig {
     @Comment("启用调试模式")
@@ -65,6 +66,7 @@ MyModConfig config = ConfigManager.register("my_mod", MyModConfig::new);
 **使用示例：**
 
 ```java
+
 @Integration(value = "jei", version = "[19.0,)")
 public class JEIIntegration {
     public void init() {
@@ -86,6 +88,7 @@ public class JEIIntegration {
 **使用示例：**
 
 ```java
+
 @SubscribeEvent
 public static void onRegisterPayload(RegisterPayloadHandlersEvent event) {
     PayloadRegistrar registrar = event.registrar("1");

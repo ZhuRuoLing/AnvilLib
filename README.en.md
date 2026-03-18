@@ -5,21 +5,22 @@
 [![NeoForge](https://img.shields.io/badge/NeoForge-21.1.x-orange.svg)](https://neoforged.net/)
 [![License](https://img.shields.io/badge/License-MIT%20License-blue.svg)](https://opensource.org/licenses/MIT)
 
-**AnvilLib** is a NeoForge mod library developed by [Anvil Dev](https://github.com/Anvil-Dev), providing Minecraft mod developers with a series of practical tools and frameworks.
+**AnvilLib** is a NeoForge mod library developed by [Anvil Dev](https://github.com/Anvil-Dev), providing Minecraft mod developers with a
+series of practical tools and frameworks.
 
 ## Features
 
 AnvilLib adopts a modular design and includes the following functional modules:
 
-| Module                     | Description            |
-|---------------------------|---------------|
-| **Config**                | Annotation-based configuration system     |
-| **Integration**           | Mod compatibility integration framework     |
+| Module                    | Description                                       |
+|---------------------------|---------------------------------------------------|
+| **Config**                | Annotation-based configuration system             |
+| **Integration**           | Mod compatibility integration framework           |
 | **Network**               | Networking API with automatic packet registration |
-| **Recipe**                | In-world recipe system       |
-| **Moveable Entity Block** | Support for block entities movable by pistons |
-| **Registrum**             | Simplified registration system       |
-| **Main**                  | Aggregated module that bundles all submodules |
+| **Recipe**                | In-world recipe system                            |
+| **Moveable Entity Block** | Support for block entities movable by pistons     |
+| **Registrum**             | Simplified registration system                    |
+| **Main**                  | Aggregated module that bundles all submodules     |
 
 ## Module Introduction
 
@@ -38,6 +39,7 @@ Provides an annotation-based configuration management system to simplify the def
 **Usage Example:**
 
 ```java
+
 @Config(name = "my_mod", type = ModConfig.Type.COMMON)
 public class MyModConfig {
     @Comment("Enable debug mode")
@@ -65,6 +67,7 @@ Provides a framework for mod integrations, supporting automatic loading of integ
 **Usage Example:**
 
 ```java
+
 @Integration(value = "jei", version = "[19.0,)")
 public class JEIIntegration {
     public void init() {
@@ -86,6 +89,7 @@ Provides a NeoForge networking abstraction with package-based packet auto-regist
 **Usage Example:**
 
 ```java
+
 @SubscribeEvent
 public static void onRegisterPayload(RegisterPayloadHandlersEvent event) {
     PayloadRegistrar registrar = event.registrar("1");
@@ -139,7 +143,8 @@ public class MyBlock extends Block implements IMoveableEntityBlock {
 
 ### Registrum Module
 
-A registration system based on [Registrate](https://github.com/IThundxr/Registrate), simplifying the registration process for items, blocks, entities, etc.
+A registration system based on [Registrate](https://github.com/IThundxr/Registrate), simplifying the registration process for items, blocks,
+entities, etc.
 
 **Key Features:**
 
@@ -234,7 +239,8 @@ gradlew.bat build
 
 This project is licensed under the [MIT License](https://www.opensource.org/licenses/MIT).
 
-Part of the Registrum module code is based on [Registrate](https://github.com/IThundxr/Registrate) and follows the Mozilla Public License 2.0.
+Part of the Registrum module code is based on [Registrate](https://github.com/IThundxr/Registrate) and follows the Mozilla Public License
+2.0.
 
 ## Author
 
