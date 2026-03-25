@@ -41,7 +41,7 @@ import java.util.function.Supplier;
  */
 public final class DataIngredient {
 
-    //TODO <1.21.4> removed delegate. Is there a need to add it back?
+    //TODO <1.21.5> removed delegate. Is there a need to add it back?
     private final Ingredient parent;
     @Getter
     private final ResourceLocation id;

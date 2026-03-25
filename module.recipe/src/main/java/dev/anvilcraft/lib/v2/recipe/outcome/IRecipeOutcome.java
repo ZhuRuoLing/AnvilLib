@@ -10,8 +10,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 
-import javax.annotation.Nullable;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 
 /**
  * 配方结果接口，定义了世界内配方的结果行为

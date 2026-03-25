@@ -2,9 +2,6 @@ package dev.anvilcraft.lib.v2.recipe.cache;
 
 
 import dev.anvilcraft.lib.v2.recipe.AnvilLibRecipe;
-import dev.anvilcraft.lib.v2.recipe.event.ItemCacheEvent;
-import dev.anvilcraft.lib.v2.recipe.init.LibBlockEntityTags;
-import dev.anvilcraft.lib.v2.recipe.init.LibEntityTypeTags;
 import dev.anvilcraft.lib.v2.recipe.cache.item.ICacheElement;
 import dev.anvilcraft.lib.v2.recipe.cache.item.ICacheInput;
 import dev.anvilcraft.lib.v2.recipe.cache.item.ICacheInputOutputImpl;
@@ -12,6 +9,9 @@ import dev.anvilcraft.lib.v2.recipe.cache.item.ICacheOutput;
 import dev.anvilcraft.lib.v2.recipe.cache.item.ItemEntityCacheElement;
 import dev.anvilcraft.lib.v2.recipe.cache.item.ItemHandlerCacheElement;
 import dev.anvilcraft.lib.v2.recipe.cache.item.operation.SpawnOperation;
+import dev.anvilcraft.lib.v2.recipe.event.ItemCacheEvent;
+import dev.anvilcraft.lib.v2.recipe.init.LibBlockEntityTags;
+import dev.anvilcraft.lib.v2.recipe.init.LibEntityTypeTags;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeData;
 import dev.anvilcraft.lib.v2.recipe.util.Range;

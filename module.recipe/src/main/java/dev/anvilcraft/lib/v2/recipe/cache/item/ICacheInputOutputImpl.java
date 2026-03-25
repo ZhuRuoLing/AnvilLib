@@ -7,13 +7,13 @@ import dev.anvilcraft.lib.v2.recipe.util.Range;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 
 /**
  * 缓存输入输出实现类，实现了缓存输入和输出接口

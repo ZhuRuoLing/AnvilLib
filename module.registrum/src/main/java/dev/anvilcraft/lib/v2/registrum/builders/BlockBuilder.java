@@ -35,6 +35,7 @@ import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullFunction;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullUnaryOperator;
 import net.minecraft.client.color.block.BlockColor;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -177,18 +178,15 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
         return getOwner().<I, BlockBuilder<T, P>>item(this, getName(), p -> factory.apply(getEntry(), p))
             .setData(ProviderType.LANG, NonNullBiConsumer.noop()) // FIXME Need a beetter API for "unsetting" providers
             .model(() -> (ctx, prov) -> {
-                //TODO
-//                var model = getOwner().getDataProvider(ProviderType.BLOCKSTATE)
-//                    .map(g -> g.seenBlockstates.get(getEntry()))
-//                    .flatMap(b -> b.simpleModels())
-//                    .map(b -> b.models().get(""))
-//                    .flatMap(ub -> Unbaked.CODEC.encodeStart(JsonOps.INSTANCE, ub).result())
-//                    .filter(JsonElement::isJsonObject)
-//                    .map(j -> j.getAsJsonObject().get("model"))
-//                    .map(JsonElement::getAsString);
-//                if (model.isPresent()) {
-//                    prov.createWithExistingModel(ctx.get(), ResourceLocation.parse(model.get()));
-//                }
+                var model = getOwner().getDataProvider(ProviderType.BLOCKSTATE)
+                    .map(g -> g.seenBlockstates.get(getEntry()))
+                    .flatMap(b -> b.simpleModels())
+                    .map(b -> b.models().get(""))
+                    .flatMap(ub -> BlockStateModel.Unbaked.CODEC.encodeStart(JsonOps.INSTANCE, ub).result())
+                    .filter(JsonElement::isJsonObject)
+                    .map(j -> j.getAsJsonObject().get("model"))
+                    .map(JsonElement::getAsString);
+                model.ifPresent(s -> prov.createWithExistingModel(ctx.get(), ResourceLocation.parse(s)));
             });
     }
 

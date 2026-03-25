@@ -1,7 +1,7 @@
 package dev.anvilcraft.lib.v2.recipe;
 
 import dev.anvilcraft.lib.v2.config.ConfigManager;
-import dev.anvilcraft.lib.v2.recipe.init.LibItemSubPredicates;
+import dev.anvilcraft.lib.v2.recipe.init.LibDataComponentPredicates;
 import dev.anvilcraft.lib.v2.recipe.init.reicpe.LibRecipeInits;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
@@ -15,7 +15,7 @@ public class AnvilLibRecipe {
     public static final AnvilLibRecipeConfig CONFIG = ConfigManager.register(AnvilLibRecipe.MOD_ID, AnvilLibRecipeConfig::new);
 
     public AnvilLibRecipe(IEventBus modEventBus, ModContainer modContainer) {
-        LibItemSubPredicates.initialize(modEventBus);
+        LibDataComponentPredicates.initialize(modEventBus);
         LibRecipeInits.init(modEventBus);
     }
 

@@ -1,8 +1,8 @@
 package dev.anvilcraft.lib.v2.recipe.data.gen.provider;
 
+import dev.anvilcraft.lib.v2.config.ConfigData;
 import dev.anvilcraft.lib.v2.recipe.AnvilLibRecipe;
 import dev.anvilcraft.lib.v2.recipe.AnvilLibRecipeConfig;
-import dev.anvilcraft.lib.v2.config.ConfigData;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 

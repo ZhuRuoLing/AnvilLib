@@ -82,7 +82,7 @@ public record NbtPredicate(CompoundTag tag) implements Predicate<Tag> {
     public static CompoundTag getEntityTagToCompare(Entity entity) {
         CompoundTag compoundtag = entity.saveWithoutId(new CompoundTag());
         if (entity instanceof Player) {
-            ItemStack itemstack = ((Player) entity).getInventory().getSelected();
+            ItemStack itemstack = ((Player) entity).getInventory().getSelectedItem();
             if (!itemstack.isEmpty()) {
                 compoundtag.put("SelectedItem", itemstack.save(entity.registryAccess()));
             }

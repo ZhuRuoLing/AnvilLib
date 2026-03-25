@@ -1,15 +1,14 @@
 package dev.anvilcraft.lib.v2.recipe.event.listener;
 
 import dev.anvilcraft.lib.v2.recipe.AnvilLibRecipe;
-import dev.anvilcraft.lib.v2.recipe.event.InWorldRecipeManagerEvent;
 import dev.anvilcraft.lib.v2.recipe.InWorldRecipe;
+import dev.anvilcraft.lib.v2.recipe.event.InWorldRecipeManagerEvent;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeManager;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-//import net.neoforged.neoforge.client.event.RecipesUpdatedEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;

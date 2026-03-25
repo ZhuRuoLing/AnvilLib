@@ -1,7 +1,7 @@
 package dev.anvilcraft.lib.v2.recipe.mixin;
 
-import dev.anvilcraft.lib.v2.recipe.injection.IRecipeManagerExtension;
 import dev.anvilcraft.lib.v2.recipe.InWorldRecipe;
+import dev.anvilcraft.lib.v2.recipe.injection.IRecipeManagerExtension;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeManager;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -16,8 +16,11 @@ import java.util.List;
 
 @Mixin(RecipeManager.class)
 abstract class RecipeManagerMixin implements IRecipeManagerExtension {
-    @Shadow private RecipeMap recipes;
-    @Shadow @Final private HolderLookup.Provider registries;
+    @Shadow
+    private RecipeMap recipes;
+    @Shadow
+    @Final
+    private HolderLookup.Provider registries;
     @Unique
     private InWorldRecipeManager anvillib$inWorldRecipeManager = null;
 

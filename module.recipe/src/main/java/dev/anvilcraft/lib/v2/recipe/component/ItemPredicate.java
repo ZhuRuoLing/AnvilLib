@@ -4,12 +4,11 @@ import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.anvilcraft.lib.v2.recipe.util.CodecUtil;
-import net.minecraft.advancements.critereon.ItemSubPredicate;
+import net.minecraft.advancements.critereon.DataComponentMatchers;
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.RegistryCodecs;
-import net.minecraft.core.component.DataComponentPredicate;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -29,16 +28,13 @@ import java.util.Optional;
  * <p>
  * 用于定义物品匹配规则，包括物品类型、数量范围、组件和子谓词
  * </p>
+ *
  * @param items         物品集合
  * @param count         数量范围
  * @param components    数据组件谓词
- * @param subPredicates 子谓词映射
  */
 public record ItemPredicate(
-    Optional<HolderSet<Item>> items,
-    MinMaxBounds.Ints count,
-    DataComponentPredicate components,
-    Map<ItemSubPredicate.Type<?>, ItemSubPredicate> subPredicates
+    Optional<HolderSet<Item>> items, MinMaxBounds.Ints count, DataComponentMatchers components
 ) implements IItemStackPredicate {
     /**
      * ItemPredicate编解码器
@@ -52,12 +48,9 @@ public record ItemPredicate(
             MinMaxBounds.Ints.CODEC
                 .optionalFieldOf("count", MinMaxBounds.Ints.ANY)
                 .forGetter(ItemPredicate::count),
-            DataComponentPredicate.CODEC
-                .optionalFieldOf("components", DataComponentPredicate.EMPTY)
-                .forGetter(ItemPredicate::components),
-            ItemSubPredicate.CODEC
-                .optionalFieldOf("predicates", Map.of())
-                .forGetter(ItemPredicate::subPredicates)
+            DataComponentMatchers.CODEC.codec()
+                .optionalFieldOf("components", DataComponentMatchers.ANY)
+                .forGetter(ItemPredicate::components)
         ).apply(instance, ItemPredicate::new));
 
     /**
@@ -83,16 +76,14 @@ public record ItemPredicate(
         @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
         private Optional<HolderSet<Item>> items = Optional.empty();
         private MinMaxBounds.Ints count;
-        private DataComponentPredicate components;
-        private final ImmutableMap.Builder<ItemSubPredicate.Type<?>, ItemSubPredicate> subPredicates;
+        private DataComponentMatchers components;
 
         /**
          * 构造一个构建器
          */
         private Builder() {
             this.count = MinMaxBounds.Ints.ANY;
-            this.components = DataComponentPredicate.EMPTY;
-            this.subPredicates = ImmutableMap.builder();
+            this.components = DataComponentMatchers.ANY;
         }
 
         /**
@@ -142,25 +133,12 @@ public record ItemPredicate(
         }
 
         /**
-         * 添加子谓词
-         *
-         * @param type      子谓词类型
-         * @param predicate 子谓词
-         * @param <T>       子谓词类型
-         * @return 构建器实例
-         */
-        public <T extends ItemSubPredicate> Builder withSubPredicate(ItemSubPredicate.Type<T> type, T predicate) {
-            this.subPredicates.put(type, predicate);
-            return this;
-        }
-
-        /**
          * 设置数据组件谓词
          *
          * @param components 数据组件谓词
          * @return 构建器实例
          */
-        public Builder hasComponents(DataComponentPredicate components) {
+        public Builder hasComponents(DataComponentMatchers components) {
             this.components = components;
             return this;
         }
@@ -171,7 +149,7 @@ public record ItemPredicate(
          * @return ItemPredicate实例
          */
         public ItemPredicate build() {
-            return new ItemPredicate(this.items, this.count, this.components, this.subPredicates.build());
+            return new ItemPredicate(this.items, this.count, this.components);
         }
     }
 }

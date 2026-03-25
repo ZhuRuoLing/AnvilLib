@@ -6,8 +6,8 @@ import dev.anvilcraft.lib.v2.recipe.util.ISerializer;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
 import net.minecraft.resources.ResourceLocation;
 
-import javax.annotation.Nullable;
 import java.util.function.BiFunction;
+import javax.annotation.Nullable;
 
 public interface IOutcomeFunction<T> extends BiFunction<InWorldRecipeContext, T, T> {
     Codec<IOutcomeFunction<?>> CODEC = LibRegistries.OUTCOM_FUNCTIONE_TYPE_REGISTRY.byNameCodec()

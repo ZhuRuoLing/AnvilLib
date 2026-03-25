@@ -1,12 +1,10 @@
 package dev.anvilcraft.lib.v2.recipe.component;
 
-import net.minecraft.advancements.critereon.ItemSubPredicate;
+import net.minecraft.advancements.critereon.DataComponentMatchers;
 import net.minecraft.core.HolderSet;
-import net.minecraft.core.component.DataComponentPredicate;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -29,14 +27,7 @@ public interface IItemStackPredicate extends Predicate<ItemStack> {
      *
      * @return 数据组件谓词
      */
-    DataComponentPredicate components();
-
-    /**
-     * 获取子谓词映射
-     *
-     * @return 子谓词映射
-     */
-    Map<ItemSubPredicate.Type<?>, ItemSubPredicate> subPredicates();
+    DataComponentMatchers components();
 
     /**
      * 测试数量是否匹配
@@ -55,15 +46,8 @@ public interface IItemStackPredicate extends Predicate<ItemStack> {
     default boolean testIgnoreCount(ItemStack itemStack) {
         if (this.items().isPresent() && !itemStack.is(this.items().get())) {
             return false;
-        } else if (!this.components().test(itemStack)) {
-            return false;
         } else {
-            for (ItemSubPredicate itemsubpredicate : this.subPredicates().values()) {
-                if (!itemsubpredicate.matches(itemStack)) {
-                    return false;
-                }
-            }
-            return true;
+            return this.components().test(itemStack);
         }
     }
 

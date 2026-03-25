@@ -2,15 +2,15 @@ package dev.anvilcraft.lib.v2.recipe.outcome;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.anvilcraft.lib.v2.recipe.init.reicpe.LibRecipeOutcomeTypes;
 import dev.anvilcraft.lib.v2.recipe.cache.BlockCache;
 import dev.anvilcraft.lib.v2.recipe.cache.ItemCache;
 import dev.anvilcraft.lib.v2.recipe.cache.item.ICacheOutput;
+import dev.anvilcraft.lib.v2.recipe.init.reicpe.LibRecipeOutcomeTypes;
 import dev.anvilcraft.lib.v2.recipe.outcome.function.ApplyTagToComponent;
 import dev.anvilcraft.lib.v2.recipe.outcome.function.IOutcomeFunction;
+import dev.anvilcraft.lib.v2.recipe.util.CodecUtil;
 import dev.anvilcraft.lib.v2.recipe.util.IRecipeResultOffsetBlock;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
-import dev.anvilcraft.lib.v2.recipe.util.CodecUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;

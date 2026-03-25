@@ -76,11 +76,11 @@ public class Range implements Iterable<BlockPos> {
      */
     public boolean contains(Range range) {
         return range.start.x() >= this.start.x()
-            && range.start.y() >= this.start.y()
-            && range.start.z() >= this.start.z()
-            && range.end.x() <= this.end.x()
-            && range.end.y() <= this.end.y()
-            && range.end.z() <= this.end.z();
+               && range.start.y() >= this.start.y()
+               && range.start.z() >= this.start.z()
+               && range.end.x() <= this.end.x()
+               && range.end.y() <= this.end.y()
+               && range.end.z() <= this.end.z();
     }
 
     /**
@@ -104,8 +104,8 @@ public class Range implements Iterable<BlockPos> {
     public boolean cross(Range range) {
         if (this.isEmpty()) return false;
         return Math.max(range.start.x, this.start.x) < Math.min(range.end.x, this.end.x)
-            && Math.max(range.start.y, this.start.y) < Math.min(range.end.y, this.end.y)
-            && Math.max(range.start.z, this.start.z) < Math.min(range.end.z, this.end.z);
+               && Math.max(range.start.y, this.start.y) < Math.min(range.end.y, this.end.y)
+               && Math.max(range.start.z, this.start.z) < Math.min(range.end.z, this.end.z);
     }
 
     /**

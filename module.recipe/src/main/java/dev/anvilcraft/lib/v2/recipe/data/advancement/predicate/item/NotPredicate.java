@@ -2,23 +2,24 @@ package dev.anvilcraft.lib.v2.recipe.data.advancement.predicate.item;
 
 import com.mojang.serialization.Codec;
 import dev.anvilcraft.lib.v2.recipe.util.CodecUtil;
-import net.minecraft.advancements.critereon.ItemSubPredicate;
+import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.component.predicates.DataComponentPredicate;
 import net.minecraft.world.item.ItemStack;
 
-public record NotPredicate(Type<?> type, ItemSubPredicate subPredicate) implements ItemSubPredicate {
+public record NotPredicate(Type<?> type, DataComponentPredicate subPredicate) implements DataComponentPredicate {
     public static final Codec<NotPredicate> CODEC = CodecUtil.byMap(
-        ItemSubPredicate.CODEC,
+        DataComponentPredicate.CODEC,
         NotPredicate::type,
         NotPredicate::subPredicate,
         NotPredicate::new
     );
 
     @Override
-    public boolean matches(ItemStack itemStack) {
-        return !this.subPredicate.matches(itemStack);
+    public boolean matches(DataComponentGetter getter) {
+        return !this.subPredicate.matches(getter);
     }
 
-    public static NotPredicate of(Type<?> type, ItemSubPredicate subPredicate) {
+    public static NotPredicate of(Type<?> type, DataComponentPredicate subPredicate) {
         return new NotPredicate(type, subPredicate);
     }
 }

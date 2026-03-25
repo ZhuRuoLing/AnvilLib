@@ -13,9 +13,9 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 
 /**
  * 方块缓存类，用于在配方执行过程中缓存和模拟方块状态变化

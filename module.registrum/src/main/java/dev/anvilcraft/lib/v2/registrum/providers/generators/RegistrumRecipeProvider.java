@@ -480,14 +480,9 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
         super.netheriteSmithing(p_250046_, p_248986_, p_250389_);
     }
 
-//    @Override
-//    public void trimSmithing(Item p_285461_, ResourceKey<TrimPattern> p_379766_, ResourceKey<Recipe<?>> p_399566_) {
-//        super.trimSmithing(p_285461_, p_379766_, p_399566_);
-//    }
-
     @Override
-    protected void trimSmithing(Item templateItem, ResourceKey<Recipe<?>> key) {
-        super.trimSmithing(templateItem, key);
+    public void trimSmithing(Item p_285461_, ResourceKey<TrimPattern> p_379766_, ResourceKey<Recipe<?>> p_399566_) {
+        super.trimSmithing(p_285461_, p_379766_, p_399566_);
     }
 
     @Override

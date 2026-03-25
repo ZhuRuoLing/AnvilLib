@@ -6,8 +6,8 @@ import dev.anvilcraft.lib.v2.recipe.util.ISerializer;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
 import net.minecraft.resources.ResourceLocation;
 
-import javax.annotation.Nullable;
 import java.util.function.BiFunction;
+import javax.annotation.Nullable;
 
 public interface IPredicateFunction<T> extends BiFunction<InWorldRecipeContext, T, T> {
     Codec<IPredicateFunction<?>> CODEC = LibRegistries.PREDICATE_FUNCTION_TYPE_REGISTRY.byNameCodec()

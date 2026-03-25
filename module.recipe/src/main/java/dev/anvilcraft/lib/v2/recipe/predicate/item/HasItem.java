@@ -1,15 +1,14 @@
 package dev.anvilcraft.lib.v2.recipe.predicate.item;
 
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.anvilcraft.lib.v2.recipe.init.reicpe.LibRecipePredicateTypes;
 import dev.anvilcraft.lib.v2.recipe.component.ItemPredicate;
+import dev.anvilcraft.lib.v2.recipe.init.reicpe.LibRecipePredicateTypes;
 import dev.anvilcraft.lib.v2.recipe.predicate.IRecipePredicate;
 import dev.anvilcraft.lib.v2.recipe.predicate.function.IPredicateFunction;
 import dev.anvilcraft.lib.v2.recipe.predicate.function.SaveComponentToTag;
 import lombok.Getter;
-import net.minecraft.advancements.critereon.ItemSubPredicate;
+import net.minecraft.advancements.critereon.DataComponentMatchers;
 import net.minecraft.advancements.critereon.MinMaxBounds;
-import net.minecraft.core.component.DataComponentPredicate;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -253,25 +252,12 @@ public class HasItem extends HasItemBase<HasItem, ItemPredicate> {
         }
 
         /**
-         * 添加子谓词
-         *
-         * @param type      子谓词类型
-         * @param predicate 子谓词
-         * @param <T>       子谓词类型
-         * @return 构建器实例
-         */
-        public <T extends ItemSubPredicate> Builder with(ItemSubPredicate.Type<T> type, T predicate) {
-            this.item.withSubPredicate(type, predicate);
-            return this;
-        }
-
-        /**
          * 设置数据组件谓词
          *
          * @param components 数据组件谓词
          * @return 构建器实例
          */
-        public Builder has(DataComponentPredicate components) {
+        public Builder has(DataComponentMatchers components) {
             this.item.hasComponents(components);
             return this;
         }

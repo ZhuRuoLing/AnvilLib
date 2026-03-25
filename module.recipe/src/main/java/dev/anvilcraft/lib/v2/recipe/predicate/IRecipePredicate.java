@@ -7,10 +7,10 @@ import dev.anvilcraft.lib.v2.recipe.util.ISerializer;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
 import net.minecraft.resources.ResourceLocation;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import javax.annotation.Nullable;
 
 /**
  * 配方谓词接口，用于判断配方是否满足执行条件
@@ -54,7 +54,8 @@ public interface IRecipePredicate<P extends IRecipePredicate<P>>
     /**
      * 清空操作栈
      */
-    default void clearStack(InWorldRecipeContext context){}
+    default void clearStack(InWorldRecipeContext context) {
+    }
 
     /**
      * 获取配方谓词的类型

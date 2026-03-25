@@ -17,8 +17,7 @@ import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
 import dev.anvilcraft.lib.v2.registrum.providers.ProviderType;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelOutput;
-//import net.minecraft.client.data.models.blockstates.BlockModelDefinitionGenerator;
-import net.minecraft.client.data.models.blockstates.BlockStateGenerator;
+import net.minecraft.client.data.models.blockstates.BlockModelDefinitionGenerator;
 import net.minecraft.client.data.models.model.ModelInstance;
 import net.minecraft.client.data.models.model.ModelTemplate;
 import net.minecraft.client.data.models.model.TextureMapping;
@@ -41,22 +40,14 @@ public class RegistrumBlockModelGenerator extends BlockModelGenerators {
 
     public RegistrumBlockModelGenerator(
         AbstractRegistrum<?> parent,
-        Consumer<BlockStateGenerator> known,
-//        Consumer<BlockModelDefinitionGenerator> known,
+        Consumer<BlockModelDefinitionGenerator> known,
         ItemModelOutput item,
         BiConsumer<ResourceLocation, ModelInstance> model
     ) {
         super(known, item, model);
-//        ObfuscationReflectionHelper.<BlockModelGenerators, Consumer<BlockModelDefinitionGenerator>>setPrivateValue(
-//            BlockModelGenerators.class, this, g -> {
-//                this.seenBlockstates.put(g.block(), g.create());
-//                known.accept(g);
-//            }, "blockStateOutput"
-//        );
-        ObfuscationReflectionHelper.<BlockModelGenerators, Consumer<BlockStateGenerator>>setPrivateValue(
+        ObfuscationReflectionHelper.<BlockModelGenerators, Consumer<BlockModelDefinitionGenerator>>setPrivateValue(
             BlockModelGenerators.class, this, g -> {
-                //TODO
-//                this.seenBlockstates.put(g.getBlock(), g.create());
+                this.seenBlockstates.put(g.block(), g.create());
                 known.accept(g);
             }, "blockStateOutput"
         );
@@ -68,14 +59,13 @@ public class RegistrumBlockModelGenerator extends BlockModelGenerators {
         parent.genData(ProviderType.BLOCKSTATE, this);
     }
 
+    public void create(Block block, ResourceLocation model) {
+        this.blockStateOutput.accept(createSimpleBlock(block, plainVariant(model)));
+    }
 
-//    public void create(Block block, ResourceLocation model) {
-//        this.blockStateOutput.accept(createSimpleBlock(block, plainVariant(model)));
-//    }
-//
-//    public void create(Block block, TexturedModel.Provider texture) {
-//        this.blockStateOutput.accept(createSimpleBlock(block, plainVariant(texture.create(block, this.modelOutput))));
-//    }
+    public void create(Block block, TexturedModel.Provider texture) {
+        this.blockStateOutput.accept(createSimpleBlock(block, plainVariant(texture.create(block, this.modelOutput))));
+    }
 
     public ResourceLocation mcLoc(String id) {
         return ResourceLocation.withDefaultNamespace(id);

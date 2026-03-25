@@ -1,17 +1,16 @@
 package dev.anvilcraft.lib.v2.recipe.component;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.anvilcraft.lib.v2.recipe.predicate.item.HasItemIngredient;
 import dev.anvilcraft.lib.v2.recipe.util.CodecUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import net.minecraft.advancements.critereon.ItemSubPredicate;
+import net.minecraft.advancements.critereon.DataComponentMatchers;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.RegistryCodecs;
-import net.minecraft.core.component.DataComponentPredicate;
+import net.minecraft.core.component.DataComponentExactPredicate;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -27,7 +26,6 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -36,16 +34,14 @@ import java.util.Optional;
  * 用于定义配方中物品原料的匹配规则，包括物品类型、数量、组件和子谓词
  * </p>
  *
- * @param items         物品集合
- * @param count         数量
- * @param components    数据组件谓词
- * @param subPredicates 子谓词映射
+ * @param items      物品集合
+ * @param count      数量
+ * @param components 数据组件谓词
  */
 public record ItemIngredientPredicate(
     Optional<HolderSet<Item>> items,
     int count,
-    DataComponentPredicate components,
-    Map<ItemSubPredicate.Type<?>, ItemSubPredicate> subPredicates
+    DataComponentMatchers components
 ) implements IItemStackPredicate {
     /**
      * ItemIngredientPredicate编解码器
@@ -53,9 +49,8 @@ public record ItemIngredientPredicate(
     public static final Codec<ItemIngredientPredicate> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         RegistryCodecs.homogeneousList(Registries.ITEM).optionalFieldOf("items").forGetter(ItemIngredientPredicate::items),
         Codec.INT.optionalFieldOf("count", 1).forGetter(ItemIngredientPredicate::count),
-        DataComponentPredicate.CODEC.optionalFieldOf("components", DataComponentPredicate.EMPTY)
-            .forGetter(ItemIngredientPredicate::components),
-        ItemSubPredicate.CODEC.optionalFieldOf("predicates", Map.of()).forGetter(ItemIngredientPredicate::subPredicates)
+        DataComponentMatchers.CODEC.codec().optionalFieldOf("components", DataComponentMatchers.ANY)
+            .forGetter(ItemIngredientPredicate::components)
     ).apply(instance, ItemIngredientPredicate::new));
 
     /**
@@ -121,13 +116,13 @@ public record ItemIngredientPredicate(
                 hash,
                 this.items()
                     .map(itemSet -> itemSet.stream()
-                        .map(itemHolder -> new ItemStack(itemHolder, this.count(), this.components().asPatch()))
+                        .map(itemHolder -> new ItemStack(itemHolder, this.count(), this.components().exact().asPatch()))
                         .toArray(ItemStack[]::new))
                     .orElse(new ItemStack[]{
                         new ItemStack(
                             Items.BARRIER.builtInRegistryHolder(),
                             this.count(),
-                            this.components().asPatch()
+                            this.components().exact().asPatch()
                         )
                     })
             );
@@ -143,16 +138,14 @@ public record ItemIngredientPredicate(
         @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
         private Optional<HolderSet<Item>> items = Optional.empty();
         private int count;
-        private DataComponentPredicate components;
-        private final ImmutableMap.Builder<ItemSubPredicate.Type<?>, ItemSubPredicate> subPredicates;
+        private DataComponentMatchers components;
 
         /**
          * 构造一个构建器
          */
         private Builder() {
             this.count = 1;
-            this.components = DataComponentPredicate.EMPTY;
-            this.subPredicates = ImmutableMap.builder();
+            this.components = DataComponentMatchers.ANY;
         }
 
         /**
@@ -204,9 +197,15 @@ public record ItemIngredientPredicate(
                 Object o = defaultInstance.get(component.type());
                 if (o != null && o.equals(component.value())) continue;
                 //noinspection unchecked
-                this.hasComponents(DataComponentPredicate.builder()
-                    .expect((DataComponentType<D>) component.type(), (D) component.value())
-                    .build());
+                this.hasComponents(
+                    DataComponentMatchers.Builder.components()
+                        .exact(
+                            DataComponentExactPredicate.builder()
+                                .expect((DataComponentType<D>) component.type(), (D) component.value())
+                                .build()
+                        )
+                        .build()
+                );
             }
             return this;
         }
@@ -223,25 +222,12 @@ public record ItemIngredientPredicate(
         }
 
         /**
-         * 添加子谓词
-         *
-         * @param type      子谓词类型
-         * @param predicate 子谓词
-         * @param <T>       子谓词类型
-         * @return 构建器实例
-         */
-        public <T extends ItemSubPredicate> Builder withSubPredicate(ItemSubPredicate.Type<T> type, T predicate) {
-            this.subPredicates.put(type, predicate);
-            return this;
-        }
-
-        /**
          * 设置数据组件谓词
          *
          * @param components 数据组件谓词
          * @return 构建器实例
          */
-        public Builder hasComponents(DataComponentPredicate components) {
+        public Builder hasComponents(DataComponentMatchers components) {
             this.components = components;
             return this;
         }
@@ -252,7 +238,7 @@ public record ItemIngredientPredicate(
          * @return ItemIngredientPredicate实例
          */
         public ItemIngredientPredicate build() {
-            return new ItemIngredientPredicate(this.items, this.count, this.components, this.subPredicates.build());
+            return new ItemIngredientPredicate(this.items, this.count, this.components);
         }
     }
 }
