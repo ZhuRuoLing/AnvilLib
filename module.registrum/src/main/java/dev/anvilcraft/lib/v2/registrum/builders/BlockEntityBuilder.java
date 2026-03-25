@@ -122,9 +122,10 @@ public class BlockEntityBuilder<T extends BlockEntity, P, S extends BlockEntityR
      * Register an {@link BlockEntityRenderer} for this block entity.
      * <p>
      *
+     * <p><b>API Note: </b>This requires the {@link Class} of the block entity object, which can only be gotten by inspecting an instance of it. Thus, the entity will be constructed to register the renderer.</p>
+     *
      * @param renderer A (server safe) supplier to an {@link Function} that will provide this block entity's renderer given the renderer dispatcher
      * @return this {@link BlockEntityBuilder}
-     * @apiNote This requires the {@link Class} of the block entity object, which can only be gotten by inspecting an instance of it. Thus, the entity will be constructed to register the renderer.
      */
     public BlockEntityBuilder<T, P, S> renderer(NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T, ? super S>>> renderer) {
         if (this.renderer == null) { // First call only
