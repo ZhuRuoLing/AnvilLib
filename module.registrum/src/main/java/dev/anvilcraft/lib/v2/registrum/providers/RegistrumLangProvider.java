@@ -1,13 +1,14 @@
 /*
- * Original work copyright (c) 2019 tterrag1098 (Registrate)
- * Modified work copyright (c) 2025 IThundxr (Registrate fork)
- * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  * Original work copyright (c) 2019 tterrag1098 (Registrate)
+ *  * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
+ *  *
+ *  * This Source Code Form is subject to the terms of the Mozilla Public
+ *  * License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  *
+ *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/providers/RegistrumLangProvider.java
  *
- * Original File: https://github.com/IThundxr/Registrate/blob/1.21/dev/src/main/java/com/tterrag/registrate/providers/RegistrateLangProvider.java
  */
 
 package dev.anvilcraft.lib.v2.registrum.providers;
@@ -32,7 +33,6 @@ import net.neoforged.neoforge.common.data.LanguageProvider;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -41,34 +41,28 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 public class RegistrumLangProvider extends LanguageProvider implements RegistrumProvider {
 
-    // Automatic en_ud generation
-    private static final String NORMAL_CHARS =
-        /* lowercase */ "abcdefghijklmnñopqrstuvwxyz" +
-        /* uppercase */ "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-        /*  numbers  */ "0123456789" +
-        /*  special  */ "_,;.?!/\\'\"()[]{}<>";
-    private static final String UPSIDE_DOWN_CHARS =
-        /* lowercase */ "ɐqɔpǝɟᵷɥᴉɾʞꞁɯuuodbɹsʇnʌʍxʎz" +
-        /* uppercase */ "ⱯᗺƆᗡƎℲ⅁HIՐꞰꞀWNOԀꝹᴚS⟘∩ɅMX⅄Z" +
-        /*  numbers  */ "0⥝ᘔƐ߈ϛ9ㄥ86" +
-        /*  special  */ "‾'⸵˙¿¡/\\,„)(][}{><";
+    private static class AccessibleLanguageProvider extends LanguageProvider {
 
-    // The regex is from java.util.regex.Formatter
-    private static final Pattern PLACEHOLDER_REGEX = Pattern.compile(
-        "%(\\d+\\$)?([-#+ 0,(<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])"
-    );
+        public AccessibleLanguageProvider(PackOutput packOutput, String modid, String locale) {
+            super(packOutput, modid, locale);
+        }
 
-    static {
-        //noinspection ConstantValue
-        if (NORMAL_CHARS.length() != UPSIDE_DOWN_CHARS.length()) {
-            throw new AssertionError("Char maps do not match in length!");
+        @Override
+        public void add(@Nullable String key, @Nullable String value) {
+            super.add(key, value);
+        }
+
+        @Override
+        protected void addTranslations() {
         }
     }
 
     private final AbstractRegistrum<?> owner;
+
     private final AccessibleLanguageProvider upsideDown;
 
     public RegistrumLangProvider(AbstractRegistrum<?> owner, PackOutput packOutput) {
@@ -77,75 +71,9 @@ public class RegistrumLangProvider extends LanguageProvider implements Registrum
         this.upsideDown = new AccessibleLanguageProvider(packOutput, owner.getModid(), "en_ud");
     }
 
-    public static String toEnglishName(String internalName) {
-        return Arrays.stream(internalName.toLowerCase(Locale.ROOT).split("_"))
-            .map(StringUtils::capitalize)
-            .collect(Collectors.joining(" "));
-    }
-
-    public static String toUpsideDown(String str) {
-        if (str.isEmpty()) return str;
-
-        Matcher matcher = PLACEHOLDER_REGEX.matcher(str);
-
-        List<int[]> placeholders = new ArrayList<>();
-        while (matcher.find()) {
-            placeholders.add(new int[]{matcher.start(), matcher.end()});
-        }
-
-        List<String> segments = new ArrayList<>();
-        int lastEnd = 0;
-
-        for (int[] ph : placeholders) {
-            if (lastEnd <= ph[0]) {
-                String text = str.substring(lastEnd, ph[0]);
-                segments.add(upsideDown(text));
-            }
-            segments.add(str.substring(ph[0], ph[1]));
-            lastEnd = ph[1];
-        }
-
-        if (lastEnd < str.length()) {
-            segments.add(upsideDown(str.substring(lastEnd)));
-        } else if (lastEnd == str.length()) {
-            segments.add("");
-        }
-
-        Collections.reverse(segments);
-
-        StringBuilder result = new StringBuilder();
-        for (String seg : segments) {
-            result.append(seg);
-        }
-        return result.toString();
-    }
-
-    private static String upsideDown(String normal) {
-        char[] ud = new char[normal.length()];
-        for (int i = normal.length() - 1; i >= 0; i--) {
-            char c = normal.charAt(i);
-            int lookup = NORMAL_CHARS.indexOf(c);
-            if (lookup >= 0) {
-                c = UPSIDE_DOWN_CHARS.charAt(lookup);
-            }
-            ud[normal.length() - 1 - i] = c;
-        }
-        return new String(ud);
-    }
-
     @Override
     public LogicalSide getSide() {
         return LogicalSide.CLIENT;
-    }
-
-    @Override
-    protected void addTranslations() {
-        owner.genData(ProviderType.LANG, this);
-    }
-
-    @Override
-    public CompletableFuture<?> run(CachedOutput cache) {
-        return CompletableFuture.allOf(super.run(cache), upsideDown.run(cache));
     }
 
     @Override
@@ -154,9 +82,14 @@ public class RegistrumLangProvider extends LanguageProvider implements Registrum
     }
 
     @Override
-    public void add(String key, String value) {
-        super.add(key, value);
-        upsideDown.add(key, toUpsideDown(value));
+    protected void addTranslations() {
+        owner.genData(ProviderType.LANG, this);
+    }
+
+    public static final String toEnglishName(String internalName) {
+        return Arrays.stream(internalName.toLowerCase(Locale.ROOT).split("_"))
+            .map(StringUtils::capitalize)
+            .collect(Collectors.joining(" "));
     }
 
     @SuppressWarnings(
@@ -217,18 +150,87 @@ public class RegistrumLangProvider extends LanguageProvider implements Registrum
         addEntityType(entity, getAutomaticName(entity, Registries.ENTITY_TYPE));
     }
 
-    private static class AccessibleLanguageProvider extends LanguageProvider {
-        public AccessibleLanguageProvider(PackOutput packOutput, String modid, String locale) {
-            super(packOutput, modid, locale);
+    // Automatic en_ud generation
+
+    private static final String NORMAL_CHARS =
+        /* lowercase */ "abcdefghijklmnñopqrstuvwxyz" +
+        /* uppercase */ "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+        /*  numbers  */ "0123456789" +
+        /*  special  */ "_,;.?!/\\'\"()[]{}<>";
+    private static final String UPSIDE_DOWN_CHARS =
+        /* lowercase */ "ɐqɔpǝɟᵷɥᴉɾʞꞁɯuuodbɹsʇnʌʍxʎz" +
+        /* uppercase */ "ⱯᗺƆᗡƎℲ⅁HIՐꞰꞀWNOԀꝹᴚS⟘∩ɅMX⅄Z" +
+        /*  numbers  */ "0⥝ᘔƐ߈ϛ9ㄥ86" +
+        /*  special  */ "‾'⸵˙¿¡/\\,„)(][}{><";
+
+    private static final Pattern PLACEHOLDER_REGEX = Pattern.compile(
+        "%(\\d+\\$)?([-#+ 0,(<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])"
+    );
+
+    static {
+        if (NORMAL_CHARS.length() != UPSIDE_DOWN_CHARS.length()) {
+            throw new AssertionError("Char maps do not match in length!");
+        }
+    }
+
+    private String toUpsideDown(String normal) {
+        if (normal.isEmpty()) return normal;
+
+        Matcher matcher = PLACEHOLDER_REGEX.matcher(normal);
+
+        List<int[]> placeholders = new ArrayList<>();
+        while (matcher.find()) {
+            placeholders.add(new int[]{matcher.start(), matcher.end()});
         }
 
-        @Override
-        protected void addTranslations() {
+        List<String> segments = new ArrayList<>();
+        int lastEnd = 0;
+
+        for (int[] ph : placeholders) {
+            if (lastEnd <= ph[0]) {
+                String text = normal.substring(lastEnd, ph[0]);
+                segments.add(upsideDown(text));
+            }
+            segments.add(normal.substring(ph[0], ph[1]));
+            lastEnd = ph[1];
         }
 
-        @Override
-        public void add(@Nullable String key, @Nullable String value) {
-            super.add(key, value);
+        if (lastEnd < normal.length()) {
+            segments.add(upsideDown(normal.substring(lastEnd)));
+        } else if (lastEnd == normal.length()) {
+            segments.add("");
         }
+
+        Collections.reverse(segments);
+
+        StringBuilder result = new StringBuilder();
+        for (String seg : segments) {
+            result.append(seg);
+        }
+        return result.toString();
+    }
+
+    private static String upsideDown(String normal) {
+        char[] ud = new char[normal.length()];
+        for (int i = normal.length() - 1; i >= 0; i--) {
+            char c = normal.charAt(i);
+            int lookup = NORMAL_CHARS.indexOf(c);
+            if (lookup >= 0) {
+                c = UPSIDE_DOWN_CHARS.charAt(lookup);
+            }
+            ud[normal.length() - 1 - i] = c;
+        }
+        return new String(ud);
+    }
+
+    @Override
+    public void add(String key, String value) {
+        super.add(key, value);
+        upsideDown.add(key, toUpsideDown(value));
+    }
+
+    @Override
+    public CompletableFuture<?> run(CachedOutput cache) {
+        return CompletableFuture.allOf(super.run(cache), upsideDown.run(cache));
     }
 }

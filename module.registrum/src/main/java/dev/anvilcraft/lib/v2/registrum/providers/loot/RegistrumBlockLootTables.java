@@ -1,23 +1,23 @@
 /*
- * Original work copyright (c) 2019 tterrag1098 (Registrate)
- * Modified work copyright (c) 2025 IThundxr (Registrate fork)
- * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  * Original work copyright (c) 2019 tterrag1098 (Registrate)
+ *  * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
+ *  *
+ *  * This Source Code Form is subject to the terms of the Mozilla Public
+ *  * License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  *
+ *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/providers/loot/RegistrumBlockLootTables.java
  *
- * Original File: https://github.com/IThundxr/Registrate/blob/1.21/dev/src/main/java/com/tterrag/registrate/providers/loot/RegistrateBlockLootTables.java
  */
 
 package dev.anvilcraft.lib.v2.registrum.providers.loot;
 
 import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
-
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.loot.BlockLootSubProvider;
-import net.minecraft.data.loot.packs.VanillaBlockLoot;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
@@ -28,11 +28,12 @@ import net.minecraft.world.level.storage.loot.predicates.ConditionUserBuilder;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class RegistrumBlockLootTables extends VanillaBlockLoot implements RegistrumLootTables {
+public class RegistrumBlockLootTables extends BlockLootSubProvider implements RegistrumLootTables {
     private final AbstractRegistrum<?> parent;
     private final Consumer<RegistrumBlockLootTables> callback;
 
@@ -41,17 +42,9 @@ public class RegistrumBlockLootTables extends VanillaBlockLoot implements Regist
         AbstractRegistrum<?> parent,
         Consumer<RegistrumBlockLootTables> callback
     ) {
-        super(provider);
+        super(Set.of(), FeatureFlags.REGISTRY.allFlags(), provider);
         this.parent = parent;
         this.callback = callback;
-    }
-
-    public LootTable.Builder createShearsOnlyDrop(ItemLike p_250684_) {
-        return super.createShearsOnlyDrop(p_250684_);
-    }
-
-    public static LootTable.Builder createCandleCakeDrops(Block p_250280_) {
-        return BlockLootSubProvider.createCandleCakeDrops(p_250280_);
     }
 
     @Override
@@ -59,9 +52,15 @@ public class RegistrumBlockLootTables extends VanillaBlockLoot implements Regist
         callback.accept(this);
     }
 
+    @Override
+    protected Iterable<Block> getKnownBlocks() {
+        return parent.getAll(Registries.BLOCK).stream().map(Supplier::get).collect(Collectors.toList());
+    }
+
     public HolderLookup.Provider getRegistries() {
         return this.registries;
     }
+
 
     @Override
     public <T extends FunctionUserBuilder<T>> T applyExplosionDecay(ItemLike p_248695_, FunctionUserBuilder<T> p_248548_) {
@@ -179,8 +178,28 @@ public class RegistrumBlockLootTables extends VanillaBlockLoot implements Regist
     }
 
     @Override
+    public LootTable.Builder createShearsOnlyDrop(ItemLike p_250684_) {
+        return super.createShearsOnlyDrop(p_250684_);
+    }
+
+    @Override
+    public LootTable.Builder createShearsOrSilkTouchOnlyDrop(ItemLike p_381618_) {
+        return super.createShearsOrSilkTouchOnlyDrop(p_381618_);
+    }
+
+    @Override
     public LootTable.Builder createMultifaceBlockDrops(Block p_249088_, LootItemCondition.Builder p_251535_) {
         return super.createMultifaceBlockDrops(p_249088_, p_251535_);
+    }
+
+    @Override
+    public LootTable.Builder createMultifaceBlockDrops(Block p_383229_) {
+        return super.createMultifaceBlockDrops(p_383229_);
+    }
+
+    @Override
+    public LootTable.Builder createMossyCarpetBlockDrops(Block p_380250_) {
+        return super.createMossyCarpetBlockDrops(p_380250_);
     }
 
     @Override
@@ -218,14 +237,9 @@ public class RegistrumBlockLootTables extends VanillaBlockLoot implements Regist
         return super.createCandleDrops(p_250896_);
     }
 
-    @Override
-    public LootTable.Builder createPetalsDrops(Block p_273240_) {
-        return super.createPetalsDrops(p_273240_);
-    }
 
-    @Override
-    protected Iterable<Block> getKnownBlocks() {
-        return parent.getAll(Registries.BLOCK).stream().map(Supplier::get).collect(Collectors.toList());
+    public static LootTable.Builder createCandleCakeDrops(Block p_250280_) {
+        return BlockLootSubProvider.createCandleCakeDrops(p_250280_);
     }
 
     @Override
@@ -267,4 +281,5 @@ public class RegistrumBlockLootTables extends VanillaBlockLoot implements Regist
     public void add(Block p_250610_, LootTable.Builder p_249817_) {
         super.add(p_250610_, p_249817_);
     }
+
 }

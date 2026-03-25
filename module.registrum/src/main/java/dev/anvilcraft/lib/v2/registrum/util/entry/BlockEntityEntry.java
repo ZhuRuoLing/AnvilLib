@@ -1,23 +1,19 @@
 /*
- * Original work copyright (c) 2019 tterrag1098 (Registrate)
- * Modified work copyright (c) 2025 IThundxr (Registrate fork)
- * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  * Original work copyright (c) 2019 tterrag1098 (Registrate)
+ *  * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
+ *  *
+ *  * This Source Code Form is subject to the terms of the Mozilla Public
+ *  * License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  *
+ *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/util/entry/BlockEntityEntry.java
  *
- * Original File: https://github.com/IThundxr/Registrate/blob/1.21/dev/src/main/java/com/tterrag/registrate/util/entry/BlockEntityEntry.java
  */
 
 package dev.anvilcraft.lib.v2.registrum.util.entry;
 
-import java.util.Optional;
-
-import javax.annotation.Nullable;
-
 import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -25,14 +21,13 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
+import java.util.Optional;
+import javax.annotation.Nullable;
+
 public class BlockEntityEntry<T extends BlockEntity> extends RegistryEntry<BlockEntityType<?>, BlockEntityType<T>> {
 
     public BlockEntityEntry(AbstractRegistrum<?> owner, DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> delegate) {
         super(owner, delegate);
-    }
-
-    public static <T extends BlockEntity> BlockEntityEntry<T> cast(RegistryEntry<BlockEntityType<?>, BlockEntityType<T>> entry) {
-        return RegistryEntry.cast(BlockEntityEntry.class, entry);
     }
 
     /**
@@ -76,5 +71,9 @@ public class BlockEntityEntry<T extends BlockEntity> extends RegistryEntry<Block
     public @Nullable T getNullable(BlockGetter world, BlockPos pos) {
         BlockEntity be = world.getBlockEntity(pos);
         return is(be) ? (T) be : null;
+    }
+
+    public static <T extends BlockEntity> BlockEntityEntry<T> cast(RegistryEntry<BlockEntityType<?>, BlockEntityType<T>> entry) {
+        return RegistryEntry.cast(BlockEntityEntry.class, entry);
     }
 }

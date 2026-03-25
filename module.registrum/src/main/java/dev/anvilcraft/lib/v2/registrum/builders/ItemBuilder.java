@@ -1,32 +1,26 @@
 /*
- * Original work copyright (c) 2019 tterrag1098 (Registrate)
- * Modified work copyright (c) 2025 IThundxr (Registrate fork)
- * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  * Original work copyright (c) 2019 tterrag1098 (Registrate)
+ *  * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
+ *  *
+ *  * This Source Code Form is subject to the terms of the Mozilla Public
+ *  * License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  *
+ *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/builders/ItemBuilder.java
  *
- * Original File: https://github.com/IThundxr/Registrate/blob/1.21/dev/src/main/java/com/tterrag/registrate/builders/ItemBuilder.java
  */
 
 package dev.anvilcraft.lib.v2.registrum.builders;
-
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-import javax.annotation.Nullable;
 
 import com.google.common.collect.Maps;
 import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
 import dev.anvilcraft.lib.v2.registrum.providers.DataGenContext;
 import dev.anvilcraft.lib.v2.registrum.providers.GeneratorType;
 import dev.anvilcraft.lib.v2.registrum.providers.ProviderType;
-import dev.anvilcraft.lib.v2.registrum.providers.RegistrumItemModelProvider;
 import dev.anvilcraft.lib.v2.registrum.providers.RegistrumLangProvider;
-import dev.anvilcraft.lib.v2.registrum.providers.RegistrumRecipeProvider;
+import dev.anvilcraft.lib.v2.registrum.providers.generators.RegistrumItemModelGenerator;
+import dev.anvilcraft.lib.v2.registrum.providers.generators.RegistrumRecipeProvider;
 import dev.anvilcraft.lib.v2.registrum.util.CreativeModeTabModifier;
 import dev.anvilcraft.lib.v2.registrum.util.OneTimeEventReceiver;
 import dev.anvilcraft.lib.v2.registrum.util.RegistrumDistExecutor;
@@ -36,21 +30,25 @@ import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullBiConsumer;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullFunction;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullUnaryOperator;
-
-import net.minecraft.client.color.item.ItemColor;
+import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.datamaps.builtin.Compostable;
 import net.neoforged.neoforge.registries.datamaps.builtin.FurnaceFuel;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
+
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
 /**
  * A builder for items, allows for customization of the {@link Item.Properties} and configuration of data associated with items (models, recipes, etc.).
@@ -59,34 +57,6 @@ import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
  * @param <P> Parent object type
  */
 public class ItemBuilder<T extends Item, P> extends AbstractBuilder<Item, T, P, ItemBuilder<T, P>> {
-
-    private final NonNullFunction<Item.Properties, T> factory;
-    private NonNullSupplier<Item.Properties> initialProperties = Item.Properties::new;
-    private NonNullFunction<Item.Properties, Item.Properties> propertiesCallback = NonNullUnaryOperator.identity();
-    @Nullable
-    private NonNullSupplier<Supplier<ItemColor>> colorHandler;
-    private Map<ResourceKey<CreativeModeTab>, NonNullBiConsumer<DataGenContext<Item, T>, CreativeModeTabModifier>> creativeModeTabs = Maps.newLinkedHashMap();
-    @Nullable
-    private Function<T, NonNullSupplier<Supplier<IClientItemExtensions>>> clientExtensionFunc;
-
-    protected ItemBuilder(
-        AbstractRegistrum<?> owner,
-        P parent,
-        String name,
-        BuilderCallback callback,
-        NonNullFunction<Item.Properties, T> factory
-    ) {
-        super(owner, parent, name, callback, Registries.ITEM);
-        this.factory = factory;
-
-        onRegister(item -> {
-            creativeModeTabs.forEach((creativeModeTab, consumer) -> owner.modifyCreativeModeTab(
-                creativeModeTab,
-                modifier -> consumer.accept(DataGenContext.from(this), modifier)
-            ));
-            creativeModeTabs.clear(); // this registration should only fire once, to doubly ensure this, clear the map
-        });
-    }
 
     /**
      * Create a new {@link ItemBuilder} and configure data. Used in lieu of adding side-effects to constructor, so that alternate initialization strategies can be done in subclasses.
@@ -115,6 +85,32 @@ public class ItemBuilder<T extends Item, P> extends AbstractBuilder<Item, T, P, 
     ) {
         return new ItemBuilder<>(owner, parent, name, callback, factory)
             .defaultModel().defaultLang();
+    }
+
+    private final NonNullFunction<Item.Properties, T> factory;
+
+    private NonNullSupplier<Item.Properties> initialProperties = Item.Properties::new;
+    private NonNullFunction<Item.Properties, Item.Properties> propertiesCallback = NonNullUnaryOperator.identity();
+
+    private Map<ResourceKey<CreativeModeTab>, NonNullBiConsumer<DataGenContext<Item, T>, CreativeModeTabModifier>> creativeModeTabs = Maps.newLinkedHashMap();
+
+    protected ItemBuilder(
+        AbstractRegistrum<?> owner,
+        P parent,
+        String name,
+        BuilderCallback callback,
+        NonNullFunction<Item.Properties, T> factory
+    ) {
+        super(owner, parent, name, callback, Registries.ITEM);
+        this.factory = factory;
+
+        onRegister(item -> {
+            creativeModeTabs.forEach((creativeModeTab, consumer) -> owner.modifyCreativeModeTab(
+                creativeModeTab,
+                modifier -> consumer.accept(DataGenContext.from(this), modifier)
+            ));
+            creativeModeTabs.clear(); // this registration should only fire once, to doubly ensure this, clear the map
+        });
     }
 
     /**
@@ -218,30 +214,7 @@ public class ItemBuilder<T extends Item, P> extends AbstractBuilder<Item, T, P, 
         return this;
     }
 
-    /**
-     * Register a block color handler for this item. The {@link ItemColor} instance can be shared across many items.
-     *
-     * @param colorHandler The color handler to register for this item
-     * @return this {@link ItemBuilder}
-     */
-    public ItemBuilder<T, P> color(NonNullSupplier<Supplier<ItemColor>> colorHandler) {
-        if (this.colorHandler == null) {
-            RegistrumDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerItemColor);
-        }
-        this.colorHandler = colorHandler;
-        return this;
-    }
-
-    protected void registerItemColor() {
-        OneTimeEventReceiver.addModListener(
-            getOwner(), RegisterColorHandlersEvent.Item.class, e -> {
-                NonNullSupplier<Supplier<ItemColor>> colorHandler = this.colorHandler;
-                if (colorHandler != null) {
-                    e.register(colorHandler.get().get(), getEntry());
-                }
-            }
-        );
-    }
+    // TODO <1.21.4> alternate item coloring helper?
 
     /**
      * Assign the default model to this item, which is simply a generated model with a single texture of the same name.
@@ -249,7 +222,7 @@ public class ItemBuilder<T extends Item, P> extends AbstractBuilder<Item, T, P, 
      * @return this {@link ItemBuilder}
      */
     public ItemBuilder<T, P> defaultModel() {
-        return model((ctx, prov) -> prov.generated(ctx::getEntry));
+        return model(() -> (ctx, prov) -> prov.generateFlatItem(ctx.get(), ModelTemplates.FLAT_ITEM));
     }
 
     /**
@@ -259,12 +232,13 @@ public class ItemBuilder<T extends Item, P> extends AbstractBuilder<Item, T, P, 
      * @return this {@link ItemBuilder}
      * @see #setData(GeneratorType, NonNullBiConsumer)
      */
-    public ItemBuilder<T, P> model(NonNullBiConsumer<DataGenContext<Item, T>, RegistrumItemModelProvider> cons) {
-        return setData(ProviderType.ITEM_MODEL, cons);
+    public ItemBuilder<T, P> model(NonNullSupplier<NonNullBiConsumer<DataGenContext<Item, T>, RegistrumItemModelGenerator>> cons) {
+        if (!getOwner().doDatagen().get()) return this;
+        return setData(ProviderType.ITEM_MODEL, cons.get());
     }
 
     /**
-     * Assign the default translation, as specified by {@link RegistrumLangProvider#getAutomaticName(NonNullSupplier, ResourceKey)}. This is the default, so it is generally
+     * Assign the default translation, as specified by {@link RegistrumLangProvider#getAutomaticName(NonNullSupplier, net.minecraft.resources.ResourceKey)}. This is the default, so it is generally
      * not necessary to call, unless for undoing previous changes.
      *
      * @return this {@link ItemBuilder}
@@ -311,6 +285,9 @@ public class ItemBuilder<T extends Item, P> extends AbstractBuilder<Item, T, P, 
     public ItemBuilder<T, P> compostable(float chance) {
         return dataMap(NeoForgeDataMaps.COMPOSTABLES, new Compostable(chance));
     }
+
+    @Nullable
+    private Function<T, NonNullSupplier<Supplier<IClientItemExtensions>>> clientExtensionFunc;
 
     /**
      * Register a client extension for this item. The {@link IClientItemExtensions} instance can be shared across many items.
@@ -361,16 +338,16 @@ public class ItemBuilder<T extends Item, P> extends AbstractBuilder<Item, T, P, 
     protected T createEntry() {
         Item.Properties properties = this.initialProperties.get();
         properties = propertiesCallback.apply(properties);
-        return factory.apply(properties);
-    }
-
-    @Override
-    public ItemEntry<T> register() {
-        return (ItemEntry<T>) super.register();
+        return factory.apply(properties.setId(getResourceKey()));
     }
 
     @Override
     protected RegistryEntry<Item, T> createEntryWrapper(DeferredHolder<Item, T> delegate) {
         return new ItemEntry<>(getOwner(), delegate);
+    }
+
+    @Override
+    public ItemEntry<T> register() {
+        return (ItemEntry<T>) super.register();
     }
 }

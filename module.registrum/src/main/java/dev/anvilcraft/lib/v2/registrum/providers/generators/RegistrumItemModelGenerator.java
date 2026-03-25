@@ -1,0 +1,75 @@
+/*
+ *
+ *  * Original work copyright (c) 2019 tterrag1098 (Registrate)
+ *  * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
+ *  *
+ *  * This Source Code Form is subject to the terms of the Mozilla Public
+ *  * License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  *
+ *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/providers/generators/RegistrumItemModelGenerator.java
+ *
+ */
+
+package dev.anvilcraft.lib.v2.registrum.providers.generators;
+
+import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
+import dev.anvilcraft.lib.v2.registrum.providers.ProviderType;
+import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
+import dev.anvilcraft.lib.v2.registrum.util.nullness.NonnullType;
+import net.minecraft.client.color.item.ItemTintSource;
+import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.ItemModelOutput;
+import net.minecraft.client.data.models.model.ItemModelUtils;
+import net.minecraft.client.data.models.model.ModelInstance;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.ItemLike;
+
+import java.util.function.BiConsumer;
+
+public class RegistrumItemModelGenerator extends ItemModelGenerators {
+
+    private final AbstractRegistrum<?> parent;
+
+    public RegistrumItemModelGenerator(
+        AbstractRegistrum<?> parent,
+        ItemModelOutput output,
+        BiConsumer<ResourceLocation, ModelInstance> model
+    ) {
+        super(output, model);
+        this.parent = parent;
+    }
+
+    @Override
+    public void run() {
+        parent.genData(ProviderType.ITEM_MODEL, this);
+        //TODO check if an item actually has a valid model
+    }
+
+
+    public void createWithExistingModel(Item item, ResourceLocation id) {
+        itemModelOutput.accept(item, ItemModelUtils.plainModel(id));
+    }
+
+    public ResourceLocation mcLoc(String id) {
+        return ResourceLocation.withDefaultNamespace(id);
+    }
+
+    public ResourceLocation modLoc(String id) {
+        return ResourceLocation.fromNamespaceAndPath(parent.getModid(), id);
+    }
+
+    public String modid(NonNullSupplier<? extends ItemLike> item) {
+        return BuiltInRegistries.ITEM.getKey(item.get().asItem()).getNamespace();
+    }
+
+    public String name(NonNullSupplier<? extends ItemLike> item) {
+        return BuiltInRegistries.ITEM.getKey(item.get().asItem()).getPath();
+    }
+
+    public void generateTintedModel(@NonnullType Item entry, ResourceLocation model, ItemTintSource tint) {
+        this.itemModelOutput.accept(entry, ItemModelUtils.tintedModel(model, tint));
+    }
+}

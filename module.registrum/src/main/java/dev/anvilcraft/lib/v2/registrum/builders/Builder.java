@@ -1,13 +1,14 @@
 /*
- * Original work copyright (c) 2019 tterrag1098 (Registrate)
- * Modified work copyright (c) 2025 IThundxr (Registrate fork)
- * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  * Original work copyright (c) 2019 tterrag1098 (Registrate)
+ *  * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
+ *  *
+ *  * This Source Code Form is subject to the terms of the Mozilla Public
+ *  * License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  *
+ *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/builders/Builder.java
  *
- * Original File: https://github.com/IThundxr/Registrate/blob/1.21/dev/src/main/java/com/tterrag/registrate/builders/Builder.java
  */
 
 package dev.anvilcraft.lib.v2.registrum.builders;
@@ -16,12 +17,13 @@ import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
 import dev.anvilcraft.lib.v2.registrum.providers.DataGenContext;
 import dev.anvilcraft.lib.v2.registrum.providers.GeneratorType;
 import dev.anvilcraft.lib.v2.registrum.providers.ProviderType;
-import dev.anvilcraft.lib.v2.registrum.providers.RegistrumProvider;
 import dev.anvilcraft.lib.v2.registrum.util.entry.RegistryEntry;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullBiConsumer;
+import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullBiFunction;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullConsumer;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullFunction;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.neoforged.neoforge.registries.datamaps.DataMapType;
@@ -125,12 +127,12 @@ public interface Builder<R, T extends R, P, S extends Builder<R, T, P, S>> exten
      * Calling this multiple times for the same type will <em>not</em> overwrite an existing callback.
      *
      * @param <D>  The type of provider
-     * @param type The {@link ProviderType} for the desired provider
+     * @param type The {@link GeneratorType} for the desired provider
      * @param cons The callback to execute when the provider is run
      * @return this builder
      */
     @SuppressWarnings("unchecked")
-    default <D extends RegistrumProvider> S addMiscData(ProviderType<? extends D> type, NonNullConsumer<? extends D> cons) {
+    default <D> S addMiscData(GeneratorType<? extends D> type, NonNullConsumer<? extends D> cons) {
         getOwner().addDataGenerator(type, cons);
         return (S) this;
     }
@@ -156,6 +158,20 @@ public interface Builder<R, T extends R, P, S extends Builder<R, T, P, S>> exten
             ProviderType.DATA_MAP, e -> {
                 var ctx = DataGenContext.from(this);
                 e.builder(type).add(ctx.getId(), factory.apply(ctx), false);
+            }
+        );
+        return (S) this;
+    }
+
+    /**
+     * Add data map associated with this builder, with context
+     */
+    @SuppressWarnings("unchecked")
+    default <D> S dataMap(DataMapType<R, D> type, NonNullBiFunction<DataGenContext<R, T>, HolderLookup.Provider, D> factory) {
+        getOwner().addDataGenerator(
+            ProviderType.DATA_MAP, e -> {
+                var ctx = DataGenContext.from(this);
+                e.builder(type).add(ctx.getId(), factory.apply(ctx, e.getProvider()), false);
             }
         );
         return (S) this;

@@ -1,13 +1,14 @@
 /*
- * Original work copyright (c) 2019 tterrag1098 (Registrate)
- * Modified work copyright (c) 2025 IThundxr (Registrate fork)
- * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  * Original work copyright (c) 2019 tterrag1098 (Registrate)
+ *  * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
+ *  *
+ *  * This Source Code Form is subject to the terms of the Mozilla Public
+ *  * License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  *
+ *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/util/OneTimeEventReceiver.java
  *
- * Original File: https://github.com/IThundxr/Registrate/blob/1.21/dev/src/main/java/com/tterrag/registrate/util/OneTimeEventReceiver.java
  */
 
 package dev.anvilcraft.lib.v2.registrum.util;
@@ -36,13 +37,6 @@ import java.util.function.Consumer;
 @Log4j2
 public class OneTimeEventReceiver<T extends Event> implements Consumer<@NonnullType T> {
 
-
-    private static final Table<AbstractRegistrum<?>, Class<?>, List<Pair<EventPriority, Consumer<?>>>> waitingModListeners = HashBasedTable.create();
-    private static final List<Triple<IEventBus, Object, Class<? extends Event>>> toUnregister = new ArrayList<>();
-    private static boolean seenModBus = false;
-    private final IEventBus bus;
-    private final Consumer<? super T> listener;
-    private final AtomicBoolean consumed = new AtomicBoolean();
 
     public static <T extends Event & IModBusEvent> void addModListener(
         AbstractRegistrum<?> owner,
@@ -107,6 +101,23 @@ public class OneTimeEventReceiver<T extends Event> implements Consumer<@NonnullT
         bus.addListener(priority, false, (Class<T>) evtClass, new OneTimeEventReceiver<>(bus, listener));
     }
 
+    private static boolean seenModBus = false;
+    private static final Table<AbstractRegistrum<?>, Class<?>, List<Pair<EventPriority, Consumer<?>>>> waitingModListeners = HashBasedTable.create();
+
+    private final IEventBus bus;
+    private final Consumer<? super T> listener;
+    private final AtomicBoolean consumed = new AtomicBoolean();
+
+    @Override
+    public void accept(T event) {
+        if (consumed.compareAndSet(false, true)) {
+            listener.accept(event);
+            unregister(bus, this, event);
+        }
+    }
+
+    private static final List<Triple<IEventBus, Object, Class<? extends Event>>> toUnregister = new ArrayList<>();
+
     private static synchronized void unregister(IEventBus bus, Object listener, Event event) {
         unregister(bus, listener, event.getClass());
     }
@@ -124,13 +135,5 @@ public class OneTimeEventReceiver<T extends Event> implements Consumer<@NonnullT
             toUnregister.forEach(t -> t.getLeft().unregister(t.getMiddle()));
             toUnregister.clear();
         });
-    }
-
-    @Override
-    public void accept(T event) {
-        if (consumed.compareAndSet(false, true)) {
-            listener.accept(event);
-            unregister(bus, this, event);
-        }
     }
 }

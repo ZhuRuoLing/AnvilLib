@@ -1,43 +1,44 @@
 /*
- * Original work copyright (c) 2019 tterrag1098 (Registrate)
- * Modified work copyright (c) 2025 IThundxr (Registrate fork)
- * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  * Original work copyright (c) 2019 tterrag1098 (Registrate)
+ *  * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
+ *  *
+ *  * This Source Code Form is subject to the terms of the Mozilla Public
+ *  * License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  *
+ *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/providers/loot/RegistrumEntityLootTables.java
  *
- * Original File: https://github.com/IThundxr/Registrate/blob/1.21/dev/src/main/java/com/tterrag/registrate/providers/loot/RegistrateEntityLootTables.java
  */
 
 package dev.anvilcraft.lib.v2.registrum.providers.loot;
+
+import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.loot.EntityLootSubProvider;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
-
-import net.minecraft.core.HolderGetter;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.data.loot.packs.VanillaEntityLoot;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.level.storage.loot.LootTable;
-import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-
-public class RegistrumEntityLootTables extends VanillaEntityLoot implements RegistrumLootTables {
+public class RegistrumEntityLootTables extends EntityLootSubProvider implements RegistrumLootTables {
 
     private final AbstractRegistrum<?> parent;
     private final Consumer<RegistrumEntityLootTables> callback;
 
     public RegistrumEntityLootTables(
-        HolderLookup.Provider provider,
+        HolderLookup.Provider p_346214_,
         AbstractRegistrum<?> parent,
         Consumer<RegistrumEntityLootTables> callback
     ) {
-        super(provider);
+        super(FeatureFlags.REGISTRY.allFlags(), p_346214_);
         this.parent = parent;
         this.callback = callback;
     }
@@ -52,22 +53,23 @@ public class RegistrumEntityLootTables extends VanillaEntityLoot implements Regi
         return parent.getAll(Registries.ENTITY_TYPE).stream().map(Supplier::get);
     }
 
-    @Override
-    public void add(EntityType<?> entityType, LootTable.Builder builder) {
-        super.add(entityType, builder);
-    }
-
-    @Override
-    public void add(EntityType<?> entityType, ResourceKey<LootTable> lootTableResourceKey, LootTable.Builder builder) {
-        super.add(entityType, lootTableResourceKey, builder);
-    }
-
     public HolderLookup.Provider getRegistries() {
         return this.registries;
     }
 
+
     @Override
-    public  LootItemCondition.Builder killedByFrog(HolderGetter<EntityType<?>> entityTypeRegistry) {
-        return super.killedByFrog(entityTypeRegistry);
+    public LootItemCondition.Builder killedByFrog(HolderGetter<EntityType<?>> p_361765_) {
+        return super.killedByFrog(p_361765_);
+    }
+
+    @Override
+    public void add(EntityType<?> p_248740_, LootTable.Builder p_249440_) {
+        super.add(p_248740_, p_249440_);
+    }
+
+    @Override
+    public void add(EntityType<?> p_252130_, ResourceKey<LootTable> p_335943_, LootTable.Builder p_249357_) {
+        super.add(p_252130_, p_335943_, p_249357_);
     }
 }

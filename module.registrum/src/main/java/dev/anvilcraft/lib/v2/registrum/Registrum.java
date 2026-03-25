@@ -1,13 +1,14 @@
 /*
- * Original work copyright (c) 2019 tterrag1098 (Registrate)
- * Modified work copyright (c) 2025 IThundxr (Registrate fork)
- * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  * Original work copyright (c) 2019 tterrag1098 (Registrate)
+ *  * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
+ *  *
+ *  * This Source Code Form is subject to the terms of the Mozilla Public
+ *  * License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  *
+ *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/Registrum.java
  *
- * Original File: https://github.com/IThundxr/Registrate/blob/1.21/dev/src/main/java/com/tterrag/registrate/Registrate.java
  */
 
 package dev.anvilcraft.lib.v2.registrum;
@@ -21,10 +22,6 @@ import java.util.Optional;
 
 @Log4j2
 public class Registrum extends AbstractRegistrum<Registrum> {
-    protected Registrum(String modid) {
-        super(modid);
-    }
-
     /**
      * Create a new {@link Registrum} and register event listeners for registration and data generation. Used in lieu of adding side-effects to constructor, so that alternate initialization
      * strategies can be done in subclasses.
@@ -52,5 +49,9 @@ public class Registrum extends AbstractRegistrum<Registrum> {
         );
 
         return ret;
+    }
+
+    protected Registrum(String modid) {
+        super(modid);
     }
 }

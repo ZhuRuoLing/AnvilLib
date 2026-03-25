@@ -1,4 +1,4 @@
-package dev.anvilcraft.lib.v2.registrum.builders;//package dev.anvilcraft.lib.v2.registrum.builders;
+//package dev.anvilcraft.lib.v2.registrum.builders;
 //
 //import java.util.Arrays;
 //import java.util.EnumSet;
@@ -7,8 +7,8 @@ package dev.anvilcraft.lib.v2.registrum.builders;//package dev.anvilcraft.lib.v2
 //
 //import com.google.common.collect.HashMultimap;
 //import com.google.common.collect.Multimap;
-//import dev.anvilcraft.lib.v2.registrum.AbstractRegistrate;
-//import dev.anvilcraft.lib.v2.registrum.providers.RegistrateLangProvider;
+//import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
+//import dev.anvilcraft.lib.v2.registrum.providers.RegistrumLangProvider;
 //import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullConsumer;
 //import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullFunction;
 //import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
@@ -58,7 +58,7 @@ package dev.anvilcraft.lib.v2.registrum.builders;//package dev.anvilcraft.lib.v2
 //     * @param <P>
 //     *            Parent object type
 //     * @param owner
-//     *            The owning {@link AbstractRegistrate} object
+//     *            The owning {@link AbstractRegistrum} object
 //     * @param parent
 //     *            The parent object
 //     * @param name
@@ -69,7 +69,7 @@ package dev.anvilcraft.lib.v2.registrum.builders;//package dev.anvilcraft.lib.v2
 //     *            Factory to create the biome
 //     * @return A new {@link BiomeBuilder} with reasonable default data generators.
 //     */
-//    public static <T extends Biome, P> BiomeBuilder<T, P> create(AbstractRegistrate<?> owner, P parent, String name, BuilderCallback callback, NonNullFunction<Biome.Builder, T> factory) {
+//    public static <T extends Biome, P> BiomeBuilder<T, P> create(AbstractRegistrum<?> owner, P parent, String name, BuilderCallback callback, NonNullFunction<Biome.Builder, T> factory) {
 //        return new BiomeBuilder<>(owner, parent, name, callback, factory)
 //                .defaultLang();
 //    }
@@ -86,7 +86,7 @@ package dev.anvilcraft.lib.v2.registrum.builders;//package dev.anvilcraft.lib.v2
 //    @SuppressWarnings("null")
 //    private final EnumSet<BiomeManager.BiomeType> configuredTypes = EnumSet.noneOf(BiomeManager.BiomeType.class);
 //
-//    protected BiomeBuilder(AbstractRegistrate<?> owner, P parent, String name, BuilderCallback callback, NonNullFunction<Biome.Builder, T> factory) {
+//    protected BiomeBuilder(AbstractRegistrum<?> owner, P parent, String name, BuilderCallback callback, NonNullFunction<Biome.Builder, T> factory) {
 //        super(owner, parent, name, callback, Biome.class);
 //        this.factory = factory;
 //    }
@@ -421,7 +421,7 @@ package dev.anvilcraft.lib.v2.registrum.builders;//package dev.anvilcraft.lib.v2
 //    }
 //
 //    /**
-//     * Assign the default translation, as specified by {@link RegistrateLangProvider#getAutomaticName(NonNullSupplier)}. This is the default, so it is generally not necessary to call, unless for
+//     * Assign the default translation, as specified by {@link RegistrumLangProvider#getAutomaticName(NonNullSupplier)}. This is the default, so it is generally not necessary to call, unless for
 //     * undoing previous changes.
 //     * 
 //     * @return this {@link BiomeBuilder}
@@ -441,8 +441,7 @@ package dev.anvilcraft.lib.v2.registrum.builders;//package dev.anvilcraft.lib.v2
 //        return lang(Biome::getTranslationKey, name);
 //    }
 //
-//    @Override
-//    protected @NonnullType T createEntry() {
+//    @Override//    protected @NonnullType T createEntry() {
 //        @Nonnull Biome.Builder properties = this.initialProperties.get();
 //        properties = propertiesCallback.apply(properties);
 //        return factory.apply(properties);

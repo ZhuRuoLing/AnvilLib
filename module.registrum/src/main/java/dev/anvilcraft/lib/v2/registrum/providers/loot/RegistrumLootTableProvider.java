@@ -1,13 +1,14 @@
 /*
- * Original work copyright (c) 2019 tterrag1098 (Registrate)
- * Modified work copyright (c) 2025 IThundxr (Registrate fork)
- * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  * Original work copyright (c) 2019 tterrag1098 (Registrate)
+ *  * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
+ *  *
+ *  * This Source Code Form is subject to the terms of the Mozilla Public
+ *  * License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  *
+ *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/providers/loot/RegistrumLootTableProvider.java
  *
- * Original File: https://github.com/IThundxr/Registrate/blob/1.21/dev/src/main/java/com/tterrag/registrate/providers/loot/RegistrateLootTableProvider.java
  */
 
 package dev.anvilcraft.lib.v2.registrum.providers.loot;
@@ -20,7 +21,6 @@ import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
 import dev.anvilcraft.lib.v2.registrum.providers.ProviderType;
 import dev.anvilcraft.lib.v2.registrum.providers.RegistrumProvider;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullConsumer;
-
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.WritableRegistry;
@@ -31,27 +31,57 @@ import net.minecraft.data.loot.packs.VanillaLootTableProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ProblemReporter;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.ValidationContext;
-import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.fml.LogicalSide;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
 import org.apache.commons.lang3.function.TriFunction;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class RegistrumLootTableProvider extends LootTableProvider implements RegistrumProvider {
 
+    public interface LootType<T extends RegistrumLootTables> {
+
+        static LootType<RegistrumBlockLootTables> BLOCK = register("block", LootContextParamSets.BLOCK, RegistrumBlockLootTables::new);
+        static LootType<RegistrumEntityLootTables> ENTITY = register("entity", LootContextParamSets.ENTITY, RegistrumEntityLootTables::new);
+
+        T getLootCreator(HolderLookup.Provider provider, AbstractRegistrum<?> parent, Consumer<T> callback);
+
+        ContextKeySet getLootSet();
+
+        static <T extends RegistrumLootTables> LootType<T> register(
+            String name,
+            ContextKeySet set,
+            TriFunction<HolderLookup.Provider, AbstractRegistrum<?>, Consumer<T>, T> factory
+        ) {
+            LootType<T> type = new LootType<T>() {
+                @Override
+                public T getLootCreator(HolderLookup.Provider provider, AbstractRegistrum<?> parent, Consumer<T> callback) {
+                    return factory.apply(provider, parent, callback);
+                }
+
+                @Override
+                public ContextKeySet getLootSet() {
+                    return set;
+                }
+            };
+            LOOT_TYPES.put(name, type);
+            return type;
+        }
+    }
+
     private static final Map<String, LootType<?>> LOOT_TYPES = new HashMap<>();
-    private static final BiMap<ResourceLocation, ContextKeySet> SET_REGISTRY = ObfuscationReflectionHelper.getPrivateValue(
-        LootContextParamSets.class,
-        null,
-        "REGISTRY"
-    );
+
     private final AbstractRegistrum<?> parent;
 
     private final Multimap<LootType<?>, Consumer<? super RegistrumLootTables>> specialLootActions = HashMultimap.create();
@@ -83,6 +113,15 @@ public class RegistrumLootTableProvider extends LootTableProvider implements Reg
         return LogicalSide.SERVER;
     }
 
+    @Override
+    protected void validate(
+        WritableRegistry<LootTable> writableregistry,
+        ValidationContext validationcontext,
+        ProblemReporter.Collector problemreporter$collector
+    ) {
+        currentLootCreators.forEach(c -> c.validate(writableregistry, validationcontext));
+    }
+
     @SuppressWarnings("unchecked")
     public <T extends RegistrumLootTables> void addLootAction(LootType<T> type, NonNullConsumer<T> action) {
         this.specialLootActions.put(type, (Consumer<RegistrumLootTables>) action);
@@ -102,11 +141,17 @@ public class RegistrumLootTableProvider extends LootTableProvider implements Reg
         return creator;
     }
 
+    private static final BiMap<ResourceLocation, ContextKeySet> SET_REGISTRY = ObfuscationReflectionHelper.getPrivateValue(
+        LootContextParamSets.class,
+        null,
+        "REGISTRY"
+    );
+
     @Override
-    public List<SubProviderEntry> getTables() {
+    public List<LootTableProvider.SubProviderEntry> getTables() {
         parent.genData(ProviderType.LOOT, this);
         currentLootCreators.clear();
-        ImmutableList.Builder<SubProviderEntry> builder = ImmutableList.builder();
+        ImmutableList.Builder<LootTableProvider.SubProviderEntry> builder = ImmutableList.builder();
         for (LootType<?> type : LOOT_TYPES.values()) {
             builder.add(new SubProviderEntry(provider -> getLootCreator(provider, parent, type), type.getLootSet()));
         }
@@ -114,43 +159,5 @@ public class RegistrumLootTableProvider extends LootTableProvider implements Reg
             builder.add(new SubProviderEntry((provider) -> callback -> lootActions.get(set).forEach(a -> a.accept(callback)), set));
         }
         return builder.build();
-    }
-
-    @Override
-    protected void validate(
-        WritableRegistry<LootTable> writableregistry,
-        ValidationContext validationcontext,
-        ProblemReporter.Collector problemreporter$collector
-    ) {
-        currentLootCreators.forEach(c -> c.validate(writableregistry, validationcontext));
-    }
-
-    public interface LootType<T extends RegistrumLootTables> {
-        LootType<RegistrumBlockLootTables> BLOCK = register("block", LootContextParamSets.BLOCK, RegistrumBlockLootTables::new);
-        LootType<RegistrumEntityLootTables> ENTITY = register("entity", LootContextParamSets.ENTITY, RegistrumEntityLootTables::new);
-
-        static <T extends RegistrumLootTables> LootType<T> register(
-            String name,
-            ContextKeySet set,
-            TriFunction<HolderLookup.Provider, AbstractRegistrum<?>, Consumer<T>, T> factory
-        ) {
-            LootType<T> type = new LootType<T>() {
-                @Override
-                public T getLootCreator(HolderLookup.Provider provider, AbstractRegistrum<?> parent, Consumer<T> callback) {
-                    return factory.apply(provider, parent, callback);
-                }
-
-                @Override
-                public ContextKeySet getLootSet() {
-                    return set;
-                }
-            };
-            LOOT_TYPES.put(name, type);
-            return type;
-        }
-
-        T getLootCreator(HolderLookup.Provider provider, AbstractRegistrum<?> parent, Consumer<T> callback);
-
-        ContextKeySet getLootSet();
     }
 }

@@ -1,13 +1,14 @@
 /*
- * Original work copyright (c) 2019 tterrag1098 (Registrate)
- * Modified work copyright (c) 2025 IThundxr (Registrate fork)
- * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  * Original work copyright (c) 2019 tterrag1098 (Registrate)
+ *  * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
+ *  *
+ *  * This Source Code Form is subject to the terms of the Mozilla Public
+ *  * License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  *
+ *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/builders/BlockEntityBuilder.java
  *
- * Original File: https://github.com/IThundxr/Registrate/blob/1.21/dev/src/main/java/com/tterrag/registrate/builders/BlockEntityBuilder.java
  */
 
 package dev.anvilcraft.lib.v2.registrum.builders;
@@ -30,13 +31,11 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
@@ -49,20 +48,10 @@ import javax.annotation.Nullable;
 public class BlockEntityBuilder<T extends BlockEntity, P>
     extends AbstractBuilder<BlockEntityType<?>, BlockEntityType<T>, P, BlockEntityBuilder<T, P>> {
 
-    private final BlockEntityFactory<T> factory;
-    private final Set<NonNullSupplier<? extends Block>> validBlocks = new HashSet<>();
-    @Nullable
-    private NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T>>> renderer;
+    public interface BlockEntityFactory<T extends BlockEntity> {
 
-    protected BlockEntityBuilder(
-        AbstractRegistrum<?> owner,
-        P parent,
-        String name,
-        BuilderCallback callback,
-        BlockEntityFactory<T> factory
-    ) {
-        super(owner, parent, name, callback, Registries.BLOCK_ENTITY_TYPE);
-        this.factory = factory;
+        public T create(BlockEntityType<T> type, BlockPos pos, BlockState state);
+
     }
 
     /**
@@ -87,6 +76,22 @@ public class BlockEntityBuilder<T extends BlockEntity, P>
         BlockEntityFactory<T> factory
     ) {
         return new BlockEntityBuilder<>(owner, parent, name, callback, factory);
+    }
+
+    private final BlockEntityFactory<T> factory;
+    private final Set<NonNullSupplier<? extends Block>> validBlocks = new HashSet<>();
+    @Nullable
+    private NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T>>> renderer;
+
+    protected BlockEntityBuilder(
+        AbstractRegistrum<?> owner,
+        P parent,
+        String name,
+        BuilderCallback callback,
+        BlockEntityFactory<T> factory
+    ) {
+        super(owner, parent, name, callback, Registries.BLOCK_ENTITY_TYPE);
+        this.factory = factory;
     }
 
     /**
@@ -139,17 +144,6 @@ public class BlockEntityBuilder<T extends BlockEntity, P>
         );
     }
 
-    /**
-     * Register {@link net.neoforged.neoforge.capabilities.Capabilities} for this block entity.
-     *
-     * @param registerCapabilitiesEvent A consumer for the register capabilities event
-     * @return this {@link BlockEntityBuilder}
-     */
-    public BlockEntityBuilder<T, P> registerCapability(Consumer<RegisterCapabilitiesEvent> registerCapabilitiesEvent) {
-        OneTimeEventReceiver.addModListener(getOwner(), RegisterCapabilitiesEvent.class, registerCapabilitiesEvent);
-        return this;
-    }
-
     @Override
     protected BlockEntityType<T> createEntry() {
         BlockEntityFactory<T> factory = this.factory;
@@ -161,18 +155,12 @@ public class BlockEntityBuilder<T extends BlockEntity, P>
     }
 
     @Override
-    public BlockEntityEntry<T> register() {
-        return (BlockEntityEntry<T>) super.register();
-    }
-
-    @Override
     protected RegistryEntry<BlockEntityType<?>, BlockEntityType<T>> createEntryWrapper(DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> delegate) {
         return new BlockEntityEntry<>(getOwner(), delegate);
     }
 
-    public interface BlockEntityFactory<T extends BlockEntity> {
-
-        T create(BlockEntityType<T> type, BlockPos pos, BlockState state);
-
+    @Override
+    public BlockEntityEntry<T> register() {
+        return (BlockEntityEntry<T>) super.register();
     }
 }

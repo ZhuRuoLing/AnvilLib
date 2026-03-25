@@ -1,13 +1,14 @@
 /*
- * Original work copyright (c) 2019 tterrag1098 (Registrate)
- * Modified work copyright (c) 2025 IThundxr (Registrate fork)
- * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  * Original work copyright (c) 2019 tterrag1098 (Registrate)
+ *  * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
+ *  *
+ *  * This Source Code Form is subject to the terms of the Mozilla Public
+ *  * License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  *
+ *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/builders/AbstractBuilder.java
  *
- * Original File: https://github.com/IThundxr/Registrate/blob/1.21/dev/src/main/java/com/tterrag/registrate/builders/AbstractBuilder.java
  */
 
 package dev.anvilcraft.lib.v2.registrum.builders;
@@ -27,9 +28,7 @@ import dev.anvilcraft.lib.v2.registrum.util.nullness.NonnullType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -84,25 +83,18 @@ public abstract class AbstractBuilder<R, T extends R, P, S extends AbstractBuild
     @SuppressWarnings("null")
     protected abstract @NonnullType T createEntry();
 
-    public ResourceKey<R> getKey() {
-        return ResourceKey.create(
-            this.registryKey,
-            ResourceLocation.fromNamespaceAndPath(getOwner().getModid(), getName())
-        );
-    }
-
     @Override
     public RegistryEntry<R, T> register() {
         return callback.accept(name, registryKey, this, this::createEntry, this::createEntryWrapper);
     }
 
+    protected RegistryEntry<R, T> createEntryWrapper(DeferredHolder<R, T> delegate) {
+        return new RegistryEntry<>(getOwner(), delegate);
+    }
+
     @Override
     public NonNullSupplier<T> asSupplier() {
         return safeSupplier;
-    }
-
-    protected RegistryEntry<R, T> createEntryWrapper(DeferredHolder<R, T> delegate) {
-        return new RegistryEntry<>(getOwner(), delegate);
     }
 
     /**
@@ -192,4 +184,9 @@ public abstract class AbstractBuilder<R, T extends R, P, S extends AbstractBuild
             (ctx, prov) -> prov.add(langKeyProvider.apply(ctx.getEntry()), localizedNameProvider.apply(prov, ctx::getEntry))
         );
     }
+
+    public ResourceKey<R> getResourceKey() {
+        return ResourceKey.create(getRegistryKey(), ResourceLocation.fromNamespaceAndPath(getOwner().getModid(), getName()));
+    }
+
 }

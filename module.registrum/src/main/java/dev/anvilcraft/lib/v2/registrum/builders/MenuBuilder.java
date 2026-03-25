@@ -1,18 +1,17 @@
 /*
- * Original work copyright (c) 2019 tterrag1098 (Registrate)
- * Modified work copyright (c) 2025 IThundxr (Registrate fork)
- * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  * Original work copyright (c) 2019 tterrag1098 (Registrate)
+ *  * Additional modifications copyright (c) 2026 Anvil-Dev (AnvilLib-Registrum)
+ *  *
+ *  * This Source Code Form is subject to the terms of the Mozilla Public
+ *  * License, v. 2.0. If a copy of the MPL was not distributed with this
+ *  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *  *
+ *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/builders/MenuBuilder.java
  *
- * Original File: https://github.com/IThundxr/Registrate/blob/1.21/dev/src/main/java/com/tterrag/registrate/builders/MenuBuilder.java
  */
 
 package dev.anvilcraft.lib.v2.registrum.builders;
-
-import javax.annotation.Nullable;
 
 import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
 import dev.anvilcraft.lib.v2.registrum.util.OneTimeEventReceiver;
@@ -21,7 +20,6 @@ import dev.anvilcraft.lib.v2.registrum.util.entry.MenuEntry;
 import dev.anvilcraft.lib.v2.registrum.util.entry.RegistryEntry;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonnullType;
-
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.core.registries.Registries;
@@ -35,8 +33,25 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
+import javax.annotation.Nullable;
+
 public class MenuBuilder<T extends AbstractContainerMenu, S extends Screen & MenuAccess<T>, P>
     extends AbstractBuilder<MenuType<?>, MenuType<T>, P, MenuBuilder<T, S, P>> {
+
+    public interface MenuFactory<T extends AbstractContainerMenu> {
+
+        T create(MenuType<T> type, int windowId, Inventory inv);
+    }
+
+    public interface ForgeMenuFactory<T extends AbstractContainerMenu> {
+
+        T create(MenuType<T> type, int windowId, Inventory inv, @Nullable RegistryFriendlyByteBuf buffer);
+    }
+
+    public interface ScreenFactory<M extends AbstractContainerMenu, T extends Screen & MenuAccess<M>> {
+
+        T create(M menu, Inventory inv, Component displayName);
+    }
 
     private final ForgeMenuFactory<T> factory;
     private final NonNullSupplier<ScreenFactory<T, S>> screenFactory;
@@ -84,27 +99,12 @@ public class MenuBuilder<T extends AbstractContainerMenu, S extends Screen & Men
     }
 
     @Override
-    public MenuEntry<T> register() {
-        return (MenuEntry<T>) super.register();
-    }
-
-    @Override
     protected RegistryEntry<MenuType<?>, MenuType<T>> createEntryWrapper(DeferredHolder<MenuType<?>, MenuType<T>> delegate) {
         return new MenuEntry<>(getOwner(), delegate);
     }
 
-    public interface MenuFactory<T extends AbstractContainerMenu> {
-
-        T create(MenuType<T> type, int windowId, Inventory inv);
-    }
-
-    public interface ForgeMenuFactory<T extends AbstractContainerMenu> {
-
-        T create(MenuType<T> type, int windowId, Inventory inv, @Nullable RegistryFriendlyByteBuf buffer);
-    }
-
-    public interface ScreenFactory<M extends AbstractContainerMenu, T extends Screen & MenuAccess<M>> {
-
-        T create(M menu, Inventory inv, Component displayName);
+    @Override
+    public MenuEntry<T> register() {
+        return (MenuEntry<T>) super.register();
     }
 }
