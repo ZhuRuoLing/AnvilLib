@@ -2,6 +2,7 @@ package dev.anvilcraft.lib.v2.recipe.builder;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import dev.anvilcraft.lib.v2.recipe.AnvilLibRecipe;
 import dev.anvilcraft.lib.v2.recipe.InWorldRecipe;
 import dev.anvilcraft.lib.v2.recipe.outcome.ChooseOneOutcome;
 import dev.anvilcraft.lib.v2.recipe.outcome.IRecipeOutcome;
@@ -20,11 +21,12 @@ import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.criterion.RecipeUnlockedTrigger;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeOutput;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -948,6 +950,13 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
     }
 
     @Override
+    public ResourceKey<Recipe<?>> defaultId() {
+        return ResourceKey.create(
+            Registries.RECIPE,
+            AnvilLibRecipe.of(this.group + "/" + BuiltInRegistries.ITEM.getKey(this.getResult()).getPath())
+        );
+    }
+
     public Item getResult() {
         return this.icon.getFirst().getItem();
     }

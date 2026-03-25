@@ -120,7 +120,7 @@ public record SpawnItem(ItemStack item, Vec3 offset, NumberProvider count, List<
         private static final MapCodec<SpawnItem> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                 Item.CODEC
                     .fieldOf("item")
-                    .forGetter(spawnItem -> spawnItem.item().getItemHolder()),
+                    .forGetter(spawnItem -> spawnItem.item().typeHolder()),
                 DataComponentPatch.CODEC
                     .optionalFieldOf("components", DataComponentPatch.EMPTY)
                     .forGetter(spawnItem -> spawnItem.item().getComponentsPatch()),

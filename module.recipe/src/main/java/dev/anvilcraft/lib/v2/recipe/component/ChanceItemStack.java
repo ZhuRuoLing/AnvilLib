@@ -169,7 +169,7 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
      * @return 物品持有者
      */
     public Holder<Item> getItemHolder() {
-        return this.stack.getItemHolder();
+        return this.stack.typeHolder();
     }
 
     /**

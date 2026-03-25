@@ -20,7 +20,10 @@ public class LibRecipeTypes {
     public static final DeferredHolder<RecipeType<?>, RecipeType<InWorldRecipe>> IN_WORLD_RECIPE =
         registerType("in_world_recipe");
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<InWorldRecipe>> IN_WORLD_RECIPE_SERIALIZER =
-        RECIPE_SERIALIZERS.register("in_world_recipe", InWorldRecipe.Serializer::new);
+        RECIPE_SERIALIZERS.register(
+            "in_world_recipe",
+            () -> new RecipeSerializer<>(InWorldRecipe.Serializer.CODEC, InWorldRecipe.Serializer.STREAM_CODEC)
+        );
 
     private static <T extends Recipe<?>> DeferredHolder<RecipeType<?>, RecipeType<T>> registerType(String name) {
         return RECIPE_TYPES.register(

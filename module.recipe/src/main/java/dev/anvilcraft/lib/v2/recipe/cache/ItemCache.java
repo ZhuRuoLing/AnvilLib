@@ -230,7 +230,7 @@ public class ItemCache {
         Vec3 elementRange = new Vec3(minRange, minRange, minRange);
         if (entity instanceof ItemResourceHandlerCache cache) {
             ItemCache.toElement(itemCache, cache, input, output, elementPos, elementRange);
-        } else if (entity instanceof Container container && entity.getType().is(LibEntityTypeTags.ITEM_CACHE)) {
+        } else if (entity instanceof Container container && entity.is(LibEntityTypeTags.ITEM_CACHE)) {
             ItemCache.toElement(itemCache, VanillaContainerWrapper.of(container), input, output, elementPos, elementRange);
         }
         return Map.entry(input, output);
