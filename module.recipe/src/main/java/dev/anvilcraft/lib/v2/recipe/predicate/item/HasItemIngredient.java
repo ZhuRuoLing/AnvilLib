@@ -10,10 +10,10 @@ import dev.anvilcraft.lib.v2.recipe.predicate.function.IPredicateFunction;
 import dev.anvilcraft.lib.v2.recipe.predicate.function.SaveComponentToTag;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
 import lombok.Getter;
-import net.minecraft.advancements.critereon.DataComponentMatchers;
+import net.minecraft.advancements.criterion.DataComponentMatchers;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
@@ -264,7 +264,7 @@ public class HasItemIngredient extends HasItemBase<HasItemIngredient, ItemIngred
             return this;
         }
 
-        public Builder saveComponent(DataComponentType<?> component, ResourceLocation path) {
+        public Builder saveComponent(DataComponentType<?> component, Identifier path) {
             return this.function(new SaveComponentToTag<>(component, path));
         }
 

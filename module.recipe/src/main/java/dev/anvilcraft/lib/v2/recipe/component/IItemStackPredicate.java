@@ -1,6 +1,6 @@
 package dev.anvilcraft.lib.v2.recipe.component;
 
-import net.minecraft.advancements.critereon.DataComponentMatchers;
+import net.minecraft.advancements.criterion.DataComponentMatchers;
 import net.minecraft.core.HolderSet;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;

@@ -17,7 +17,7 @@ import net.minecraft.client.data.models.model.ModelInstance;
 import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.data.models.model.TextureSlot;
 import net.minecraft.client.resources.model.UnbakedModel;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.client.event.RegisterNamedRenderTypesEvent;
@@ -34,10 +34,10 @@ public class RegistrumLegacyBlockModelBuilder {
 
     private final ExtendedModelTemplateBuilder template;
     private final TextureMapping texture;
-    private final BiConsumer<ResourceLocation, ModelInstance> output;
+    private final BiConsumer<Identifier, ModelInstance> output;
 
     RegistrumLegacyBlockModelBuilder(
-        BiConsumer<ResourceLocation, ModelInstance> output,
+        BiConsumer<Identifier, ModelInstance> output,
         ExtendedModelTemplateBuilder template,
         TextureMapping texture
     ) {
@@ -46,7 +46,7 @@ public class RegistrumLegacyBlockModelBuilder {
         this.texture = texture.copy();
     }
 
-    public RegistrumLegacyBlockModelBuilder texture(TextureSlot slot, ResourceLocation texture) {
+    public RegistrumLegacyBlockModelBuilder texture(TextureSlot slot, Identifier texture) {
         this.template.requiredTextureSlot(slot);
         this.texture.put(slot, texture);
         return this;
@@ -62,11 +62,11 @@ public class RegistrumLegacyBlockModelBuilder {
         return this;
     }
 
-    public ResourceLocation build(Block block) {
+    public Identifier build(Block block) {
         return template.build().create(block, texture, output);
     }
 
-    public ResourceLocation build(ResourceLocation loc) {
+    public Identifier build(Identifier loc) {
         return template.build().create(loc, texture, output);
     }
 
@@ -75,7 +75,7 @@ public class RegistrumLegacyBlockModelBuilder {
     /**
      * Parent model which this template will inherit its properties from.
      */
-    public RegistrumLegacyBlockModelBuilder parent(ResourceLocation parent) {
+    public RegistrumLegacyBlockModelBuilder parent(Identifier parent) {
         template.parent(parent);
         return this;
     }
@@ -109,7 +109,7 @@ public class RegistrumLegacyBlockModelBuilder {
      * @return this builder
      * @throws NullPointerException if {@code renderType} is {@code null}
      */
-    public RegistrumLegacyBlockModelBuilder renderType(ResourceLocation renderType) {
+    public RegistrumLegacyBlockModelBuilder renderType(Identifier renderType) {
         template.renderType(renderType);
         return this;
     }

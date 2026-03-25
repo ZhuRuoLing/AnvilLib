@@ -1,6 +1,6 @@
 package dev.anvilcraft.lib.v2.recipe.util;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;
@@ -12,7 +12,7 @@ import java.util.function.BiFunction;
  * @param <T> 数据类型
  */
 public record InWorldRecipeData<T>(
-    ResourceLocation location, // 数据的ID
+    Identifier location, // 数据的ID
     BiFunction<InWorldRecipeContext, InWorldRecipeData<T>, T> supplier // 数据提供器函数，用于生成或获取数据
 ) {
     /**
@@ -23,7 +23,7 @@ public record InWorldRecipeData<T>(
      * @param <T>          数据类型
      * @return 世界内配方数据实例
      */
-    public static <T> @NotNull InWorldRecipeData<T> of(ResourceLocation location, T defaultValue) {
+    public static <T> @NotNull InWorldRecipeData<T> of(Identifier location, T defaultValue) {
         return new InWorldRecipeData<>(location, (ctx, self) -> defaultValue);
     }
 
@@ -36,7 +36,7 @@ public record InWorldRecipeData<T>(
      * @return 世界内配方数据实例
      */
     public static <T> @NotNull InWorldRecipeData<T> of(
-        ResourceLocation location,
+        Identifier location,
         BiFunction<InWorldRecipeContext, InWorldRecipeData<T>, T> supplier
     ) {
         return new InWorldRecipeData<>(location, supplier);
@@ -49,7 +49,7 @@ public record InWorldRecipeData<T>(
      * @param <T>      数据类型
      * @return 世界内配方数据实例
      */
-    public static <T> @NotNull InWorldRecipeData<T> of(ResourceLocation location) {
+    public static <T> @NotNull InWorldRecipeData<T> of(Identifier location) {
         return new InWorldRecipeData<>(location, null);
     }
 }

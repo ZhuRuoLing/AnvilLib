@@ -3,7 +3,7 @@ package dev.anvilcraft.lib.v2.recipe;
 import dev.anvilcraft.lib.v2.config.ConfigManager;
 import dev.anvilcraft.lib.v2.recipe.init.LibDataComponentPredicates;
 import dev.anvilcraft.lib.v2.recipe.init.reicpe.LibRecipeInits;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -19,7 +19,7 @@ public class AnvilLibRecipe {
         LibRecipeInits.init(modEventBus);
     }
 
-    public static ResourceLocation of(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MAIN_ID, path);
+    public static Identifier of(String path) {
+        return Identifier.fromNamespaceAndPath(MAIN_ID, path);
     }
 }

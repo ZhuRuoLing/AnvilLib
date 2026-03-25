@@ -14,13 +14,13 @@
 package dev.anvilcraft.lib.v2.registrum.providers;
 
 import net.minecraft.data.DataProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public interface RegistrumProviderDelegate<R, T extends R> extends DataProvider {
 
     String getName();
 
-    ResourceLocation getId();
+    Identifier getId();
 
     T getEntry();
 }

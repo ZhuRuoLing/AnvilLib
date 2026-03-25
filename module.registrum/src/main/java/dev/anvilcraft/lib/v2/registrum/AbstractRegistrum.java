@@ -56,7 +56,6 @@ import lombok.Setter;
 import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.extern.log4j.Log4j2;
-import net.minecraft.Util;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -66,7 +65,8 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Util;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType.EntityFactory;
 import net.minecraft.world.entity.MobCategory;
@@ -141,7 +141,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
 
     @Value
     private class Registration<R, T extends R> {
-        ResourceLocation name;
+        Identifier name;
         ResourceKey<? extends Registry<R>> type;
         NonNullSupplier<? extends T> creator;
         RegistryEntry<R, T> delegate;
@@ -150,7 +150,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         List<NonNullConsumer<? super T>> callbacks = new ArrayList<>();
 
         Registration(
-            ResourceLocation name,
+            Identifier name,
             ResourceKey<? extends Registry<R>> type,
             NonNullSupplier<? extends T> creator,
             NonNullFunction<DeferredHolder<R, T>, ? extends RegistryEntry<R, T>> entryFactory
@@ -283,7 +283,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     protected void onRegister(RegisterEvent event) {
         ResourceKey<? extends Registry<?>> type = event.getRegistryKey();
         if (type == null) {
-            log.debug(DebugMarkers.REGISTER, "Skipping invalid registry with no supertype: " + event.getRegistryKey().location());
+            log.debug(DebugMarkers.REGISTER, "Skipping invalid registry with no supertype: " + event.getRegistryKey().identifier());
             return;
         }
         if (!registerCallbacks.isEmpty()) {
@@ -292,7 +292,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
                     "Found {} unused register callback(s) for entry {} [{}]. Was the entry ever registered?",
                     v.size(),
                     k.getLeft(),
-                    k.getRight().location()
+                    k.getRight().identifier()
                 ));
             registerCallbacks.clear();
             if (isDevEnvironment()) {
@@ -300,13 +300,13 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
             }
         }
         Map<String, Registration<?, ?>> registrationsForType = registrations.row(type);
-        if (registrationsForType.size() > 0) {
+        if (!registrationsForType.isEmpty()) {
             log.trace(
                 DebugMarkers.REGISTER,
                 "({}) Registering {} known objects of type {}",
                 getModid(),
                 registrationsForType.size(),
-                type.location()
+                type.identifier()
             );
             for (Entry<String, Registration<?, ?>> e : registrationsForType.entrySet()) {
                 try {
@@ -315,11 +315,11 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
                         DebugMarkers.REGISTER,
                         "Registered {} to registry {}",
                         e.getValue().getName(),
-                        event.getRegistryKey().location()
+                        event.getRegistryKey().identifier()
                     );
                 } catch (Exception ex) {
                     String err = "Unexpected error while registering entry " + e.getValue()
-                        .getName() + " to registry " + event.getRegistryKey().location();
+                        .getName() + " to registry " + event.getRegistryKey().identifier();
                     if (skipErrors) {
                         log.error(DebugMarkers.REGISTER, err);
                     } else {
@@ -459,7 +459,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         if (reg != null) {
             return reg;
         }
-        throw new IllegalArgumentException("Unknown registration " + name + " for type " + type.location());
+        throw new IllegalArgumentException("Unknown registration " + name + " for type " + type.identifier());
     }
 
     /**
@@ -498,7 +498,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     ) {
         Registration<R, T> reg = this.<R, T>getRegistrationUnchecked(name, registryType);
         if (reg == null) {
-            registerCallbacks.put(Pair.of(name, registryType), (NonNullConsumer<?>) callback);
+            registerCallbacks.put(Pair.of(name, registryType), callback);
         } else {
             reg.addRegisterCallback(callback);
         }
@@ -623,27 +623,27 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     });
 
     /**
-     * Add a custom translation mapping using the vanilla style of ResourceLocation -&gt; translation key conversion.
+     * Add a custom translation mapping using the vanilla style of Identifier -&gt; translation key conversion.
      *
      * @param type          Type of the object, this is used as a prefix (e.g. {@code ["block", "mymod:myblock"] -> "block.mymod.myblock"})
-     * @param id            ID of the object, which will be converted to a lang key via {@link Util#makeDescriptionId(String, ResourceLocation)}
+     * @param id            ID of the object, which will be converted to a lang key via {@link Util#makeDescriptionId(String, Identifier)}
      * @param localizedName (English) translation value
      * @return A {@link MutableComponent} representing the translated text
      */
-    public MutableComponent addLang(String type, ResourceLocation id, String localizedName) {
+    public MutableComponent addLang(String type, Identifier id, String localizedName) {
         return addRawLang(Util.makeDescriptionId(type, id), localizedName);
     }
 
     /**
-     * Add a custom translation mapping using the vanilla style of ResourceLocation -&gt; translation key conversion. Also appends a suffix to the key.
+     * Add a custom translation mapping using the vanilla style of Identifier -&gt; translation key conversion. Also appends a suffix to the key.
      *
      * @param type          Type of the object, this is used as a prefix (e.g. {@code ["block", "mymod:myblock"] -> "block.mymod.myblock"})
-     * @param id            ID of the object, which will be converted to a lang key via {@link Util#makeDescriptionId(String, ResourceLocation)}
+     * @param id            ID of the object, which will be converted to a lang key via {@link Util#makeDescriptionId(String, Identifier)}
      * @param suffix        A suffix which will be appended to the generated key (separated by a dot)
      * @param localizedName (English) translation value
      * @return A {@link MutableComponent} representing the translated text
      */
-    public MutableComponent addLang(String type, ResourceLocation id, String suffix, String localizedName) {
+    public MutableComponent addLang(String type, Identifier id, String suffix, String localizedName) {
         return addRawLang(Util.makeDescriptionId(type, id) + "." + suffix, localizedName);
     }
 
@@ -697,7 +697,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
                         "Generating data of type {} for entry {} [{}]",
                         RegistrumDataProvider.getTypeName(type),
                         entry.get().getLeft(),
-                        entry.get().getRight().location()
+                        entry.get().getRight().identifier()
                     );
                 } else {
                     log.debug(
@@ -721,7 +721,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
                             "Unexpected error while running data generator of type {} for entry {} [{}]",
                             RegistrumDataProvider.getTypeName(type),
                             entry.get().getLeft(),
-                            entry.get().getRight().location()
+                            entry.get().getRight().identifier()
                         );
                 } else {
                     err = log.getMessageFactory()
@@ -894,8 +894,8 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         NonNullSupplier<? extends T> creator,
         NonNullFunction<DeferredHolder<R, T>, ? extends RegistryEntry<R, T>> entryFactory
     ) {
-        Registration<R, T> reg = new Registration<>(ResourceLocation.fromNamespaceAndPath(modid, name), type, creator, entryFactory);
-        log.trace(DebugMarkers.REGISTER, "Captured registration for entry {}:{} of type {}", getModid(), name, type.location());
+        Registration<R, T> reg = new Registration<>(Identifier.fromNamespaceAndPath(modid, name), type, creator, entryFactory);
+        log.trace(DebugMarkers.REGISTER, "Captured registration for entry {}:{} of type {}", getModid(), name, type.identifier());
         registerCallbacks.removeAll(Pair.of(name, type)).forEach(callback -> {
             @SuppressWarnings(
                 {
@@ -924,7 +924,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
      * @return A {@link ResourceKey resource key} referencing the to-be-created registry.
      */
     public <R> ResourceKey<Registry<R>> makeRegistry(String name, Function<ResourceKey<Registry<R>>, RegistryBuilder<R>> builder) {
-        final ResourceKey<Registry<R>> registryId = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(getModid(), name));
+        final ResourceKey<Registry<R>> registryId = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(getModid(), name));
         OneTimeEventReceiver.addModListener(this, NewRegistryEvent.class, e -> e.register(builder.apply(registryId).create()));
         return registryId;
     }
@@ -962,7 +962,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
      * @see #makeDatapackRegistry(String, Codec)
      */
     public <R> ResourceKey<Registry<R>> makeDatapackRegistry(String name, Codec<R> codec, @Nullable Codec<R> networkCodec) {
-        final ResourceKey<Registry<R>> registryId = ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(getModid(), name));
+        final ResourceKey<Registry<R>> registryId = ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(getModid(), name));
         OneTimeEventReceiver.addModListener(
             this,
             DataPackRegistryEvent.NewRegistry.class,
@@ -1114,42 +1114,42 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         return fluid(self(), fluidType);
     }
 
-    public FluidBuilder<BaseFlowingFluid.Flowing, S> fluid(ResourceLocation stillTexture, ResourceLocation flowingTexture) {
+    public FluidBuilder<BaseFlowingFluid.Flowing, S> fluid(Identifier stillTexture, Identifier flowingTexture) {
         return fluid(self(), stillTexture, flowingTexture);
     }
 
     public FluidBuilder<BaseFlowingFluid.Flowing, S> fluid(
-        ResourceLocation stillTexture,
-        ResourceLocation flowingTexture,
+        Identifier stillTexture,
+        Identifier flowingTexture,
         FluidBuilder.FluidTypeFactory typeFactory
     ) {
         return fluid(self(), stillTexture, flowingTexture, typeFactory);
     }
 
     public FluidBuilder<BaseFlowingFluid.Flowing, S> fluid(
-        ResourceLocation stillTexture,
-        ResourceLocation flowingTexture,
+        Identifier stillTexture,
+        Identifier flowingTexture,
         NonNullSupplier<FluidType> fluidType
     ) {
         return fluid(self(), stillTexture, flowingTexture, fluidType);
     }
 
     public <T extends BaseFlowingFluid> FluidBuilder<T, S> fluid(
-        ResourceLocation stillTexture, ResourceLocation flowingTexture,
+        Identifier stillTexture, Identifier flowingTexture,
         FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(self(), stillTexture, flowingTexture, fluidFactory);
     }
 
     public <T extends BaseFlowingFluid> FluidBuilder<T, S> fluid(
-        ResourceLocation stillTexture, ResourceLocation flowingTexture,
+        Identifier stillTexture, Identifier flowingTexture,
         FluidBuilder.FluidTypeFactory typeFactory, FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(self(), stillTexture, flowingTexture, typeFactory, fluidFactory);
     }
 
     public <T extends BaseFlowingFluid> FluidBuilder<T, S> fluid(
-        ResourceLocation stillTexture, ResourceLocation flowingTexture,
+        Identifier stillTexture, Identifier flowingTexture,
         NonNullSupplier<FluidType> fluidType, FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(self(), stillTexture, flowingTexture, fluidType, fluidFactory);
@@ -1167,14 +1167,14 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         return fluid(self(), name, fluidType);
     }
 
-    public FluidBuilder<BaseFlowingFluid.Flowing, S> fluid(String name, ResourceLocation stillTexture, ResourceLocation flowingTexture) {
+    public FluidBuilder<BaseFlowingFluid.Flowing, S> fluid(String name, Identifier stillTexture, Identifier flowingTexture) {
         return fluid(self(), name, stillTexture, flowingTexture);
     }
 
     public FluidBuilder<BaseFlowingFluid.Flowing, S> fluid(
         String name,
-        ResourceLocation stillTexture,
-        ResourceLocation flowingTexture,
+        Identifier stillTexture,
+        Identifier flowingTexture,
         FluidBuilder.FluidTypeFactory typeFactory
     ) {
         return fluid(self(), name, stillTexture, flowingTexture, typeFactory);
@@ -1182,29 +1182,29 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
 
     public FluidBuilder<BaseFlowingFluid.Flowing, S> fluid(
         String name,
-        ResourceLocation stillTexture,
-        ResourceLocation flowingTexture,
+        Identifier stillTexture,
+        Identifier flowingTexture,
         NonNullSupplier<FluidType> fluidType
     ) {
         return fluid(self(), name, stillTexture, flowingTexture, fluidType);
     }
 
     public <T extends BaseFlowingFluid> FluidBuilder<T, S> fluid(
-        String name, ResourceLocation stillTexture, ResourceLocation flowingTexture,
+        String name, Identifier stillTexture, Identifier flowingTexture,
         FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(self(), name, stillTexture, flowingTexture, fluidFactory);
     }
 
     public <T extends BaseFlowingFluid> FluidBuilder<T, S> fluid(
-        String name, ResourceLocation stillTexture, ResourceLocation flowingTexture,
+        String name, Identifier stillTexture, Identifier flowingTexture,
         FluidBuilder.FluidTypeFactory typeFactory, FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(self(), name, stillTexture, flowingTexture, typeFactory, fluidFactory);
     }
 
     public <T extends BaseFlowingFluid> FluidBuilder<T, S> fluid(
-        String name, ResourceLocation stillTexture, ResourceLocation flowingTexture,
+        String name, Identifier stillTexture, Identifier flowingTexture,
         NonNullSupplier<FluidType> fluidType, FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(self(), name, stillTexture, flowingTexture, fluidType, fluidFactory);
@@ -1222,14 +1222,14 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         return fluid(parent, currentName(), fluidType);
     }
 
-    public <P> FluidBuilder<BaseFlowingFluid.Flowing, P> fluid(P parent, ResourceLocation stillTexture, ResourceLocation flowingTexture) {
+    public <P> FluidBuilder<BaseFlowingFluid.Flowing, P> fluid(P parent, Identifier stillTexture, Identifier flowingTexture) {
         return fluid(parent, currentName(), stillTexture, flowingTexture);
     }
 
     public <P> FluidBuilder<BaseFlowingFluid.Flowing, P> fluid(
         P parent,
-        ResourceLocation stillTexture,
-        ResourceLocation flowingTexture,
+        Identifier stillTexture,
+        Identifier flowingTexture,
         FluidBuilder.FluidTypeFactory typeFactory
     ) {
         return fluid(parent, currentName(), stillTexture, flowingTexture, typeFactory);
@@ -1237,29 +1237,29 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
 
     public <P> FluidBuilder<BaseFlowingFluid.Flowing, P> fluid(
         P parent,
-        ResourceLocation stillTexture,
-        ResourceLocation flowingTexture,
+        Identifier stillTexture,
+        Identifier flowingTexture,
         NonNullSupplier<FluidType> fluidType
     ) {
         return fluid(parent, currentName(), stillTexture, flowingTexture, fluidType);
     }
 
     public <T extends BaseFlowingFluid, P> FluidBuilder<T, P> fluid(
-        P parent, ResourceLocation stillTexture, ResourceLocation flowingTexture,
+        P parent, Identifier stillTexture, Identifier flowingTexture,
         FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(parent, currentName(), stillTexture, flowingTexture, fluidFactory);
     }
 
     public <T extends BaseFlowingFluid, P> FluidBuilder<T, P> fluid(
-        P parent, ResourceLocation stillTexture, ResourceLocation flowingTexture,
+        P parent, Identifier stillTexture, Identifier flowingTexture,
         FluidBuilder.FluidTypeFactory typeFactory, FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(parent, currentName(), stillTexture, flowingTexture, typeFactory, fluidFactory);
     }
 
     public <T extends BaseFlowingFluid, P> FluidBuilder<T, P> fluid(
-        P parent, ResourceLocation stillTexture, ResourceLocation flowingTexture,
+        P parent, Identifier stillTexture, Identifier flowingTexture,
         NonNullSupplier<FluidType> fluidType, FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(parent, currentName(), stillTexture, flowingTexture, fluidType, fluidFactory);
@@ -1269,8 +1269,8 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         return fluid(
             parent,
             name,
-            ResourceLocation.fromNamespaceAndPath(getModid(), "block/" + currentName() + "_still"),
-            ResourceLocation.fromNamespaceAndPath(getModid(), "block/" + currentName() + "_flow")
+            Identifier.fromNamespaceAndPath(getModid(), "block/" + currentName() + "_still"),
+            Identifier.fromNamespaceAndPath(getModid(), "block/" + currentName() + "_flow")
         );
     }
 
@@ -1278,8 +1278,8 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         return fluid(
             parent,
             name,
-            ResourceLocation.fromNamespaceAndPath(getModid(), "block/" + currentName() + "_still"),
-            ResourceLocation.fromNamespaceAndPath(getModid(), "block/" + currentName() + "_flow"),
+            Identifier.fromNamespaceAndPath(getModid(), "block/" + currentName() + "_still"),
+            Identifier.fromNamespaceAndPath(getModid(), "block/" + currentName() + "_flow"),
             typeFactory
         );
     }
@@ -1288,8 +1288,8 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         return fluid(
             parent,
             name,
-            ResourceLocation.fromNamespaceAndPath(getModid(), "block/" + currentName() + "_still"),
-            ResourceLocation.fromNamespaceAndPath(getModid(), "block/" + currentName() + "_flow"),
+            Identifier.fromNamespaceAndPath(getModid(), "block/" + currentName() + "_still"),
+            Identifier.fromNamespaceAndPath(getModid(), "block/" + currentName() + "_flow"),
             fluidType
         );
     }
@@ -1297,8 +1297,8 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     public <P> FluidBuilder<BaseFlowingFluid.Flowing, P> fluid(
         P parent,
         String name,
-        ResourceLocation stillTexture,
-        ResourceLocation flowingTexture
+        Identifier stillTexture,
+        Identifier flowingTexture
     ) {
         return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, FluidType::new)).clientExtension(
             stillTexture,
@@ -1309,8 +1309,8 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     public <P> FluidBuilder<BaseFlowingFluid.Flowing, P> fluid(
         P parent,
         String name,
-        ResourceLocation stillTexture,
-        ResourceLocation flowingTexture,
+        Identifier stillTexture,
+        Identifier flowingTexture,
         FluidBuilder.FluidTypeFactory typeFactory
     ) {
         return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, typeFactory)).clientExtension(
@@ -1322,8 +1322,8 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     public <P> FluidBuilder<BaseFlowingFluid.Flowing, P> fluid(
         P parent,
         String name,
-        ResourceLocation stillTexture,
-        ResourceLocation flowingTexture,
+        Identifier stillTexture,
+        Identifier flowingTexture,
         NonNullSupplier<FluidType> fluidType
     ) {
         return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, fluidType)).clientExtension(
@@ -1333,7 +1333,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     }
 
     public <T extends BaseFlowingFluid, P> FluidBuilder<T, P> fluid(
-        P parent, String name, ResourceLocation stillTexture, ResourceLocation flowingTexture,
+        P parent, String name, Identifier stillTexture, Identifier flowingTexture,
         FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, fluidFactory)).clientExtension(
@@ -1343,7 +1343,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     }
 
     public <T extends BaseFlowingFluid, P> FluidBuilder<T, P> fluid(
-        P parent, String name, ResourceLocation stillTexture, ResourceLocation flowingTexture,
+        P parent, String name, Identifier stillTexture, Identifier flowingTexture,
         FluidBuilder.FluidTypeFactory typeFactory, FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, typeFactory, fluidFactory)).clientExtension(
@@ -1353,7 +1353,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     }
 
     public <T extends BaseFlowingFluid, P> FluidBuilder<T, P> fluid(
-        P parent, String name, ResourceLocation stillTexture, ResourceLocation flowingTexture,
+        P parent, String name, Identifier stillTexture, Identifier flowingTexture,
         NonNullSupplier<FluidType> fluidType, FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, fluidType, fluidFactory)).clientExtension(
@@ -1468,7 +1468,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     ) {
         this.defaultCreativeModeTab = ResourceKey.create(
             Registries.CREATIVE_MODE_TAB,
-            ResourceLocation.fromNamespaceAndPath(this.modid, name)
+            Identifier.fromNamespaceAndPath(this.modid, name)
         );
         return this.generic(
             parent, name, Registries.CREATIVE_MODE_TAB, () -> {
@@ -1478,7 +1478,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
                         .map(ItemEntry::cast)
                         .map(ItemEntry::asStack)
                         .orElse(new ItemStack(Items.AIR)))
-                    .title(this.addLang("itemGroup", this.defaultCreativeModeTab.location(), RegistrumLangProvider.toEnglishName(name)));
+                    .title(this.addLang("itemGroup", this.defaultCreativeModeTab.identifier(), RegistrumLangProvider.toEnglishName(name)));
                 config.accept(builder);
                 return builder.build();
             }

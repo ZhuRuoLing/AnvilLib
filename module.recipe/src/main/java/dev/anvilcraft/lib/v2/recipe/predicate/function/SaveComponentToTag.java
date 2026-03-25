@@ -11,14 +11,14 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Objects;
 
 public record SaveComponentToTag<T>(
     DataComponentType<T> component,
-    ResourceLocation path
+    Identifier path
 ) implements IPredicateFunction<ItemStack> {
     @Override
     public ItemStack apply(InWorldRecipeContext context, ItemStack stack) {
@@ -38,13 +38,13 @@ public record SaveComponentToTag<T>(
     public static class Type implements IPredicateFunction.Type<SaveComponentToTag<?>> {
         public static final MapCodec<SaveComponentToTag<?>> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             DataComponentType.CODEC.fieldOf("component").forGetter(SaveComponentToTag::component),
-            ResourceLocation.CODEC.fieldOf("path").forGetter(SaveComponentToTag::path)
+            Identifier.CODEC.fieldOf("path").forGetter(SaveComponentToTag::path)
         ).apply(instance, SaveComponentToTag::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, SaveComponentToTag<?>> STREAM_CODEC = StreamCodec.composite(
             DataComponentType.STREAM_CODEC,
             SaveComponentToTag::component,
-            ResourceLocation.STREAM_CODEC,
+            Identifier.STREAM_CODEC,
             SaveComponentToTag::path,
             SaveComponentToTag::new
         );

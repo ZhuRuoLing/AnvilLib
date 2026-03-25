@@ -37,7 +37,11 @@ public class LibDataComponentPredicates {
         String name,
         Codec<T> codec
     ) {
-        return DF.register(name, () -> new DataComponentPredicate.Type<>(codec));
+        return DF.register(
+            name,
+            () -> new DataComponentPredicate.TypeBase<>(codec) {
+            }
+        );
     }
 
     public static void initialize(IEventBus modEventBus) {

@@ -11,7 +11,11 @@
  *
  */
 
-@javax.annotation.ParametersAreNonnullByDefault
-@net.minecraft.MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 @FieldsAreNonnullByDefault
 package dev.anvilcraft.lib.v2.registrum.util.nullness;
+
+import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
+
+import javax.annotation.ParametersAreNonnullByDefault;

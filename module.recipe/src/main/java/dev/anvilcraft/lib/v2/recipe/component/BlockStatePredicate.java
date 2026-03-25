@@ -18,7 +18,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.LevelAccessor;
@@ -49,9 +49,9 @@ import java.util.stream.Collectors;
 @Getter
 public class BlockStatePredicate {
     /**
-     * 空 ResourceLocation
+     * 空 Identifier
      */
-    public static final ResourceLocation EMPTY = AnvilLibRecipe.of("empty");
+    public static final Identifier EMPTY = AnvilLibRecipe.of("empty");
 
     /**
      * 属性编解码器
@@ -210,13 +210,13 @@ public class BlockStatePredicate {
      *
      * @return 键
      */
-    public ResourceLocation getKey() {
+    public Identifier getKey() {
         Either<TagKey<Block>, List<Holder<Block>>> unwrap = this.getBlocks().unwrap();
         if (unwrap.left().isPresent()) {
             return unwrap.left().get().location();
         } else if (unwrap.right().isPresent()) {
             List<Holder<Block>> holders = unwrap.right().get();
-            return holders.isEmpty() ? EMPTY : holders.getFirst().unwrapKey().map(ResourceKey::location).orElse(EMPTY);
+            return holders.isEmpty() ? EMPTY : holders.getFirst().unwrapKey().map(ResourceKey::identifier).orElse(EMPTY);
         }
         return EMPTY;
     }

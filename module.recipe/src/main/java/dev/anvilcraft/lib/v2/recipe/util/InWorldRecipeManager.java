@@ -59,7 +59,7 @@ public class InWorldRecipeManager {
                 }
                 accept = true;
                 recipe.assemble(ctx, ctx.getLevel().registryAccess());
-                NeoForge.EVENT_BUS.post(new InWorldRecipeEvent(recipe.getType(), holder.id().location(), recipe, ctx));
+                NeoForge.EVENT_BUS.post(new InWorldRecipeEvent(recipe.getType(), holder.id().identifier(), recipe, ctx));
             }
             if (accept) break;
         }

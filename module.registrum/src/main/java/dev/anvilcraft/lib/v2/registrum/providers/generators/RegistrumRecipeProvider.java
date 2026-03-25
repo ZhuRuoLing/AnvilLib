@@ -19,10 +19,10 @@ import dev.anvilcraft.lib.v2.registrum.util.DataIngredient;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
 import lombok.experimental.Delegate;
 import net.minecraft.advancements.Criterion;
-import net.minecraft.advancements.critereon.EnterBlockTrigger;
-import net.minecraft.advancements.critereon.InventoryChangeTrigger;
-import net.minecraft.advancements.critereon.ItemPredicate;
-import net.minecraft.advancements.critereon.MinMaxBounds;
+import net.minecraft.advancements.criterion.EnterBlockTrigger;
+import net.minecraft.advancements.criterion.InventoryChangeTrigger;
+import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.advancements.criterion.MinMaxBounds;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -37,7 +37,7 @@ import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.data.recipes.SingleItemRecipeBuilder;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.Item;
@@ -85,20 +85,20 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
         return registries.lookupOrThrow(key.registryKey()).getOrThrow(key);
     }
 
-    public ResourceLocation safeId(ResourceLocation id) {
-        return ResourceLocation.fromNamespaceAndPath(runner.owner.getModid(), safeName(id));
+    public Identifier safeId(Identifier id) {
+        return Identifier.fromNamespaceAndPath(runner.owner.getModid(), safeName(id));
     }
 
-    public ResourceLocation safeId(DataIngredient source) {
+    public Identifier safeId(DataIngredient source) {
         return safeId(source.getId());
     }
 
-    public ResourceLocation safeId(ItemLike registryEntry) {
+    public Identifier safeId(ItemLike registryEntry) {
         return safeId(BuiltInRegistries.ITEM.getKey(registryEntry.asItem()));
     }
 
-    public ResourceKey<Recipe<?>> safeKey(ResourceLocation id) {
-        return ResourceKey.create(Registries.RECIPE, ResourceLocation.fromNamespaceAndPath(runner.owner.getModid(), safeName(id)));
+    public ResourceKey<Recipe<?>> safeKey(Identifier id) {
+        return ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(runner.owner.getModid(), safeName(id)));
     }
 
     public ResourceKey<Recipe<?>> safeKey(DataIngredient source) {
@@ -109,7 +109,7 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
         return safeKey(BuiltInRegistries.ITEM.getKey(registryEntry.asItem()));
     }
 
-    public String safeName(ResourceLocation id) {
+    public String safeName(Identifier id) {
         return id.getPath().replace('/', '_');
     }
 

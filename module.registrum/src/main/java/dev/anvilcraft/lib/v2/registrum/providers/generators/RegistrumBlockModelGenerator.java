@@ -23,7 +23,7 @@ import net.minecraft.client.data.models.model.ModelTemplate;
 import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.data.models.model.TexturedModel;
 import net.minecraft.client.renderer.block.model.BlockModelDefinition;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
 import net.neoforged.neoforge.client.model.generators.template.ExtendedModelTemplateBuilder;
@@ -42,7 +42,7 @@ public class RegistrumBlockModelGenerator extends BlockModelGenerators {
         AbstractRegistrum<?> parent,
         Consumer<BlockModelDefinitionGenerator> known,
         ItemModelOutput item,
-        BiConsumer<ResourceLocation, ModelInstance> model
+        BiConsumer<Identifier, ModelInstance> model
     ) {
         super(known, item, model);
         ObfuscationReflectionHelper.<BlockModelGenerators, Consumer<BlockModelDefinitionGenerator>>setPrivateValue(
@@ -59,7 +59,7 @@ public class RegistrumBlockModelGenerator extends BlockModelGenerators {
         parent.genData(ProviderType.BLOCKSTATE, this);
     }
 
-    public void create(Block block, ResourceLocation model) {
+    public void create(Block block, Identifier model) {
         this.blockStateOutput.accept(createSimpleBlock(block, plainVariant(model)));
     }
 
@@ -67,12 +67,12 @@ public class RegistrumBlockModelGenerator extends BlockModelGenerators {
         this.blockStateOutput.accept(createSimpleBlock(block, plainVariant(texture.create(block, this.modelOutput))));
     }
 
-    public ResourceLocation mcLoc(String id) {
-        return ResourceLocation.withDefaultNamespace(id);
+    public Identifier mcLoc(String id) {
+        return Identifier.withDefaultNamespace(id);
     }
 
-    public ResourceLocation modLoc(String id) {
-        return ResourceLocation.fromNamespaceAndPath(parent.getModid(), id);
+    public Identifier modLoc(String id) {
+        return Identifier.fromNamespaceAndPath(parent.getModid(), id);
     }
 
     public RegistrumLegacyBlockModelBuilder withBuilder(ExtendedModelTemplateBuilder template, TextureMapping texture) {

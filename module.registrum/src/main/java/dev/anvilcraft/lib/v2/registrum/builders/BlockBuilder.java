@@ -38,7 +38,7 @@ import net.minecraft.client.color.block.BlockColor;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -187,7 +187,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
                     .filter(JsonElement::isJsonObject)
                     .map(j -> j.getAsJsonObject().get("model"))
                     .map(JsonElement::getAsString);
-                model.ifPresent(s -> prov.createWithExistingModel(ctx.get(), ResourceLocation.parse(s)));
+                model.ifPresent(s -> prov.createWithExistingModel(ctx.get(), Identifier.parse(s)));
             });
     }
 

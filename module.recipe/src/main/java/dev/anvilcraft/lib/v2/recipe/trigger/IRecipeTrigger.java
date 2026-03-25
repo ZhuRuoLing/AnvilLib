@@ -3,7 +3,7 @@ package dev.anvilcraft.lib.v2.recipe.trigger;
 import com.mojang.serialization.Codec;
 import dev.anvilcraft.lib.v2.recipe.init.LibRegistries;
 import dev.anvilcraft.lib.v2.recipe.util.IPrioritized;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import javax.annotation.Nullable;
 
@@ -19,13 +19,13 @@ public interface IRecipeTrigger extends IPrioritized {
      *
      * @return ID
      */
-    default @Nullable ResourceLocation getId() {
+    default @Nullable Identifier getId() {
         return LibRegistries.TRIGGER_REGISTRY.getKey(this);
     }
 
-    record Impl(ResourceLocation id) implements IRecipeTrigger {
+    record Impl(Identifier id) implements IRecipeTrigger {
         @Override
-        public ResourceLocation getId() {
+        public Identifier getId() {
             return this.id();
         }
     }

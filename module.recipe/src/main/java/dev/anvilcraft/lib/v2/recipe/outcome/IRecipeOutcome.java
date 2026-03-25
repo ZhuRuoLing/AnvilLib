@@ -5,7 +5,7 @@ import dev.anvilcraft.lib.v2.recipe.init.LibRegistries;
 import dev.anvilcraft.lib.v2.recipe.util.IPrioritized;
 import dev.anvilcraft.lib.v2.recipe.util.ISerializer;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
@@ -61,7 +61,7 @@ public interface IRecipeOutcome<O extends IRecipeOutcome<O>> extends Consumer<In
          *
          * @return ID
          */
-        default @Nullable ResourceLocation getId() {
+        default @Nullable Identifier getId() {
             return LibRegistries.OUTCOME_TYPE_REGISTRY.getKey(this);
         }
     }

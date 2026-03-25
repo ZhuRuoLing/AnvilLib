@@ -23,7 +23,7 @@ import net.minecraft.client.data.models.ItemModelOutput;
 import net.minecraft.client.data.models.model.ItemModelUtils;
 import net.minecraft.client.data.models.model.ModelInstance;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 
@@ -36,7 +36,7 @@ public class RegistrumItemModelGenerator extends ItemModelGenerators {
     public RegistrumItemModelGenerator(
         AbstractRegistrum<?> parent,
         ItemModelOutput output,
-        BiConsumer<ResourceLocation, ModelInstance> model
+        BiConsumer<Identifier, ModelInstance> model
     ) {
         super(output, model);
         this.parent = parent;
@@ -49,16 +49,16 @@ public class RegistrumItemModelGenerator extends ItemModelGenerators {
     }
 
 
-    public void createWithExistingModel(Item item, ResourceLocation id) {
+    public void createWithExistingModel(Item item, Identifier id) {
         itemModelOutput.accept(item, ItemModelUtils.plainModel(id));
     }
 
-    public ResourceLocation mcLoc(String id) {
-        return ResourceLocation.withDefaultNamespace(id);
+    public Identifier mcLoc(String id) {
+        return Identifier.withDefaultNamespace(id);
     }
 
-    public ResourceLocation modLoc(String id) {
-        return ResourceLocation.fromNamespaceAndPath(parent.getModid(), id);
+    public Identifier modLoc(String id) {
+        return Identifier.fromNamespaceAndPath(parent.getModid(), id);
     }
 
     public String modid(NonNullSupplier<? extends ItemLike> item) {
@@ -69,7 +69,7 @@ public class RegistrumItemModelGenerator extends ItemModelGenerators {
         return BuiltInRegistries.ITEM.getKey(item.get().asItem()).getPath();
     }
 
-    public void generateTintedModel(@NonnullType Item entry, ResourceLocation model, ItemTintSource tint) {
+    public void generateTintedModel(@NonnullType Item entry, Identifier model, ItemTintSource tint) {
         this.itemModelOutput.accept(entry, ItemModelUtils.tintedModel(model, tint));
     }
 }

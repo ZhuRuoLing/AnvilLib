@@ -6,7 +6,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import dev.anvilcraft.lib.v2.recipe.InWorldRecipe;
 import dev.anvilcraft.lib.v2.recipe.injection.IRecipeMapExtension;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeMap;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -26,19 +26,18 @@ public class RecipeMapMixin implements IRecipeMapExtension {
     @Mutable
     @Final
     @Shadow
-    private Map<ResourceLocation, RecipeHolder<?>> byKey;
+    private Map<Identifier, RecipeHolder<?>> byKey;
 
     @Mutable
-    @Final
     @Shadow
     private Multimap<RecipeType<?>, RecipeHolder<?>> byType;
 
     public void anvillib$addRecipes(List<RecipeHolder<InWorldRecipe>> recipes) {
-        ImmutableMap.Builder<ResourceLocation, RecipeHolder<?>> byNameBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<Identifier, RecipeHolder<?>> byNameBuilder = ImmutableMap.builder();
         Multimap<RecipeType<?>, RecipeHolder<?>> byTypeBuilder = MultimapBuilder.hashKeys().<RecipeHolder<?>>treeSetValues(
             Comparator.comparing(RecipeHolder::id)
         ).build();
-        Set<ResourceLocation> keys = new HashSet<>();
+        Set<Identifier> keys = new HashSet<>();
         this.byKey.forEach((key, value) -> {
             if (key == null || value == null) return;
             if (keys.contains(key)) return;
@@ -50,9 +49,9 @@ public class RecipeMapMixin implements IRecipeMapExtension {
             byTypeBuilder.put(key, value);
         });
         recipes.forEach(recipe -> {
-            if (keys.contains(recipe.id().location())) return;
-            keys.add(recipe.id().location());
-            byNameBuilder.put(recipe.id().location(), recipe);
+            if (keys.contains(recipe.id().identifier())) return;
+            keys.add(recipe.id().identifier());
+            byNameBuilder.put(recipe.id().identifier(), recipe);
             byTypeBuilder.put(recipe.value().getType(), recipe);
         });
         this.byKey = byNameBuilder.build();

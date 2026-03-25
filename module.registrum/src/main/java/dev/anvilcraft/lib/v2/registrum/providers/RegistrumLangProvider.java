@@ -99,7 +99,7 @@ public class RegistrumLangProvider extends LanguageProvider implements Registrum
         }
     )
     public <T> String getAutomaticName(NonNullSupplier<? extends T> sup, ResourceKey<? extends Registry<T>> registry) {
-        return toEnglishName(((Registry<Registry<T>>) BuiltInRegistries.REGISTRY).getValue(registry.location())
+        return toEnglishName(((Registry<Registry<T>>) BuiltInRegistries.REGISTRY).getValue(registry.identifier())
             .getKey(sup.get())
             .getPath());
     }

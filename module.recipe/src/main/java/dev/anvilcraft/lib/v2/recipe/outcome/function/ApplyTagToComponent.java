@@ -12,14 +12,14 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Objects;
 
 public record ApplyTagToComponent<T>(
     DataComponentType<T> component,
-    ResourceLocation path
+    Identifier path
 ) implements IOutcomeFunction<ItemStack> {
     @Override
     public ItemStack apply(InWorldRecipeContext context, ItemStack stack) {
@@ -41,13 +41,13 @@ public record ApplyTagToComponent<T>(
     public static class Type implements IOutcomeFunction.Type<ApplyTagToComponent<?>> {
         public static final MapCodec<ApplyTagToComponent<?>> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             DataComponentType.CODEC.fieldOf("component").forGetter(ApplyTagToComponent::component),
-            ResourceLocation.CODEC.fieldOf("path").forGetter(ApplyTagToComponent::path)
+            Identifier.CODEC.fieldOf("path").forGetter(ApplyTagToComponent::path)
         ).apply(instance, ApplyTagToComponent::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, ApplyTagToComponent<?>> STREAM_CODEC = StreamCodec.composite(
             DataComponentType.STREAM_CODEC,
             ApplyTagToComponent::component,
-            ResourceLocation.STREAM_CODEC,
+            Identifier.STREAM_CODEC,
             ApplyTagToComponent::path,
             ApplyTagToComponent::new
         );

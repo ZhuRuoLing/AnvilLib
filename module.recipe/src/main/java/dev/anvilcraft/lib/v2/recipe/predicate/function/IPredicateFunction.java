@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import dev.anvilcraft.lib.v2.recipe.init.LibRegistries;
 import dev.anvilcraft.lib.v2.recipe.util.ISerializer;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.function.BiFunction;
 import javax.annotation.Nullable;
@@ -16,7 +16,7 @@ public interface IPredicateFunction<T> extends BiFunction<InWorldRecipeContext, 
     Type<?> getType();
 
     interface Type<O extends IPredicateFunction<?>> extends ISerializer<O> {
-        default @Nullable ResourceLocation getId() {
+        default @Nullable Identifier getId() {
             return LibRegistries.PREDICATE_FUNCTION_TYPE_REGISTRY.getKey(this);
         }
     }

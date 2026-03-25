@@ -16,7 +16,7 @@ import lombok.ToString;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.PlacementInfo;
@@ -396,20 +396,20 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
             InWorldRecipe recipe
         ) {
             ItemStack.STREAM_CODEC.encode(buf, recipe.icon());
-            buf.writeResourceLocation(Objects.requireNonNull(recipe.trigger().getId()));
+            buf.writeIdentifier(Objects.requireNonNull(recipe.trigger().getId()));
             buf.writeVarInt(recipe.conflicting().size());
             for (IRecipePredicate<?> predicate : recipe.conflicting()) {
-                buf.writeResourceLocation(Objects.requireNonNull(predicate.getType().getId()));
+                buf.writeIdentifier(Objects.requireNonNull(predicate.getType().getId()));
                 ((P) predicate).getType().streamCodec().encode(buf, (P) predicate);
             }
             buf.writeVarInt(recipe.nonConflicting().size());
             for (IRecipePredicate<?> predicate : recipe.nonConflicting()) {
-                buf.writeResourceLocation(Objects.requireNonNull(predicate.getType().getId()));
+                buf.writeIdentifier(Objects.requireNonNull(predicate.getType().getId()));
                 ((P) predicate).getType().streamCodec().encode(buf, (P) predicate);
             }
             buf.writeVarInt(recipe.outcomes().size());
             for (IRecipeOutcome<?> outcome : recipe.outcomes()) {
-                buf.writeResourceLocation(Objects.requireNonNull(outcome.getType().getId()));
+                buf.writeIdentifier(Objects.requireNonNull(outcome.getType().getId()));
                 ((O) outcome).getType().streamCodec().encode(buf, (O) outcome);
             }
             buf.writeInt(recipe.priority());
@@ -425,13 +425,13 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
          */
         private static InWorldRecipe decode(RegistryFriendlyByteBuf buf) {
             ItemStack icon = ItemStack.STREAM_CODEC.decode(buf);
-            IRecipeTrigger trigger = Objects.requireNonNull(LibRegistries.TRIGGER_REGISTRY.getValue(buf.readResourceLocation()));
+            IRecipeTrigger trigger = Objects.requireNonNull(LibRegistries.TRIGGER_REGISTRY.getValue(buf.readIdentifier()));
             List<IRecipePredicate<?>> conflicting = decodeRecipePredicateList(buf);
             List<IRecipePredicate<?>> nonConflicting = decodeRecipePredicateList(buf);
             List<IRecipeOutcome<?>> outcomes = new ArrayList<>();
             int outcomesSize = buf.readVarInt();
             for (int i = 0; i < outcomesSize; i++) {
-                ResourceLocation location = buf.readResourceLocation();
+                Identifier location = buf.readIdentifier();
                 IRecipeOutcome.Type<?> type = LibRegistries.OUTCOME_TYPE_REGISTRY.getValue(location);
                 if (type == null) throw new IllegalArgumentException("Unknown outcome type: " + location);
                 IRecipeOutcome<?> outcome = type.streamCodec().decode(buf);
@@ -461,7 +461,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
             int size = buf.readVarInt();
             List<IRecipePredicate<?>> predicates = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
-                ResourceLocation location = buf.readResourceLocation();
+                Identifier location = buf.readIdentifier();
                 IRecipePredicate.Type<?> type = LibRegistries.PREDICATE_TYPE_REGISTRY.getValue(location);
                 if (type == null) throw new IllegalArgumentException("Unknown predicate type: " + location);
                 IRecipePredicate<?> predicate = type.streamCodec().decode(buf);

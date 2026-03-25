@@ -18,7 +18,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
@@ -316,7 +316,7 @@ public record SpawnItem(ItemStack item, Vec3 offset, NumberProvider count, List<
             return this;
         }
 
-        public Builder applyComponent(DataComponentType<?> component, ResourceLocation path) {
+        public Builder applyComponent(DataComponentType<?> component, Identifier path) {
             this.functions.add(new ApplyTagToComponent<>(component, path));
             return this;
         }

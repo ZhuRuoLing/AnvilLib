@@ -22,7 +22,7 @@ import lombok.Value;
 import lombok.experimental.Delegate;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * A context bean passed to data generator callbacks. Contains the entry that data is being created for, and some metadata about the entry.
@@ -37,7 +37,7 @@ public class DataGenContext<R, E extends R> implements NonNullSupplier<E> {
     @Delegate
     NonNullSupplier<E> entry;
     String name;
-    ResourceLocation id;
+    Identifier id;
 
     @SuppressWarnings("null")
     public @NonnullType E getEntry() {
@@ -52,7 +52,7 @@ public class DataGenContext<R, E extends R> implements NonNullSupplier<E> {
     public static <R, E extends R> DataGenContext<R, E> from(Builder<R, E, ?, ?> builder) {
         return new DataGenContext<>(
             NonNullSupplier.of(builder.getOwner().<R, E>get(builder.getName(), builder.getRegistryKey())), builder.getName(),
-            ResourceLocation.fromNamespaceAndPath(builder.getOwner().getModid(), builder.getName())
+            Identifier.fromNamespaceAndPath(builder.getOwner().getModid(), builder.getName())
         );
     }
 }

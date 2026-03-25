@@ -4,7 +4,7 @@ import dev.anvilcraft.lib.v2.recipe.AnvilLibRecipe;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeData;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -13,7 +13,7 @@ import java.util.function.Function;
 
 public class TagCache {
     public static final InWorldRecipeData<TagCache> TAG_CACHE = InWorldRecipeData.of(AnvilLibRecipe.of("tag_cache"), TagCache::of);
-    public final Map<ResourceLocation, Tag> tags = new HashMap<>();
+    public final Map<Identifier, Tag> tags = new HashMap<>();
 
     public TagCache() {
     }
@@ -22,15 +22,15 @@ public class TagCache {
         return new TagCache();
     }
 
-    public @Nullable Tag getTag(ResourceLocation id) {
+    public @Nullable Tag getTag(Identifier id) {
         return this.tags.get(id);
     }
 
-    public void putTag(ResourceLocation id, Tag tag) {
+    public void putTag(Identifier id, Tag tag) {
         this.tags.put(id, tag);
     }
 
-    public void computeIfAbsent(ResourceLocation id, Function<ResourceLocation, Tag> tag) {
+    public void computeIfAbsent(Identifier id, Function<Identifier, Tag> tag) {
         this.tags.computeIfAbsent(id, tag);
     }
 }
