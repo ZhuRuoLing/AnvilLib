@@ -18,7 +18,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
-import net.minecraft.data.tags.TagAppender;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
@@ -28,8 +27,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public interface RegistrumTagsProvider<T> extends RegistrumLookupFillerProvider {
-
-    TagAppender<E,T> addTag(TagKey<E> tag);
+    TagsProvider.TagAppender<T> addTag(TagKey<T> tag);
 
     CompletableFuture<TagsProvider.TagLookup<T>> contentsGetter();
 
