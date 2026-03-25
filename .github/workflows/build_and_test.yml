@@ -79,7 +79,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Build
-        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.10:build
+        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.11:build
 
       - name: Get Version
         id: version
@@ -95,7 +95,7 @@ jobs:
 
       - name: Publish to maven
         if: ${{ !inputs.pr_build }}
-        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.10:publish
+        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.11:publish
         env:
           MAVEN_URL: ${{ secrets.maven_url }}
           MAVEN_USERNAME: ${{ secrets.maven_user }}
@@ -110,7 +110,7 @@ jobs:
 
       - name: gametest
         if: ${{ inputs.ci_build && inputs.gametest }}
-        uses: Anvil-Dev/dedicated-server-launch-test@1.21.10-neoforge
+        uses: Anvil-Dev/dedicated-server-launch-test@1.21.11-neoforge
         with:
           mod: module.${{ inputs.module }}/build/libs/${{ inputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar
 
@@ -123,7 +123,7 @@ jobs:
 
       - name: Upload MCMOD
         if: ${{ inputs.module == 'main' }}
-        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.10:publishMods
+        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.11:publishMods
         env:
           CURSEFORGE_TOKEN: ${{ secrets.curseforge_token }}
           MODRINTH_TOKEN: ${{ secrets.modrinth_token }}

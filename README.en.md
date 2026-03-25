@@ -1,7 +1,7 @@
 # AnvilLib [中文](README.md) | **English**
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.10-green.svg)](https://minecraft.net/)
-[![Maven Central](https://img.shields.io/maven-central/v/dev.anvilcraft.lib/anvillib-neoforge-1.21.10)](https://central.sonatype.com/search?q=anvillib)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.11-green.svg)](https://minecraft.net/)
+[![Maven Central](https://img.shields.io/maven-central/v/dev.anvilcraft.lib/anvillib-neoforge-1.21.11)](https://central.sonatype.com/search?q=anvillib)
 [![NeoForge](https://img.shields.io/badge/NeoForge-21.1.x-orange.svg)](https://neoforged.net/)
 [![License](https://img.shields.io/badge/License-MIT%20License-blue.svg)](https://opensource.org/licenses/MIT)
 
@@ -166,7 +166,7 @@ public static final RegistryEntry<Item> MY_ITEM = REGISTRUM
 
 ### Main Module
 
-`anvillib-neoforge-1.21.10` is the aggregate artifact. It bundles and re-exports:
+`anvillib-neoforge-1.21.11` is the aggregate artifact. It bundles and re-exports:
 
 - `config`
 - `integration`
@@ -186,15 +186,15 @@ repositories {
 
 dependencies {
     // Full library
-    implementation "dev.anvilcraft.lib:anvillib-neoforge-1.21.10:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-neoforge-1.21.11:2.0.0"
 
     // Or import individual modules as needed
-    implementation "dev.anvilcraft.lib:anvillib-config-neoforge-1.21.10:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-integration-neoforge-1.21.10:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-network-neoforge-1.21.10:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-recipe-neoforge-1.21.10:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-1.21.10:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-registrum-neoforge-1.21.10:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-config-neoforge-1.21.11:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-integration-neoforge-1.21.11:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-network-neoforge-1.21.11:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-recipe-neoforge-1.21.11:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-1.21.11:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-registrum-neoforge-1.21.11:2.0.0"
 }
 ```
 
@@ -206,10 +206,10 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.anvilcraft.lib:anvillib-neoforge-1.21.10:2.0.0")
+    implementation("dev.anvilcraft.lib:anvillib-neoforge-1.21.11:2.0.0")
 
     // Optional single-module example
-    implementation("dev.anvilcraft.lib:anvillib-network-neoforge-1.21.10:2.0.0")
+    implementation("dev.anvilcraft.lib:anvillib-network-neoforge-1.21.11:2.0.0")
 }
 ```
 
@@ -232,7 +232,7 @@ gradlew.bat build
 ## Requirements
 
 - Java 21+
-- Minecraft 1.21.10
+- Minecraft 1.21.11
 - NeoForge 21.1.x
 
 ## License
