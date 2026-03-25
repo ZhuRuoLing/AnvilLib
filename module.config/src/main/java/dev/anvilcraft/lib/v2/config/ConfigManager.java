@@ -3,8 +3,6 @@ package dev.anvilcraft.lib.v2.config;
 import com.google.common.collect.ImmutableList;
 import dev.anvilcraft.lib.v2.config.util.FormattingUtil;
 import lombok.extern.slf4j.Slf4j;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -101,7 +99,6 @@ public class ConfigManager {
         this.configSpecMap.values().forEach(ConfigRecord::load);
     }
 
-    @OnlyIn(Dist.CLIENT)
     public void registerScreen(ModContainer container) {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }

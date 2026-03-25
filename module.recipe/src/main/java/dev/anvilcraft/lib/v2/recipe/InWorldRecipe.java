@@ -352,7 +352,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
         private static final Codec<IRecipeOutcome<?>> OUTCOME_CODEC = LibRegistries.OUTCOME_TYPE_REGISTRY.byNameCodec()
             .dispatch(IRecipeOutcome::getType, IRecipeOutcome.Type::codec);
         public static final MapCodec<InWorldRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            ItemStack.CODEC.fieldOf("icon").orElse(Items.ANVIL.getDefaultInstance()).forGetter(InWorldRecipe::icon),
+            ItemStack.CODEC.fieldOf("icon").orElseGet(Items.ANVIL::getDefaultInstance).forGetter(InWorldRecipe::icon),
             LibRegistries.TRIGGER_REGISTRY.byNameCodec().fieldOf("trigger").forGetter(InWorldRecipe::trigger),
             PREDICATE_CODEC.listOf().fieldOf("conflicting").forGetter(InWorldRecipe::conflicting),
             PREDICATE_CODEC.listOf().fieldOf("non_conflicting").forGetter(InWorldRecipe::nonConflicting),
