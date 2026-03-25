@@ -1,7 +1,7 @@
 # AnvilLib **中文** | [English](README.en.md)
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.5-green.svg)](https://minecraft.net/)
-[![Maven Central](https://img.shields.io/maven-central/v/dev.anvilcraft.lib/anvillib-neoforge-1.21.5)](https://central.sonatype.com/search?q=anvillib)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.6-green.svg)](https://minecraft.net/)
+[![Maven Central](https://img.shields.io/maven-central/v/dev.anvilcraft.lib/anvillib-neoforge-1.21.6)](https://central.sonatype.com/search?q=anvillib)
 [![NeoForge](https://img.shields.io/badge/NeoForge-21.1.x-orange.svg)](https://neoforged.net/)
 [![License](https://img.shields.io/badge/License-MIT%20License-blue.svg)](https://opensource.org/licenses/MIT)
 
@@ -164,7 +164,7 @@ public static final RegistryEntry<Item> MY_ITEM = REGISTRUM
 
 ### Main 模块
 
-`anvillib-neoforge-1.21.5` 为聚合发行模块，默认打包并重导出以下子模块：
+`anvillib-neoforge-1.21.6` 为聚合发行模块，默认打包并重导出以下子模块：
 
 - `config`
 - `integration`
@@ -184,15 +184,15 @@ repositories {
 
 dependencies {
     // 完整库
-    implementation "dev.anvilcraft.lib:anvillib-neoforge-1.21.5:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-neoforge-1.21.6:2.0.0"
 
     // 或按需引入单独模块
-    implementation "dev.anvilcraft.lib:anvillib-config-neoforge-1.21.5:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-integration-neoforge-1.21.5:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-network-neoforge-1.21.5:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-recipe-neoforge-1.21.5:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-1.21.5:2.0.0"
-    implementation "dev.anvilcraft.lib:anvillib-registrum-neoforge-1.21.5:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-config-neoforge-1.21.6:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-integration-neoforge-1.21.6:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-network-neoforge-1.21.6:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-recipe-neoforge-1.21.6:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-1.21.6:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-registrum-neoforge-1.21.6:2.0.0"
 }
 ```
 
@@ -204,10 +204,10 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.anvilcraft.lib:anvillib-neoforge-1.21.5:2.0.0")
+    implementation("dev.anvilcraft.lib:anvillib-neoforge-1.21.6:2.0.0")
 
     // 按需引入示例
-    implementation("dev.anvilcraft.lib:anvillib-network-neoforge-1.21.5:2.0.0")
+    implementation("dev.anvilcraft.lib:anvillib-network-neoforge-1.21.6:2.0.0")
 }
 ```
 
@@ -230,7 +230,7 @@ gradlew.bat build
 ## 环境要求
 
 - Java 21+
-- Minecraft 1.21.5
+- Minecraft 1.21.6
 - NeoForge 21.1.x
 
 ## 许可证
