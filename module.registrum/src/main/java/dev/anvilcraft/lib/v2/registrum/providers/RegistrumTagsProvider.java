@@ -7,7 +7,7 @@
  *  * License, v. 2.0. If a copy of the MPL was not distributed with this
  *  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *  *
- *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/providers/RegistrumTagsProvider.java
+ *  * Original File: https://github.com/tterrag1098/Registrate/blob/1.21.5/dev/D:/Projects/repos/AnvilLib/module.registrum/src/main/java/dev/anvilcraft/lib/v2/registrum/providers/RegistrateTagsProvider.java
  *
  */
 
@@ -18,6 +18,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
+import net.minecraft.data.tags.TagAppender;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
@@ -28,7 +29,7 @@ import java.util.function.Function;
 
 public interface RegistrumTagsProvider<T> extends RegistrumLookupFillerProvider {
 
-    TagsProvider.TagAppender<T> addTag(TagKey<T> tag);
+    TagAppender<E,T> addTag(TagKey<E> tag);
 
     CompletableFuture<TagsProvider.TagLookup<T>> contentsGetter();
 
