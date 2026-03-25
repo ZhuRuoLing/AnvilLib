@@ -46,12 +46,13 @@ import java.util.function.Function;
  */
 @FunctionalInterface
 @SuppressWarnings("deprecation")
-public interface ProviderType<T extends RegistrumProvider> {
+public interface ProviderType<T extends RegistrumProvider> extends GeneratorType<T>{
 
     // SERVER DATA
     ProviderType<RegistrumDatapackProvider> DYNAMIC = registerServerData("dynamic", RegistrumDatapackProvider::new);
     ProviderType<RegistrumDataMapProvider> DATA_MAP = registerServerData("data_map", RegistrumDataMapProvider::new);
-    ProviderType<RegistrumRecipeProvider> RECIPE = registerServerData("recipe", RegistrumRecipeProvider::new);
+    ProviderType<RegistrumRecipeRunner> RECIPE_RUNNER = registerServerData("recipe_runner", RegistrumRecipeRunner::new);
+    GeneratorType<RegistrumRecipeProvider> RECIPE = RECIPE_RUNNER.createGenerator("recipe");
     ProviderType<RegistrumAdvancementProvider> ADVANCEMENT = registerServerData("advancement", RegistrumAdvancementProvider::new);
     ProviderType<RegistrumLootTableProvider> LOOT = registerServerData("loot", RegistrumLootTableProvider::new);
     ProviderType<RegistrumTagsProvider.IntrinsicImpl<Block>> BLOCK_TAGS = registerIntrinsicTag(
@@ -126,6 +127,14 @@ public interface ProviderType<T extends RegistrumProvider> {
             }
         };
         return register(name, ret);
+    }
+
+    default <R> GeneratorType<R> createGenerator(String type) {
+        return new GeneratorType<>() {
+            public String toString(){
+                return type;
+            }
+        };
     }
 
     @Deprecated

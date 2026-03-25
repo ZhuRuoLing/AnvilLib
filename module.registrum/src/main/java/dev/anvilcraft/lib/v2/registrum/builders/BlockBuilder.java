@@ -12,22 +12,12 @@
 
 package dev.anvilcraft.lib.v2.registrum.builders;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
 import dev.anvilcraft.lib.v2.registrum.builders.BlockEntityBuilder.BlockEntityFactory;
 import dev.anvilcraft.lib.v2.registrum.providers.DataGenContext;
+import dev.anvilcraft.lib.v2.registrum.providers.GeneratorType;
 import dev.anvilcraft.lib.v2.registrum.providers.ProviderType;
 import dev.anvilcraft.lib.v2.registrum.providers.RegistrumBlockstateProvider;
 import dev.anvilcraft.lib.v2.registrum.providers.RegistrumItemModelProvider;
@@ -44,7 +34,6 @@ import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullBiFunction;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullFunction;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullUnaryOperator;
-
 import net.minecraft.client.color.block.BlockColor;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
@@ -57,7 +46,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
@@ -66,6 +54,16 @@ import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.registries.DeferredHolder;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * A builder for blocks, allows for customization of the {@link Block.Properties}, creation of block items, and configuration of data associated with blocks (loot tables, recipes, etc.).
@@ -357,7 +355,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
         return setData(
             ProviderType.LOOT, (ctx, prov) -> prov.addLootAction(
                 LootType.BLOCK, tb -> {
-                    if (!ctx.getEntry().getLootTable().equals(BuiltInLootTables.EMPTY)) {
+                    if (ctx.getEntry().getLootTable().isPresent()) {
                         cons.accept(tb, ctx.getEntry());
                     }
                 }
@@ -370,7 +368,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      *
      * @param cons The callback which will be invoked during data generation.
      * @return this {@link BlockBuilder}
-     * @see #setData(ProviderType, NonNullBiConsumer)
+     * @see #setData(GeneratorType, NonNullBiConsumer)
      */
     public BlockBuilder<T, P> recipe(NonNullBiConsumer<DataGenContext<Block, T>, RegistrumRecipeProvider> cons) {
         return setData(ProviderType.RECIPE, cons);

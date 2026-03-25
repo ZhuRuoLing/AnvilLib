@@ -15,10 +15,6 @@ package dev.anvilcraft.lib.v2.registrum.providers;
 import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonnullType;
-import net.neoforged.fml.LogicalSide;
-import net.neoforged.neoforge.common.data.LanguageProvider;
-import org.apache.commons.lang3.StringUtils;
-
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -31,8 +27,10 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.fml.LogicalSide;
+import net.neoforged.neoforge.common.data.LanguageProvider;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,6 +40,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 public class RegistrumLangProvider extends LanguageProvider implements RegistrumProvider {
 
@@ -56,9 +55,7 @@ public class RegistrumLangProvider extends LanguageProvider implements Registrum
         /*  numbers  */ "0⥝ᘔƐ߈ϛ9ㄥ86" +
         /*  special  */ "‾'⸵˙¿¡/\\,„)(][}{><";
     // The regex is from java.util.regex.Formatter
-    private static final Pattern PLACEHOLDER_REGEX = Pattern.compile(
-        "%(\\d+\\$)?([-#+ 0,(<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])"
-    );
+    private static final Pattern PLACEHOLDER_REGEX = Pattern.compile("%(\\d+\\$)?([-#+ 0,(<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])");
 
     static {
         if (NORMAL_CHARS.length() != UPSIDE_DOWN_CHARS.length()) {
@@ -160,9 +157,16 @@ public class RegistrumLangProvider extends LanguageProvider implements Registrum
         upsideDown.add(key, toUpsideDown(value));
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings(
+        {
+            "unchecked",
+            "ConstantConditions"
+        }
+    )
     public <T> String getAutomaticName(NonNullSupplier<? extends T> sup, ResourceKey<? extends Registry<T>> registry) {
-        return toEnglishName(((Registry<Registry<T>>) BuiltInRegistries.REGISTRY).get(registry.location()).getKey(sup.get()).getPath());
+        return toEnglishName(((Registry<Registry<T>>) BuiltInRegistries.REGISTRY).getValue(registry.location())
+            .getKey(sup.get())
+            .getPath());
     }
 
     public void addBlock(NonNullSupplier<? extends Block> block) {

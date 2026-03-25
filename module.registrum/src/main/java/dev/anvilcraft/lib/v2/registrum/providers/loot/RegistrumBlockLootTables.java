@@ -46,8 +46,8 @@ public class RegistrumBlockLootTables extends VanillaBlockLoot implements Regist
         this.callback = callback;
     }
 
-    public static LootTable.Builder createShearsOnlyDrop(ItemLike p_250684_) {
-        return BlockLootSubProvider.createShearsOnlyDrop(p_250684_);
+    public LootTable.Builder createShearsOnlyDrop(ItemLike p_250684_) {
+        return super.createShearsOnlyDrop(p_250684_);
     }
 
     public static LootTable.Builder createCandleCakeDrops(Block p_250280_) {

@@ -35,9 +35,7 @@ public class RegistrumDataMapProvider extends DataMapProvider implements Registr
     }
 
     @Override
-    @SuppressWarnings("removal")
-    protected void gather() {
+    protected void gather(HolderLookup.Provider provider) {
         parent.genData(ProviderType.DATA_MAP, this);
     }
-
 }

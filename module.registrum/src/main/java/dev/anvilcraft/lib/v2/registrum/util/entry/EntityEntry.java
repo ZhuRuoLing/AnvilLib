@@ -14,6 +14,7 @@ package dev.anvilcraft.lib.v2.registrum.util.entry;
 
 import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -30,11 +31,11 @@ public class EntityEntry<T extends Entity> extends RegistryEntry<EntityType<?>, 
         return RegistryEntry.cast(EntityEntry.class, entry);
     }
 
-    public @Nullable T create(Level world) {
-        return get().create(world);
+    public @Nullable T create(Level world, EntitySpawnReason reason) {
+        return get().create(world, reason);
     }
 
-    public boolean is(Entity t) {
+    public boolean is(@Nullable Entity t) {
         return t != null && t.getType() == get();
     }
 }

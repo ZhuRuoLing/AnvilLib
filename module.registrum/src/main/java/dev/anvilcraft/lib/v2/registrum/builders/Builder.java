@@ -14,6 +14,7 @@ package dev.anvilcraft.lib.v2.registrum.builders;
 
 import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
 import dev.anvilcraft.lib.v2.registrum.providers.DataGenContext;
+import dev.anvilcraft.lib.v2.registrum.providers.GeneratorType;
 import dev.anvilcraft.lib.v2.registrum.providers.ProviderType;
 import dev.anvilcraft.lib.v2.registrum.providers.RegistrumProvider;
 import dev.anvilcraft.lib.v2.registrum.util.entry.RegistryEntry;
@@ -108,12 +109,12 @@ public interface Builder<R, T extends R, P, S extends Builder<R, T, P, S>> exten
      * This is mostly unneeded, and instead helper methods for specific data types should be used when possible.
      *
      * @param <D>  The type of provider
-     * @param type The {@link ProviderType} for the desired provider
+     * @param type The {@link GeneratorType} for the desired provider
      * @param cons The callback to execute when the provider is run
      * @return this builder
      */
     @SuppressWarnings("unchecked")
-    default <D extends RegistrumProvider> S setData(ProviderType<? extends D> type, NonNullBiConsumer<DataGenContext<R, T>, D> cons) {
+    default <D> S setData(GeneratorType<? extends D> type, NonNullBiConsumer<DataGenContext<R, T>, D> cons) {
         getOwner().setDataGenerator(this, type, prov -> cons.accept(DataGenContext.from(this), prov));
         return (S) this;
     }

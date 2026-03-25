@@ -21,16 +21,14 @@ import dev.anvilcraft.lib.v2.registrum.providers.RegistrumRecipeProvider;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
 
 import lombok.Getter;
-import lombok.experimental.Delegate;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 
@@ -38,12 +36,11 @@ import net.minecraft.world.level.ItemLike;
  * A helper for data generation when using ingredients as input(s) to recipes.<br>
  * It remembers the name of the primary ingredient for use in creating recipe names/criteria.
  * <p>
- * Create an instance of this class with the various factory methods such as {@link #items(ItemLike, ItemLike...)} and {@link #tag(TagKey)}.
+ * Create an instance of this class with the various factory methods such as {@link #items(ItemLike, ItemLike...)} and {@link #tag(HolderSet.Named)}.
  * <p>
  * <strong>This class should not be used for any purpose other than data generation</strong>, it will throw an exception if it is serialized to a packet buffer.
  */
 public final class DataIngredient {
-    @Delegate(excludes = Excludes.class)
     private final Ingredient parent;
     @Getter
     private final ResourceLocation id;
@@ -51,13 +48,13 @@ public final class DataIngredient {
     private DataIngredient(Ingredient parent, ItemLike item) {
         this.parent = parent;
         this.id = BuiltInRegistries.ITEM.getKey(item.asItem());
-        this.criteriaFactory = prov -> RegistrumRecipeProvider.has(item);
+        this.criteriaFactory = prov -> prov.has(item);
     }
 
     private DataIngredient(Ingredient parent, TagKey<Item> tag) {
         this.parent = parent;
         this.id = tag.location();
-        this.criteriaFactory = prov -> RegistrumRecipeProvider.has(tag);
+        this.criteriaFactory = prov -> prov.has(tag);
     }
 
     private DataIngredient(Ingredient parent, ResourceLocation id, ItemPredicate... predicates) {
@@ -77,12 +74,8 @@ public final class DataIngredient {
         return ingredient(Ingredient.of(ObjectArrays.concat(first, others)), first);
     }
 
-    public static DataIngredient stacks(ItemStack first, ItemStack... others) {
-        return ingredient(Ingredient.of(ObjectArrays.concat(first, others)), first.getItem());
-    }
-
-    public static DataIngredient tag(TagKey<Item> tag) {
-        return ingredient(Ingredient.of(tag), tag);
+    public static DataIngredient tag(HolderSet.Named<Item> tag) {
+        return ingredient(Ingredient.of(tag), tag.key());
     }
 
     public static DataIngredient ingredient(Ingredient parent, ItemLike required) {
@@ -103,20 +96,5 @@ public final class DataIngredient {
 
     public Ingredient toVanilla() {
         return parent;
-    }
-
-    private interface Excludes {
-
-        void toNetwork(FriendlyByteBuf buffer);
-
-        boolean checkInvalidation();
-
-        void markValid();
-
-        boolean isVanilla();
-
-        ItemStack[] getItems();
-
-        Ingredient.Value[] getValues();
     }
 }

@@ -18,14 +18,12 @@ import java.util.stream.Stream;
 
 import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
 
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.loot.EntityLootSubProvider;
 import net.minecraft.data.loot.packs.VanillaEntityLoot;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.FrogVariant;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
@@ -35,17 +33,13 @@ public class RegistrumEntityLootTables extends VanillaEntityLoot implements Regi
     private final Consumer<RegistrumEntityLootTables> callback;
 
     public RegistrumEntityLootTables(
-        HolderLookup.Provider p_346214_,
+        HolderLookup.Provider provider,
         AbstractRegistrum<?> parent,
         Consumer<RegistrumEntityLootTables> callback
     ) {
-        super(p_346214_);
+        super(provider);
         this.parent = parent;
         this.callback = callback;
-    }
-
-    public static LootTable.Builder createSheepTable(ItemLike p_249422_) {
-        return EntityLootSubProvider.createSheepTable(p_249422_);
     }
 
     @Override
@@ -59,13 +53,13 @@ public class RegistrumEntityLootTables extends VanillaEntityLoot implements Regi
     }
 
     @Override
-    public void add(EntityType<?> p_248740_, LootTable.Builder p_249440_) {
-        super.add(p_248740_, p_249440_);
+    public void add(EntityType<?> entityType, LootTable.Builder builder) {
+        super.add(entityType, builder);
     }
 
     @Override
-    public void add(EntityType<?> p_252130_, ResourceKey<LootTable> p_335943_, LootTable.Builder p_249357_) {
-        super.add(p_252130_, p_335943_, p_249357_);
+    public void add(EntityType<?> entityType, ResourceKey<LootTable> lootTableResourceKey, LootTable.Builder builder) {
+        super.add(entityType, lootTableResourceKey, builder);
     }
 
     public HolderLookup.Provider getRegistries() {
@@ -73,12 +67,7 @@ public class RegistrumEntityLootTables extends VanillaEntityLoot implements Regi
     }
 
     @Override
-    public boolean canHaveLootTable(EntityType<?> p_249029_) {
-        return super.canHaveLootTable(p_249029_);
-    }
-
-    @Override
-    public LootItemCondition.Builder killedByFrogVariant(ResourceKey<FrogVariant> p_335676_) {
-        return super.killedByFrogVariant(p_335676_);
+    public  LootItemCondition.Builder killedByFrog(HolderGetter<EntityType<?>> entityTypeRegistry) {
+        return super.killedByFrog(entityTypeRegistry);
     }
 }

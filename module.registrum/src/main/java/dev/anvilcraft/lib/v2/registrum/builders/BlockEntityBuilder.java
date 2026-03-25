@@ -12,14 +12,6 @@
 
 package dev.anvilcraft.lib.v2.registrum.builders;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-import javax.annotation.Nullable;
-
 import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
 import dev.anvilcraft.lib.v2.registrum.util.OneTimeEventReceiver;
 import dev.anvilcraft.lib.v2.registrum.util.RegistrumDistExecutor;
@@ -27,7 +19,6 @@ import dev.anvilcraft.lib.v2.registrum.util.entry.BlockEntityEntry;
 import dev.anvilcraft.lib.v2.registrum.util.entry.RegistryEntry;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullFunction;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
-
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
@@ -42,6 +33,13 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import javax.annotation.Nullable;
+
 /**
  * A builder for block entities, allows for customization of the valid blocks.
  *
@@ -55,6 +53,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P>
     private final Set<NonNullSupplier<? extends Block>> validBlocks = new HashSet<>();
     @Nullable
     private NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T>>> renderer;
+
     protected BlockEntityBuilder(
         AbstractRegistrum<?> owner,
         P parent,
@@ -155,11 +154,10 @@ public class BlockEntityBuilder<T extends BlockEntity, P>
     protected BlockEntityType<T> createEntry() {
         BlockEntityFactory<T> factory = this.factory;
         final var supplier = asSupplier();
-        return BlockEntityType.Builder.of(
-                (pos, state) -> factory.create(supplier.get(), pos, state),
-                validBlocks.stream().map(NonNullSupplier::get).toArray(Block[]::new)
-            )
-            .build(null);
+        return new BlockEntityType<>(
+            (pos, state) -> factory.create(supplier.get(), pos, state),
+            validBlocks.stream().map(NonNullSupplier::get).toArray(Block[]::new)
+        );
     }
 
     @Override

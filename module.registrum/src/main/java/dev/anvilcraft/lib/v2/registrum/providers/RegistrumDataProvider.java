@@ -44,6 +44,7 @@ public class RegistrumDataProvider implements DataProvider {
     private final String mod;
     private final Map<ProviderType<?>, RegistrumProvider> subProviders = new LinkedHashMap<>();
     private final CompletableFuture<HolderLookup.Provider> registriesLookup;
+    private final Map<GeneratorType<?>, Object> subGenerators = new LinkedHashMap<>();
     public RegistrumDataProvider(AbstractRegistrum<?> parent, String modid, GatherDataEvent event) {
         this.mod = modid;
         this.registriesLookup = event.getLookupProvider();
@@ -74,8 +75,10 @@ public class RegistrumDataProvider implements DataProvider {
         }
     }
 
-    public static @Nullable String getTypeName(ProviderType<?> type) {
-        return TYPES.inverse().get(type);
+    public static @Nullable String getTypeName(GeneratorType<?> type) {
+        if (type instanceof ProviderType<?> prov)
+            return TYPES.inverse().get(prov);
+        return type.toString();
     }
 
     @Override
@@ -101,7 +104,13 @@ public class RegistrumDataProvider implements DataProvider {
     }
 
     @SuppressWarnings("unchecked")
-    public <P extends RegistrumProvider> Optional<P> getSubProvider(ProviderType<P> type) {
-        return Optional.ofNullable((P) subProviders.get(type));
+    public <P extends RegistrumProvider> Optional<P> getSubProvider(GeneratorType<P> type) {
+        if (type instanceof ProviderType<?> prov)
+            return Optional.ofNullable((P) subProviders.get(prov));
+        return Optional.ofNullable((P) subGenerators.get(type));
+    }
+
+    public <T> void putSubProvider(GeneratorType<? extends T> type, T gen) {
+        subGenerators.put(type, gen);
     }
 }
