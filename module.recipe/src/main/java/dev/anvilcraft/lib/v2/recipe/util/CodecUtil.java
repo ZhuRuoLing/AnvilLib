@@ -24,8 +24,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -216,8 +216,7 @@ public abstract class CodecUtil {
 
     public static <T extends Comparable<T>> MapCodec<BlockState> blockStatePropertiesCodec(BlockState state) {
         MapCodec<BlockState> mapcodec = MapCodec.of(Encoder.empty(), Decoder.unit(state));
-        for (Map.Entry<Property<?>, Comparable<?>> entry : state.getValues().entrySet()) {
-            Property<?> key = entry.getKey();
+        for (Property<?> key : state.getProperties()) {
             //noinspection unchecked
             mapcodec = CodecUtil.appendBlockStatePropertyCodec(
                 mapcodec,
@@ -247,8 +246,14 @@ public abstract class CodecUtil {
 
     // STREAM_CODEC
     public static StreamCodec<FriendlyByteBuf, Vec3> VEC3_STREAM_CODEC = StreamCodec.of(
-        (buf, vec3) -> buf.writeVec3(vec3),
-        (buf) -> buf.readVec3()
+        (buf, vec3) -> {
+            buf.writeDouble(vec3.x());
+            buf.writeDouble(vec3.y());
+            buf.writeDouble(vec3.z());
+        },
+        (buf) -> {
+            return new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble());
+        }
     );
 
     private static final byte CONSTANT_TYPE = 1;

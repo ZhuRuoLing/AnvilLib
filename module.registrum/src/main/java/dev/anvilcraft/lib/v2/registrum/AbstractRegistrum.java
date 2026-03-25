@@ -1300,7 +1300,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         Identifier stillTexture,
         Identifier flowingTexture
     ) {
-        return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, FluidType::new)).clientExtension(
+        return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, FluidType::new)).fluidModel(
             stillTexture,
             flowingTexture
         );
@@ -1313,7 +1313,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         Identifier flowingTexture,
         FluidBuilder.FluidTypeFactory typeFactory
     ) {
-        return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, typeFactory)).clientExtension(
+        return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, typeFactory)).fluidModel(
             stillTexture,
             flowingTexture
         );
@@ -1326,7 +1326,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         Identifier flowingTexture,
         NonNullSupplier<FluidType> fluidType
     ) {
-        return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, fluidType)).clientExtension(
+        return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, fluidType)).fluidModel(
             stillTexture,
             flowingTexture
         );
@@ -1336,7 +1336,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         P parent, String name, Identifier stillTexture, Identifier flowingTexture,
         FluidBuilder.FluidFactory<T> fluidFactory
     ) {
-        return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, fluidFactory)).clientExtension(
+        return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, fluidFactory)).fluidModel(
             stillTexture,
             flowingTexture
         );
@@ -1346,7 +1346,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         P parent, String name, Identifier stillTexture, Identifier flowingTexture,
         FluidBuilder.FluidTypeFactory typeFactory, FluidBuilder.FluidFactory<T> fluidFactory
     ) {
-        return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, typeFactory, fluidFactory)).clientExtension(
+        return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, typeFactory, fluidFactory)).fluidModel(
             stillTexture,
             flowingTexture
         );
@@ -1356,7 +1356,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         P parent, String name, Identifier stillTexture, Identifier flowingTexture,
         NonNullSupplier<FluidType> fluidType, FluidBuilder.FluidFactory<T> fluidFactory
     ) {
-        return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, fluidType, fluidFactory)).clientExtension(
+        return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, fluidType, fluidFactory)).fluidModel(
             stillTexture,
             flowingTexture
         );

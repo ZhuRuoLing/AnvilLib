@@ -36,15 +36,16 @@ import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.data.recipes.SingleItemRecipeBuilder;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import net.minecraft.world.item.crafting.BlastingRecipe;
 import net.minecraft.world.item.crafting.CampfireCookingRecipe;
+import net.minecraft.world.item.crafting.CookingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -127,35 +128,44 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
     public static final int DEFAULT_CAMPFIRE_TIME = DEFAULT_SMELT_TIME * 3;
 
     private static final ImmutableMap<RecipeSerializer<? extends AbstractCookingRecipe>, String> COOKING_TYPE_NAMES = ImmutableMap.<RecipeSerializer<? extends AbstractCookingRecipe>, String>builder()
-        .put(RecipeSerializer.SMELTING_RECIPE, "smelting")
-        .put(RecipeSerializer.BLASTING_RECIPE, "blasting")
-        .put(RecipeSerializer.SMOKING_RECIPE, "smoking")
-        .put(RecipeSerializer.CAMPFIRE_COOKING_RECIPE, "campfire")
+        .put(SmeltingRecipe.SERIALIZER, "smelting")
+        .put(BlastingRecipe.SERIALIZER, "blasting")
+        .put(SmokingRecipe.SERIALIZER, "smoking")
+        .put(CampfireCookingRecipe.SERIALIZER, "campfire")
         .build();
 
     public <T extends ItemLike, S extends AbstractCookingRecipe> void cooking(
         DataIngredient source,
         RecipeCategory category,
+        CookingBookCategory cookingBookCategory,
         Supplier<? extends T> result,
         float experience,
         int cookingTime,
-        RecipeSerializer<S> serializer,
+        RecipeSerializer<? extends AbstractCookingRecipe> serializer,
         AbstractCookingRecipe.Factory<S> factory
     ) {
-        cooking(source, category, result, experience, cookingTime, COOKING_TYPE_NAMES.get(serializer), serializer, factory);
+        cooking(source, category, cookingBookCategory, result, experience, cookingTime, COOKING_TYPE_NAMES.get(serializer), factory);
     }
 
     public <T extends ItemLike, S extends AbstractCookingRecipe> void cooking(
         DataIngredient source,
         RecipeCategory category,
+        CookingBookCategory cookingBookCategory,
         Supplier<? extends T> result,
         float experience,
         int cookingTime,
-        String typeName,
-        RecipeSerializer<S> serializer,
+        @Nullable String typeName,
         AbstractCookingRecipe.Factory<S> factory
     ) {
-        SimpleCookingRecipeBuilder.generic(source.toVanilla(), category, result.get(), experience, cookingTime, serializer, factory)
+        SimpleCookingRecipeBuilder.generic(
+                source.toVanilla(),
+                category,
+                cookingBookCategory,
+                result.get(),
+                experience,
+                cookingTime,
+                factory
+            )
             .unlockedBy("has_" + safeName(source), source.getCriterion(this))
             .save(this, safeId(result.get()) + "_from_" + safeName(source) + "_" + typeName);
     }
@@ -163,77 +173,94 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
     public <T extends ItemLike> void smelting(
         DataIngredient source,
         RecipeCategory category,
+        CookingBookCategory cookingBookCategory,
         Supplier<? extends T> result,
         float experience
     ) {
-        smelting(source, category, result, experience, DEFAULT_SMELT_TIME);
+        smelting(source, category, cookingBookCategory, result, experience, DEFAULT_SMELT_TIME);
     }
 
     public <T extends ItemLike> void smelting(
         DataIngredient source,
         RecipeCategory category,
+        CookingBookCategory cookingBookCategory,
         Supplier<? extends T> result,
         float experience,
         int cookingTime
     ) {
-        cooking(source, category, result, experience, cookingTime, RecipeSerializer.SMELTING_RECIPE, SmeltingRecipe::new);
+        cooking(source, category, cookingBookCategory, result, experience, cookingTime, SmeltingRecipe.SERIALIZER, SmeltingRecipe::new);
     }
 
     public <T extends ItemLike> void blasting(
         DataIngredient source,
         RecipeCategory category,
+        CookingBookCategory cookingBookCategory,
         Supplier<? extends T> result,
         float experience
     ) {
-        blasting(source, category, result, experience, DEFAULT_BLAST_TIME);
+        blasting(source, category, cookingBookCategory, result, experience, DEFAULT_BLAST_TIME);
     }
 
     public <T extends ItemLike> void blasting(
         DataIngredient source,
         RecipeCategory category,
+        CookingBookCategory cookingBookCategory,
         Supplier<? extends T> result,
         float experience,
         int cookingTime
     ) {
-        cooking(source, category, result, experience, cookingTime, RecipeSerializer.BLASTING_RECIPE, BlastingRecipe::new);
+        cooking(source, category, cookingBookCategory, result, experience, cookingTime, BlastingRecipe.SERIALIZER, BlastingRecipe::new);
     }
 
     public <T extends ItemLike> void smoking(
         DataIngredient source,
         RecipeCategory category,
+        CookingBookCategory cookingBookCategory,
         Supplier<? extends T> result,
         float experience
     ) {
-        smoking(source, category, result, experience, DEFAULT_SMOKE_TIME);
+        smoking(source, category, cookingBookCategory, result, experience, DEFAULT_SMOKE_TIME);
     }
 
     public <T extends ItemLike> void smoking(
         DataIngredient source,
         RecipeCategory category,
+        CookingBookCategory cookingBookCategory,
         Supplier<? extends T> result,
         float experience,
         int cookingTime
     ) {
-        cooking(source, category, result, experience, cookingTime, RecipeSerializer.SMOKING_RECIPE, SmokingRecipe::new);
+        cooking(source, category, cookingBookCategory, result, experience, cookingTime, SmokingRecipe.SERIALIZER, SmokingRecipe::new);
     }
 
     public <T extends ItemLike> void campfire(
         DataIngredient source,
         RecipeCategory category,
+        CookingBookCategory cookingBookCategory,
         Supplier<? extends T> result,
         float experience
     ) {
-        campfire(source, category, result, experience, DEFAULT_CAMPFIRE_TIME);
+        campfire(source, category, cookingBookCategory, result, experience, DEFAULT_CAMPFIRE_TIME);
     }
 
     public <T extends ItemLike> void campfire(
         DataIngredient source,
         RecipeCategory category,
+        CookingBookCategory cookingBookCategory,
         Supplier<? extends T> result,
         float experience,
         int cookingTime
     ) {
-        cooking(source, category, result, experience, cookingTime, RecipeSerializer.CAMPFIRE_COOKING_RECIPE, CampfireCookingRecipe::new);
+        cooking(
+            source,
+            category,
+            cookingBookCategory,
+            result,
+            experience,
+            cookingTime,
+            CampfireCookingRecipe.SERIALIZER,
+            CampfireCookingRecipe::new
+        );
     }
 
     public <T extends ItemLike> void stonecutting(DataIngredient source, RecipeCategory category, Supplier<? extends T> result) {
@@ -254,17 +281,24 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
     public <T extends ItemLike> void smeltingAndBlasting(
         DataIngredient source,
         RecipeCategory category,
+        CookingBookCategory cookingBookCategory,
         Supplier<? extends T> result,
         float xp
     ) {
-        smelting(source, category, result, xp);
-        blasting(source, category, result, xp);
+        smelting(source, category, cookingBookCategory, result, xp);
+        blasting(source, category, cookingBookCategory, result, xp);
     }
 
-    public <T extends ItemLike> void food(DataIngredient source, RecipeCategory category, Supplier<? extends T> result, float xp) {
-        smelting(source, category, result, xp);
-        smoking(source, category, result, xp);
-        campfire(source, category, result, xp);
+    public <T extends ItemLike> void food(
+        DataIngredient source,
+        RecipeCategory category,
+        CookingBookCategory cookingBookCategory,
+        Supplier<? extends T> result,
+        float xp
+    ) {
+        smelting(source, category, cookingBookCategory, result, xp);
+        smoking(source, category, cookingBookCategory, result, xp);
+        campfire(source, category, cookingBookCategory, result, xp);
     }
 
     public <T extends ItemLike> void square(DataIngredient source, RecipeCategory category, Supplier<? extends T> output, boolean small) {
@@ -455,24 +489,26 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
     public void oreSmelting(
         List<ItemLike> p_250172_,
         RecipeCategory p_250588_,
+        CookingBookCategory cookingBookCategory,
         ItemLike p_251868_,
         float p_250789_,
         int p_252144_,
         String p_251687_
     ) {
-        super.oreSmelting(p_250172_, p_250588_, p_251868_, p_250789_, p_252144_, p_251687_);
+        super.oreSmelting(p_250172_, p_250588_, cookingBookCategory, p_251868_, p_250789_, p_252144_, p_251687_);
     }
 
     @Override
     public void oreBlasting(
         List<ItemLike> p_251504_,
         RecipeCategory p_248846_,
+        CookingBookCategory cookingBookCategory,
         ItemLike p_249735_,
         float p_248783_,
         int p_250303_,
         String p_251984_
     ) {
-        super.oreBlasting(p_251504_, p_248846_, p_249735_, p_248783_, p_250303_, p_251984_);
+        super.oreBlasting(p_251504_, p_248846_, cookingBookCategory, p_249735_, p_248783_, p_250303_, p_251984_);
     }
 
     @Override
@@ -747,10 +783,9 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
     }
 
     @Override
-    public Block getBaseBlock(BlockFamily p_176524_, BlockFamily.Variant p_176525_) {
-        return super.getBaseBlock(p_176524_, p_176525_);
+    public Block getBaseBlockForCrafting(BlockFamily family, BlockFamily.Variant variant) {
+        return super.getBaseBlockForCrafting(family, variant);
     }
-
 
     public static Criterion<EnterBlockTrigger.TriggerInstance> insideOf(Block p_125980_) {
         return RecipeProvider.insideOf(p_125980_);
@@ -827,8 +862,8 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
     }
 
     @Override
-    public ShapelessRecipeBuilder shapeless(RecipeCategory p_364602_, ItemStack p_361999_) {
-        return super.shapeless(p_364602_, p_361999_);
+    public ShapelessRecipeBuilder shapeless(RecipeCategory category, ItemStackTemplate result) {
+        return super.shapeless(category, result);
     }
 
     @Override

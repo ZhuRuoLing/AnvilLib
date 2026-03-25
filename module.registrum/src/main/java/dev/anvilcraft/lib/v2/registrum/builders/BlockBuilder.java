@@ -34,8 +34,9 @@ import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullBiFunction;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullFunction;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullUnaryOperator;
-import net.minecraft.client.color.block.BlockColor;
-import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.color.block.BlockTintSource;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelDispatcher;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -51,6 +52,7 @@ import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
@@ -91,7 +93,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
         BuilderCallback callback,
         NonNullFunction<BlockBehaviour.Properties, T> factory
     ) {
-        return new BlockBuilder<>(owner, parent, name, callback, factory, () -> BlockBehaviour.Properties.of())
+        return new BlockBuilder<>(owner, parent, name, callback, factory, BlockBehaviour.Properties::of)
             .defaultBlockstate().defaultLoot().defaultLang();
     }
 
@@ -101,7 +103,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
     private NonNullFunction<BlockBehaviour.Properties, BlockBehaviour.Properties> propertiesCallback = NonNullUnaryOperator.identity();
 
     @Nullable
-    private NonNullSupplier<Supplier<BlockColor>> colorHandler;
+    private NonNullSupplier<Supplier<List<BlockTintSource>>> colorHandler;
 
     protected BlockBuilder(
         AbstractRegistrum<?> owner,
@@ -181,7 +183,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
             .model(() -> (ctx, prov) -> {
                 var model = getOwner().getDataProvider(ProviderType.BLOCKSTATE)
                     .map(g -> g.seenBlockstates.get(getEntry()))
-                    .flatMap(b -> b.simpleModels())
+                    .flatMap(BlockStateModelDispatcher::simpleModels)
                     .map(b -> b.models().get(""))
                     .flatMap(ub -> BlockStateModel.Unbaked.CODEC.encodeStart(JsonOps.INSTANCE, ub).result())
                     .filter(JsonElement::isJsonObject)
@@ -216,24 +218,24 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
     }
 
     /**
-     * Register a block color handler for this block. The {@link BlockColor} instance can be shared across many blocks.
+     * Register a block color handler for this block. The {@link BlockTintSource} instance can be shared across many blocks.
      *
      * @param colorHandler The color handler to register for this block
      * @return this {@link BlockBuilder}
      */
     // TODO it might be worthwhile to abstract this more and add the capability to automatically copy to the item
-    public BlockBuilder<T, P> color(NonNullSupplier<Supplier<BlockColor>> colorHandler) {
+    public BlockBuilder<T, P> color(NonNullSupplier<Supplier<List<BlockTintSource>>> colorHandler) {
         if (this.colorHandler == null) {
-            RegistrumDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerBlockColor);
+            RegistrumDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerBlockTintSource);
         }
         this.colorHandler = colorHandler;
         return this;
     }
 
-    protected void registerBlockColor() {
+    protected void registerBlockTintSource() {
         OneTimeEventReceiver.addModListener(
-            getOwner(), RegisterColorHandlersEvent.Block.class, e -> {
-                NonNullSupplier<Supplier<BlockColor>> colorHandler = this.colorHandler;
+            getOwner(), RegisterColorHandlersEvent.BlockTintSources.class, e -> {
+                NonNullSupplier<Supplier<List<BlockTintSource>>> colorHandler = this.colorHandler;
                 if (colorHandler != null) {
                     e.register(colorHandler.get().get(), getEntry());
                 }

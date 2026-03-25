@@ -29,8 +29,9 @@ import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullConsumer;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullFunction;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
 import net.minecraft.client.data.models.model.ModelTemplates;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
@@ -45,10 +46,11 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.RegisterFluidModelsEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
+import net.neoforged.neoforge.client.fluid.FluidTintSource;
 import net.neoforged.neoforge.common.util.Lazy;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
@@ -75,7 +77,6 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
         T create(BaseFlowingFluid.Properties properties);
     }
 
-
     @Nullable
     private NonNullSupplier<Supplier<IClientFluidTypeExtensions>> clientExtension;
 
@@ -93,16 +94,61 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
         return this;
     }
 
-    public FluidBuilder<T, P> clientExtension(Identifier stillTexture, Identifier flowingTexture) {
-        return clientExtension(() -> () -> new DefaultFluidTypeExtension(stillTexture, flowingTexture));
-    }
-
     protected void registerClientExtension() {
         OneTimeEventReceiver.addModListener(
             getOwner(), RegisterClientExtensionsEvent.class, e -> {
                 NonNullSupplier<Supplier<IClientFluidTypeExtensions>> clientExtension = this.clientExtension;
                 if (clientExtension != null) {
-                    e.registerFluidType(clientExtension.get().get(), fluidType.get());
+                    IClientFluidTypeExtensions extensions = clientExtension.get().get();
+                    NonNullSupplier<FluidType> fluidType = this.fluidType;
+                    if (extensions != null && fluidType != null) {
+                        e.registerFluidType(extensions, fluidType.get());
+                    }
+                }
+            }
+        );
+    }
+
+    @Nullable
+    private NonNullSupplier<Supplier<DefaultFluidModel>> fluidModel;
+
+    public FluidBuilder<T, P> fluidModel(NonNullSupplier<Supplier<DefaultFluidModel>> fluidModel) {
+        if (this.fluidModel == null) {
+            RegistrumDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerFluidModel);
+        }
+        this.fluidModel = fluidModel;
+        return this;
+    }
+
+    public FluidBuilder<T, P> fluidModel(Identifier stillTexture, Identifier flowingTexture) {
+        return fluidModel(() -> () -> new DefaultFluidModel(stillTexture, true, flowingTexture, true, null, false, null));
+    }
+
+    protected void registerFluidModel() {
+        OneTimeEventReceiver.addModListener(
+            getOwner(), RegisterFluidModelsEvent.class, e -> {
+                NonNullSupplier<Supplier<DefaultFluidModel>> fluidModel = this.fluidModel;
+                NonNullSupplier<? extends BaseFlowingFluid> fluid = this.source;
+                if (fluidModel != null && fluid != null) {
+                    DefaultFluidModel model = fluidModel.get().get();
+                    e.register(
+                        new FluidModel.Unbaked(
+                            new Material(
+                                model.stillTexture(),
+                                model.stillTranslucent()
+                            ),
+                            new Material(
+                                model.flowingTexture(),
+                                model.flowingTranslucent()
+                            ),
+                            model.overlayTexture() == null ? null : new Material(
+                                model.overlayTexture(),
+                                model.overlayTranslucent()
+                            ),
+                            model.fluidTintSource()
+                        ),
+                        fluid.get()
+                    );
                 }
             }
         );
@@ -357,35 +403,6 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
         return lang(f -> f.getFluidType().getDescriptionId(), name);
     }
 
-
-    @SuppressWarnings("deprecation")
-    public FluidBuilder<T, P> renderType(Supplier<Supplier<ChunkSectionLayer>> layer) {
-//        RegistrumDistExecutor.unsafeRunWhenOn(
-//            Dist.CLIENT, () -> () -> {
-//                Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get().get()), "Invalid render type: " + layer);
-//            }
-//        );
-
-        if (this.layer == null) {
-            onRegister(this::registerRenderType);
-        }
-        this.layer = layer;
-        return this;
-    }
-
-    @SuppressWarnings("deprecation")
-    protected void registerRenderType(T entry) {
-        RegistrumDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            OneTimeEventReceiver.addModListener(getOwner(), FMLClientSetupEvent.class, $ -> {
-                if (this.layer != null) {
-                    ChunkSectionLayer layer = this.layer.get().get();
-                    ItemBlockRenderTypes.setRenderLayer(entry, layer);
-                    ItemBlockRenderTypes.setRenderLayer(getSource(), layer);
-                }
-            });
-        });
-    }
-
     /**
      * Create a standard {@link BaseFlowingFluid.Source} for this fluid which will be built and registered along with this fluid.
      *
@@ -532,8 +549,10 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
     public final FluidBuilder<T, P> tag(TagKey<Fluid>... tags) {
         FluidBuilder<T, P> ret = this.tag(ProviderType.FLUID_TAGS, tags);
         if (this.tags.isEmpty()) {
-            ret.getOwner().<RegistrumTagsProvider.Intrinsic<Fluid>, Fluid>setDataGenerator(ret.sourceName, getRegistryKey(), ProviderType.FLUID_TAGS,
-                prov -> this.tags.stream().map(prov::tag).forEach(p -> p.add(getSource())));
+            ret.getOwner().<RegistrumTagsProvider.Intrinsic<Fluid>, Fluid>setDataGenerator(
+                ret.sourceName, getRegistryKey(), ProviderType.FLUID_TAGS,
+                prov -> this.tags.stream().map(prov::tag).forEach(p -> p.add(getSource()))
+            );
         }
         this.tags.addAll(Arrays.asList(tags));
         return ret;
@@ -640,25 +659,14 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
         return new FluidEntry<>(getOwner(), delegate);
     }
 
-    public static class DefaultFluidTypeExtension implements IClientFluidTypeExtensions {
-
-        private final Identifier stillTexture, flowingTexture;
-
-        public DefaultFluidTypeExtension(Identifier stillTexture, Identifier flowingTexture) {
-            this.stillTexture = stillTexture;
-            this.flowingTexture = flowingTexture;
-        }
-
-        @Override
-        public Identifier getStillTexture() {
-            return stillTexture;
-        }
-
-        @Override
-        public Identifier getFlowingTexture() {
-            return flowingTexture;
-        }
-
+    public record DefaultFluidModel(
+        Identifier stillTexture,
+        boolean stillTranslucent,
+        Identifier flowingTexture,
+        boolean flowingTranslucent,
+        @Nullable Identifier overlayTexture,
+        boolean overlayTranslucent,
+        @Nullable FluidTintSource fluidTintSource
+    ) {
     }
-
 }

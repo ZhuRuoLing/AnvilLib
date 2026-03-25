@@ -22,7 +22,7 @@ import net.minecraft.client.data.models.model.ModelInstance;
 import net.minecraft.client.data.models.model.ModelTemplate;
 import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.data.models.model.TexturedModel;
-import net.minecraft.client.renderer.block.model.BlockModelDefinition;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelDispatcher;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
@@ -36,7 +36,7 @@ import java.util.function.Consumer;
 public class RegistrumBlockModelGenerator extends BlockModelGenerators {
 
     private final AbstractRegistrum<?> parent;
-    public final Map<Block, BlockModelDefinition> seenBlockstates = new HashMap<>();
+    public final Map<Block, BlockStateModelDispatcher> seenBlockstates = new HashMap<>();
 
     public RegistrumBlockModelGenerator(
         AbstractRegistrum<?> parent,
