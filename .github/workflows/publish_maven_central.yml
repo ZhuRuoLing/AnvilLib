@@ -57,7 +57,7 @@ jobs:
           path: module.${{ inputs.module }}/build/staging-deploy/
 
       - name: Publish to Maven Central
-        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.8:jreleaserDeploy --no-configuration-cache
+        run: ./gradlew :${{ inputs.module_id }}-neoforge-1.21.9:jreleaserDeploy --no-configuration-cache
         env:
           JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.maven_central_username }}
           JRELEASER_MAVENCENTRAL_PASSWORD: ${{ secrets.maven_central_password }}
