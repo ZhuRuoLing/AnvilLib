@@ -23,6 +23,7 @@ import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
@@ -45,8 +46,8 @@ import javax.annotation.Nullable;
  * @param <T> The type of block entity being built
  * @param <P> Parent object type
  */
-public class BlockEntityBuilder<T extends BlockEntity, P>
-    extends AbstractBuilder<BlockEntityType<?>, BlockEntityType<T>, P, BlockEntityBuilder<T, P>> {
+public class BlockEntityBuilder<T extends BlockEntity, P, S extends BlockEntityRenderState>
+    extends AbstractBuilder<BlockEntityType<?>, BlockEntityType<T>, P, BlockEntityBuilder<T, P, S>> {
 
     public interface BlockEntityFactory<T extends BlockEntity> {
 
@@ -68,7 +69,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P>
      * @param factory  Factory to create the block entity
      * @return A new {@link BlockEntityBuilder} with reasonable default data generators.
      */
-    public static <T extends BlockEntity, P> BlockEntityBuilder<T, P> create(
+    public static <T extends BlockEntity, P, S extends BlockEntityRenderState> BlockEntityBuilder<T, P, S> create(
         AbstractRegistrum<?> owner,
         P parent,
         String name,
@@ -81,7 +82,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P>
     private final BlockEntityFactory<T> factory;
     private final Set<NonNullSupplier<? extends Block>> validBlocks = new HashSet<>();
     @Nullable
-    private NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T>>> renderer;
+    private NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T, ? super S>>> renderer;
 
     protected BlockEntityBuilder(
         AbstractRegistrum<?> owner,
@@ -100,7 +101,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P>
      * @param block A supplier for the block to add at registration time
      * @return this {@link BlockEntityBuilder}
      */
-    public BlockEntityBuilder<T, P> validBlock(NonNullSupplier<? extends Block> block) {
+    public BlockEntityBuilder<T, P, S> validBlock(NonNullSupplier<? extends Block> block) {
         validBlocks.add(block);
         return this;
     }
@@ -112,7 +113,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P>
      * @return this {@link BlockEntityBuilder}
      */
     @SafeVarargs
-    public final BlockEntityBuilder<T, P> validBlocks(NonNullSupplier<? extends Block>... blocks) {
+    public final BlockEntityBuilder<T, P, S> validBlocks(NonNullSupplier<? extends Block>... blocks) {
         Arrays.stream(blocks).forEach(this::validBlock);
         return this;
     }
@@ -125,7 +126,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P>
      * @return this {@link BlockEntityBuilder}
      * @apiNote This requires the {@link Class} of the block entity object, which can only be gotten by inspecting an instance of it. Thus, the entity will be constructed to register the renderer.
      */
-    public BlockEntityBuilder<T, P> renderer(NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T>>> renderer) {
+    public BlockEntityBuilder<T, P, S> renderer(NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T, ? super S>>> renderer) {
         if (this.renderer == null) { // First call only
             RegistrumDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerRenderer);
         }

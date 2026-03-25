@@ -30,7 +30,7 @@ public class IntegrationManager {
 
     @SuppressWarnings("UnstableApiUsage")
     public void compileContent() {
-        ModFileInfo fileInfo = LoadingModList.get().getModFileById(this.modId);
+        ModFileInfo fileInfo = FMLLoader.getCurrent().getLoadingModList().getModFileById(this.modId);
         ModFileScanData scanData = fileInfo.getFile().getScanResult();
         List<ModFileScanData.AnnotationData> list = scanData.getAnnotations()
             .stream()
@@ -66,7 +66,7 @@ public class IntegrationManager {
     @SuppressWarnings("DataFlowIssue")
     public void load(String modid, ModInfo info) {
         for (IntegrationInstance instance : instances.get(modid)) {
-            if (FMLLoader.getDist().isDedicatedServer() && !instance.containsType(IntegrationType.DEDICATED_SERVER)) return;
+            if (FMLLoader.getCurrent().getDist().isDedicatedServer() && !instance.containsType(IntegrationType.DEDICATED_SERVER)) return;
             if (!instance.is(info)) continue;
             instance.newInstance();
             log.info("Loading integration {} for {}.", instance.getInstance(), modid);
@@ -96,21 +96,21 @@ public class IntegrationManager {
 
     public void loadAllIntegrations() {
         for (String key : instances.keySet()) {
-            Optional<ModInfo> info = LoadingModList.get().getMods().stream().filter(it -> it.getModId().equals(key)).findFirst();
+            Optional<ModInfo> info = FMLLoader.getCurrent().getLoadingModList().getMods().stream().filter(it -> it.getModId().equals(key)).findFirst();
             info.ifPresent(modInfo -> load(key, modInfo));
         }
     }
 
     public void loadAllClientIntegrations() {
         for (String key : instances.keySet()) {
-            Optional<ModInfo> info = LoadingModList.get().getMods().stream().filter(it -> it.getModId().equals(key)).findFirst();
+            Optional<ModInfo> info = FMLLoader.getCurrent().getLoadingModList().getMods().stream().filter(it -> it.getModId().equals(key)).findFirst();
             info.ifPresent(modInfo -> loadClient(key, modInfo));
         }
     }
 
     public void loadAllDataIntegrations() {
         for (String key : instances.keySet()) {
-            Optional<ModInfo> info = LoadingModList.get().getMods().stream().filter(it -> it.getModId().equals(key)).findFirst();
+            Optional<ModInfo> info = FMLLoader.getCurrent().getLoadingModList().getMods().stream().filter(it -> it.getModId().equals(key)).findFirst();
             info.ifPresent(modInfo -> loadData(key, modInfo));
         }
     }

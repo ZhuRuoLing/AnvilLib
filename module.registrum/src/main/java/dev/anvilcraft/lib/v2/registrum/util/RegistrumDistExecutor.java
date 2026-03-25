@@ -15,12 +15,13 @@ package dev.anvilcraft.lib.v2.registrum.util;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLLoader;
 
 import java.util.function.Supplier;
 
 public class RegistrumDistExecutor {
     public static void unsafeRunWhenOn(Dist dist, Supplier<Runnable> toRun) {
-        if (dist == FMLEnvironment.dist) {
+        if (dist == FMLLoader.getCurrent().getDist()) {
             toRun.get().run();
         }
     }

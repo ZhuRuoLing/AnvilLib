@@ -56,7 +56,7 @@ public class ConfigManager {
             }
         );
         T config = manager.register(configFactory.get());
-        if (FMLLoader.getDist().isClient()) manager.registerScreen(container);
+        if (FMLLoader.getCurrent().getDist().isClient()) manager.registerScreen(container);
         return config;
     }
 

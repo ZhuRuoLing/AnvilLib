@@ -4,6 +4,7 @@ import dev.anvilcraft.lib.v2.network.packet.IPacket;
 import lombok.extern.slf4j.Slf4j;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.LoadingModList;
 import net.neoforged.fml.loading.modscan.ModAnnotation;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -38,7 +39,7 @@ public class NetworkRegistrar {
     @SuppressWarnings("unchecked")
     public static void register(PayloadRegistrar registrar, String modId) {
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        IModFileInfo fileInfo = LoadingModList.get().getModFileById(modId);
+        IModFileInfo fileInfo = FMLLoader.getCurrent().getLoadingModList().getModFileById(modId);
         ModFileScanData scanData = fileInfo.getFile().getScanResult();
         for (ModFileScanData.AnnotationData annotation : scanData.getAnnotations()) {
             if (
