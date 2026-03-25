@@ -239,7 +239,7 @@ gradlew.bat build
 
 This project is licensed under the [MIT License](https://www.opensource.org/licenses/MIT).
 
-Part of the Registrum module code is based on [Registrate](https://github.com/IThundxr/Registrate) and follows the Mozilla Public License
+Part of the Registrum module code is based on [Registrate](https://github.com/tterrag1098/Registrate) and follows the Mozilla Public License
 2.0.
 
 ## Author

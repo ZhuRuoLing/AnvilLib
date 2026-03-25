@@ -237,7 +237,7 @@ gradlew.bat build
 
 本项目采用 [MIT License](https://www.opensource.org/licenses/MIT) 许可证。
 
-Registrum 模块部分代码基于 [Registrate](https://github.com/IThundxr/Registrate)，遵循 Mozilla Public License 2.0。
+Registrum 模块部分代码基于 [Registrate](https://github.com/tterrag1098/Registrate)，遵循 Mozilla Public License 2.0。
 
 ## 作者
 
