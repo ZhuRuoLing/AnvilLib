@@ -116,9 +116,9 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
     if (System.getenv("NOT_DEV") == 'true') {
-        jarJar(implementation("dev.anvilcraft.lib:anvillib-config-neoforge-1.21.7:latest.release"))
+        jarJar(implementation("dev.anvilcraft.lib:anvillib-config-neoforge-1.21.8:latest.release"))
     } else {
-        jarJar(implementation project(":anvillib-config-neoforge-1.21.7"))
+        jarJar(implementation project(":anvillib-config-neoforge-1.21.8"))
     }
 }
 
