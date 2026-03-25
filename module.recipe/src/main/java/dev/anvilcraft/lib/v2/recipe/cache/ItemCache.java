@@ -7,7 +7,7 @@ import dev.anvilcraft.lib.v2.recipe.cache.item.ICacheInput;
 import dev.anvilcraft.lib.v2.recipe.cache.item.ICacheInputOutputImpl;
 import dev.anvilcraft.lib.v2.recipe.cache.item.ICacheOutput;
 import dev.anvilcraft.lib.v2.recipe.cache.item.ItemEntityCacheElement;
-import dev.anvilcraft.lib.v2.recipe.cache.item.ItemHandlerCacheElement;
+import dev.anvilcraft.lib.v2.recipe.cache.item.ItemResourceHandlerCacheElement;
 import dev.anvilcraft.lib.v2.recipe.cache.item.operation.SpawnOperation;
 import dev.anvilcraft.lib.v2.recipe.event.ItemCacheEvent;
 import dev.anvilcraft.lib.v2.recipe.init.LibBlockEntityTags;
@@ -20,6 +20,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
@@ -30,7 +31,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -139,15 +142,15 @@ public class ItemCache {
      */
     private static void toElement(
         ItemCache itemCache,
-        IItemHandlerCache cache,
+        ItemResourceHandlerCache cache,
         Set<ICacheElement> input,
         Set<ICacheElement> output,
         Vec3 elementPos,
         Vec3 elementRange
     ) {
-        IItemHandler inputHandler = cache.getInput();
-        for (int i = 0; i < inputHandler.getSlots(); i++) {
-            ItemHandlerCacheElement element = new ItemHandlerCacheElement(
+        ResourceHandler<ItemResource>inputHandler = cache.getInput();
+        for (int i = 0; i < inputHandler.size(); i++) {
+            ItemResourceHandlerCacheElement element = new ItemResourceHandlerCacheElement(
                 itemCache,
                 inputHandler,
                 i,
@@ -156,9 +159,9 @@ public class ItemCache {
             );
             input.add(element);
         }
-        IItemHandler outputHandler = cache.getOutput();
-        for (int i = 0; i < outputHandler.getSlots(); i++) {
-            ItemHandlerCacheElement element = new ItemHandlerCacheElement(
+        ResourceHandler<ItemResource>outputHandler = cache.getOutput();
+        for (int i = 0; i < outputHandler.size(); i++) {
+            ItemResourceHandlerCacheElement element = new ItemResourceHandlerCacheElement(
                 itemCache,
                 outputHandler,
                 i,
@@ -181,14 +184,14 @@ public class ItemCache {
      */
     private static void toElement(
         ItemCache itemCache,
-        IItemHandler handler,
+        ResourceHandler<ItemResource>handler,
         Set<ICacheElement> input,
         Set<ICacheElement> output,
         Vec3 elementPos,
         Vec3 elementRange
     ) {
-        for (int i = 0; i < handler.getSlots(); i++) {
-            ItemHandlerCacheElement element = new ItemHandlerCacheElement(
+        for (int i = 0; i < handler.size(); i++) {
+            ItemResourceHandlerCacheElement element = new ItemResourceHandlerCacheElement(
                 itemCache,
                 handler,
                 i,
@@ -225,10 +228,10 @@ public class ItemCache {
         double minRange = Math.min(xRange, Math.min(yRange, zRange));
         Vec3 elementPos = entity.position().add(0.0, yRange / 2.0, 0.0);
         Vec3 elementRange = new Vec3(minRange, minRange, minRange);
-        if (entity instanceof IItemHandlerCache cache) {
+        if (entity instanceof ItemResourceHandlerCache cache) {
             ItemCache.toElement(itemCache, cache, input, output, elementPos, elementRange);
-        } else if (entity instanceof IItemHandler handler && entity.getType().is(LibEntityTypeTags.ITEM_CACHE)) {
-            ItemCache.toElement(itemCache, handler, input, output, elementPos, elementRange);
+        } else if (entity instanceof Container container && entity.getType().is(LibEntityTypeTags.ITEM_CACHE)) {
+            ItemCache.toElement(itemCache, VanillaContainerWrapper.of(container), input, output, elementPos, elementRange);
         }
         return Map.entry(input, output);
     }
@@ -259,10 +262,11 @@ public class ItemCache {
             Optional<ResourceKey<BlockEntityType<?>>> key = BuiltInRegistries.BLOCK_ENTITY_TYPE.getResourceKey(blockEntity.getType());
             return key.filter(keys::contains).isPresent();
         };
-        if (entity instanceof IItemHandlerCache cache) {
+
+        if (entity instanceof ItemResourceHandlerCache cache) {
             ItemCache.toElement(itemCache, cache, input, output, elementPos, elementRange);
-        } else if (entity instanceof IItemHandler handler && inTag.test(entity)) {
-            ItemCache.toElement(itemCache, handler, input, output, elementPos, elementRange);
+        } else if (entity instanceof Container container && inTag.test(entity)) {
+            ItemCache.toElement(itemCache, VanillaContainerWrapper.of(container), input, output, elementPos, elementRange);
         }
         return Map.entry(input, output);
     }

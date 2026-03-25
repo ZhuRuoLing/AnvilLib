@@ -5,7 +5,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 import javax.annotation.Nullable;
 
@@ -13,11 +15,11 @@ import javax.annotation.Nullable;
  * 物品处理器缓存元素类，继承自抽象缓存元素类
  */
 @EqualsAndHashCode(callSuper = false)
-public class ItemHandlerCacheElement extends AbstractCacheElement implements ICacheElement {
+public class ItemResourceHandlerCacheElement extends AbstractCacheElement implements ICacheElement {
     /**
      * 物品处理器
      */
-    private final IItemHandler iItemHandler;
+    private final ResourceHandler<ItemResource> iItemHandler;
 
     /**
      * 槽位
@@ -45,12 +47,18 @@ public class ItemHandlerCacheElement extends AbstractCacheElement implements ICa
      * @param pos          位置
      * @param range        范围
      */
-    public ItemHandlerCacheElement(ItemCache cache, IItemHandler iItemHandler, int slot, Vec3 pos, Vec3 range) {
-        super(cache, iItemHandler.getStackInSlot(slot).copy());
+    public ItemResourceHandlerCacheElement(ItemCache cache, ResourceHandler<ItemResource> iItemHandler, int slot, Vec3 pos, Vec3 range) {
+        super(cache, ItemResourceHandlerCacheElement.extract(iItemHandler, slot).copy());
         this.iItemHandler = iItemHandler;
         this.slot = slot;
         this.pos = pos;
         this.range = range;
+    }
+
+    private static ItemStack extract(ResourceHandler<ItemResource> iItemHandler, int slot) {
+        ItemResource resource = iItemHandler.getResource(slot);
+        int extract = iItemHandler.extract(slot, resource, Integer.MAX_VALUE, Transaction.openRoot());
+        return resource.toStack(extract);
     }
 
     /**
@@ -61,7 +69,7 @@ public class ItemHandlerCacheElement extends AbstractCacheElement implements ICa
      */
     @Override
     public int getCapacity(ItemStack stack) {
-        return this.iItemHandler.getSlotLimit(this.slot);
+        return this.iItemHandler.getCapacityAsInt(this.slot, ItemResource.of(stack));
     }
 
     /**
@@ -73,7 +81,7 @@ public class ItemHandlerCacheElement extends AbstractCacheElement implements ICa
     @Override
     public boolean is(@Nullable ItemStack stack) {
         if (stack == null) return false;
-        return this.iItemHandler.isItemValid(this.slot, stack);
+        return this.iItemHandler.isValid(this.slot, ItemResource.of(stack));
     }
 
     /**
@@ -83,11 +91,11 @@ public class ItemHandlerCacheElement extends AbstractCacheElement implements ICa
     public void sync() {
         this.growSimulateStack.clear();
         this.shrinkSimulateStack.clear();
-        ItemStack stack = this.iItemHandler.getStackInSlot(this.slot);
-        if (stack.isEmpty()) {
-            this.iItemHandler.insertItem(this.slot, this.simulate, false);
+        ItemResource resource = this.iItemHandler.getResource(this.slot);
+        if (resource.isEmpty()) {
+            this.iItemHandler.insert(this.slot, ItemResource.of(this.simulate), this.simulate.getCount(), Transaction.openRoot());
         } else {
-            stack.setCount(this.simulate.getCount());
+            this.iItemHandler.insert(this.slot, ItemResource.of(resource.toStack()), this.simulate.getCount(), Transaction.openRoot());
         }
     }
 }
