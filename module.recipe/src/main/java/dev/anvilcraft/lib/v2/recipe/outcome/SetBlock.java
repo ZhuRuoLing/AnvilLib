@@ -6,16 +6,20 @@ import dev.anvilcraft.lib.v2.recipe.cache.BlockCache;
 import dev.anvilcraft.lib.v2.recipe.init.reicpe.LibRecipeOutcomeTypes;
 import dev.anvilcraft.lib.v2.recipe.util.CodecUtil;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
+import lombok.extern.slf4j.Slf4j;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 import net.minecraft.world.phys.Vec3;
@@ -29,6 +33,7 @@ import net.minecraft.world.phys.Vec3;
  * @param offset 偏移量
  * @param chance 概率
  */
+@Slf4j
 public record SetBlock(BlockState state, CompoundTag nbt, Vec3 offset, NumberProvider chance) implements IRecipeOutcome<SetBlock> {
     /**
      * 构造一个新的设置方块配方结果
@@ -72,8 +77,13 @@ public record SetBlock(BlockState state, CompoundTag nbt, Vec3 offset, NumberPro
         if (this.state.hasBlockEntity() && this.state.getBlock() instanceof EntityBlock entityBlock) {
             BlockEntity entity = entityBlock.newBlockEntity(blockPos, this.state);
             if (entity != null) {
-                entity.loadWithComponents(this.nbt, context.getLevel().registryAccess());
-                cache.setBlockEntity(blockPos, entity);
+                try (
+                    ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(entity.problemPath(), log)
+                ) {
+                    ValueInput input = TagValueInput.create(reporter, context.getLevel().registryAccess(), this.nbt);
+                    entity.loadWithComponents(input);
+                    cache.setBlockEntity(blockPos, entity);
+                }
             }
         }
         context.putAcceptor(BlockCache.BLOCK_CACHE.location(), BlockCache.DEFAULT_ACCEPTOR);

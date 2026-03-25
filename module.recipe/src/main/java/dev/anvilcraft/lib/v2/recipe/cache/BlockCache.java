@@ -3,15 +3,19 @@ package dev.anvilcraft.lib.v2.recipe.cache;
 import dev.anvilcraft.lib.v2.recipe.AnvilLibRecipe;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeData;
+import lombok.extern.slf4j.Slf4j;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 
 import java.util.HashMap;
 import java.util.function.Consumer;
@@ -22,6 +26,7 @@ import javax.annotation.Nullable;
  * 该类提供了对方块状态的读取、修改和提交功能，确保配方执行过程中的数据一致性
  */
 @SuppressWarnings("UnusedReturnValue")
+@Slf4j
 public class BlockCache {
     /**
      * 方块缓存的数据键
@@ -174,7 +179,12 @@ public class BlockCache {
             CompoundTag oldTag = oldEntity.saveWithFullMetadata(access);
             CompoundTag newTag = entity.saveWithFullMetadata(access);
             if (oldTag.equals(newTag)) return;
-            oldEntity.loadWithComponents(newTag, access);
+            try (
+                ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(oldEntity.problemPath(), log)
+            ) {
+                ValueInput input = TagValueInput.create(reporter, this.level.registryAccess(), newTag);
+                oldEntity.loadWithComponents(input);
+            }
         });
     }
 }

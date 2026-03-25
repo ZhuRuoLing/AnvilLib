@@ -586,8 +586,19 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
     }
 
     @Override
-    public void colorBlockWithDye(List<Item> p_289675_, List<Item> p_289672_, String p_289641_) {
-        super.colorBlockWithDye(p_289675_, p_289672_, p_289641_);
+    public void colorItemWithDye(List<Item> dyeItems, List<Item> dyeableItems, String group, RecipeCategory category) {
+        super.colorItemWithDye(dyeItems, dyeableItems, group, category);
+    }
+
+    @Override
+    public void colorWithDye(
+        List<Item> dyes,
+        List<Item> dyeableItems,
+        @Nullable Item dye,
+        String group,
+        RecipeCategory category
+    ) {
+        super.colorWithDye(dyes, dyeableItems, dye, group, category);
     }
 
     @Override

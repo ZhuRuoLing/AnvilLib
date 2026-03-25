@@ -18,9 +18,11 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
+import net.minecraft.data.tags.KeyTagProvider;
 import net.minecraft.data.tags.TagAppender;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagBuilder;
 import net.minecraft.tags.TagKey;
 import net.neoforged.fml.LogicalSide;
 
@@ -29,25 +31,26 @@ import java.util.function.Function;
 
 public interface RegistrumTagsProvider<T> extends RegistrumLookupFillerProvider {
 
-    TagAppender<E,T> addTag(TagKey<E> tag);
-
     CompletableFuture<TagsProvider.TagLookup<T>> contentsGetter();
 
     ResourceKey<? extends Registry<T>> registry();
 
-    class Impl<T> extends TagsProvider<T> implements RegistrumTagsProvider<T> {
+    TagBuilder rawBuilder(TagKey<T> key);
+
+    interface Key<T> extends RegistrumTagsProvider<T> {
+        TagAppender<ResourceKey<T>, T> tag(TagKey<T> key);
+    }
+
+    interface Intrinsic<T> extends RegistrumTagsProvider<T> {
+        TagAppender<T, T> tag(TagKey<T> key);
+    }
+
+    class Impl<T> extends KeyTagProvider<T> implements RegistrumTagsProvider.Key<T> {
         private final AbstractRegistrum<?> owner;
         private final ProviderType<? extends Impl<T>> type;
         private final String name;
 
-        public Impl(
-            AbstractRegistrum<?> owner,
-            ProviderType<? extends Impl<T>> type,
-            String name,
-            PackOutput packOutput,
-            ResourceKey<? extends Registry<T>> registryIn,
-            CompletableFuture<HolderLookup.Provider> registriesLookup
-        ) {
+        public Impl(AbstractRegistrum<?> owner, ProviderType<? extends Impl<T>> type, String name, PackOutput packOutput, ResourceKey<? extends Registry<T>> registryIn, CompletableFuture<HolderLookup.Provider> registriesLookup) {
             super(packOutput, registryIn, registriesLookup, owner.getModid());
 
             this.owner = owner;
@@ -71,8 +74,13 @@ public interface RegistrumTagsProvider<T> extends RegistrumLookupFillerProvider 
         }
 
         @Override
-        public TagAppender<T> addTag(TagKey<T> tag) {
-            return super.tag(tag);
+        public TagBuilder rawBuilder(final TagKey<T> key) {
+            return super.getOrCreateRawBuilder(key);
+        }
+
+        @Override
+        public TagAppender<ResourceKey<T>, T> tag(TagKey<T> key) {
+            return super.tag(key);
         }
 
         @Override
@@ -87,20 +95,12 @@ public interface RegistrumTagsProvider<T> extends RegistrumLookupFillerProvider 
 
     }
 
-    class IntrinsicImpl<T> extends IntrinsicHolderTagsProvider<T> implements RegistrumTagsProvider<T> {
+    class IntrinsicImpl<T> extends IntrinsicHolderTagsProvider<T> implements RegistrumTagsProvider.Intrinsic<T> {
         private final AbstractRegistrum<?> owner;
         private final ProviderType<? extends IntrinsicImpl<T>> type;
         private final String name;
 
-        public IntrinsicImpl(
-            AbstractRegistrum<?> owner,
-            ProviderType<? extends IntrinsicImpl<T>> type,
-            String name,
-            PackOutput packOutput,
-            ResourceKey<? extends Registry<T>> registryIn,
-            CompletableFuture<HolderLookup.Provider> registriesLookup,
-            Function<T, ResourceKey<T>> keyExtractor
-        ) {
+        public IntrinsicImpl(AbstractRegistrum<?> owner, ProviderType<? extends IntrinsicImpl<T>> type, String name, PackOutput packOutput, ResourceKey<? extends Registry<T>> registryIn, CompletableFuture<HolderLookup.Provider> registriesLookup, Function<T, ResourceKey<T>> keyExtractor) {
             super(packOutput, registryIn, registriesLookup, keyExtractor, owner.getModid());
 
             this.owner = owner;
@@ -124,8 +124,13 @@ public interface RegistrumTagsProvider<T> extends RegistrumLookupFillerProvider 
         }
 
         @Override
-        public IntrinsicTagAppender<T> addTag(TagKey<T> tag) {
-            return super.tag(tag);
+        public TagBuilder rawBuilder(TagKey<T> key) {
+            return super.getOrCreateRawBuilder(key);
+        }
+
+        @Override
+        public TagAppender<T, T> tag(final TagKey<T> key) {
+            return super.tag(key);
         }
 
         @Override
@@ -137,6 +142,5 @@ public interface RegistrumTagsProvider<T> extends RegistrumLookupFillerProvider 
         public ResourceKey<? extends Registry<T>> registry() {
             return registryKey;
         }
-
     }
 }

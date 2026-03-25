@@ -32,6 +32,7 @@ import net.minecraft.Util;
 import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -265,7 +266,7 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
 
     private NonNullConsumer<BaseFlowingFluid.Properties> fluidProperties;
 
-    private @Nullable Supplier<Supplier<RenderType>> layer = null;
+    private @Nullable Supplier<Supplier<ChunkSectionLayer>> layer = null;
 
     private boolean registerType;
 
@@ -359,12 +360,12 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
 
 
     @SuppressWarnings("deprecation")
-    public FluidBuilder<T, P> renderType(Supplier<Supplier<RenderType>> layer) {
-        RegistrumDistExecutor.unsafeRunWhenOn(
-            Dist.CLIENT, () -> () -> {
-                Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get().get()), "Invalid render type: " + layer);
-            }
-        );
+    public FluidBuilder<T, P> renderType(Supplier<Supplier<ChunkSectionLayer>> layer) {
+//        RegistrumDistExecutor.unsafeRunWhenOn(
+//            Dist.CLIENT, () -> () -> {
+//                Preconditions.checkArgument(RenderType.chunkBufferLayers().contains(layer.get().get()), "Invalid render type: " + layer);
+//            }
+//        );
 
         if (this.layer == null) {
             onRegister(this::registerRenderType);
@@ -375,19 +376,15 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
 
     @SuppressWarnings("deprecation")
     protected void registerRenderType(T entry) {
-        RegistrumDistExecutor.unsafeRunWhenOn(
-            Dist.CLIENT, () -> () -> {
-                OneTimeEventReceiver.addModListener(
-                    getOwner(), FMLClientSetupEvent.class, $ -> {
-                        if (this.layer != null) {
-                            RenderType layer = this.layer.get().get();
-                            ItemBlockRenderTypes.setRenderLayer(entry, layer);
-                            ItemBlockRenderTypes.setRenderLayer(getSource(), layer);
-                        }
-                    }
-                );
-            }
-        );
+        RegistrumDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
+            OneTimeEventReceiver.addModListener(getOwner(), FMLClientSetupEvent.class, $ -> {
+                if (this.layer != null) {
+                    ChunkSectionLayer layer = this.layer.get().get();
+                    ItemBlockRenderTypes.setRenderLayer(entry, layer);
+                    ItemBlockRenderTypes.setRenderLayer(getSource(), layer);
+                }
+            });
+        });
     }
 
     /**
@@ -536,10 +533,8 @@ public class FluidBuilder<T extends BaseFlowingFluid, P> extends AbstractBuilder
     public final FluidBuilder<T, P> tag(TagKey<Fluid>... tags) {
         FluidBuilder<T, P> ret = this.tag(ProviderType.FLUID_TAGS, tags);
         if (this.tags.isEmpty()) {
-            ret.getOwner().<RegistrumTagsProvider<Fluid>, Fluid>setDataGenerator(
-                ret.sourceName, getRegistryKey(), ProviderType.FLUID_TAGS,
-                prov -> this.tags.stream().map(prov::addTag).forEach(p -> p.add(getSource().builtInRegistryHolder().key()))
-            );
+            ret.getOwner().<RegistrumTagsProvider.Intrinsic<Fluid>, Fluid>setDataGenerator(ret.sourceName, getRegistryKey(), ProviderType.FLUID_TAGS,
+                prov -> this.tags.stream().map(prov::tag).forEach(p -> p.add(getSource())));
         }
         this.tags.addAll(Arrays.asList(tags));
         return ret;

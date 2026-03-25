@@ -108,12 +108,10 @@ public abstract class AbstractBuilder<R, T extends R, P, S extends AbstractBuild
     @SafeVarargs
     public final <TP extends TagsProvider<R> & RegistrumTagsProvider<R>> S tag(ProviderType<? extends TP> type, TagKey<R>... tags) {
         if (!tagsByType.containsKey(type)) {
-            setData(
-                type, (ctx, prov) -> tagsByType.get(type).stream()
-                    .map(t -> (TagKey<R>) t)
-                    .map(prov::addTag)
-                    .forEach(b -> b.add(asTag()))
-            );
+            setData(type, (ctx, prov) -> tagsByType.get(type).stream()
+                .map(t -> (TagKey<R>) t)
+                .map(prov::rawBuilder)
+                .forEach(b -> b.add(asTag())));
         }
         tagsByType.putAll(type, Arrays.asList(tags));
         return (S) this;
