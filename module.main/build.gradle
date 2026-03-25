@@ -36,11 +36,6 @@ neoForge {
     // Specify the version of NeoForge to use.
     version = libs.versions.neoForge.get()
 
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
-    }
-
     // This line is optional. Access Transformers are automatically detected
     // accessTransformers.add('src/main/resources/META-INF/accesstransformer.cfg')
 
@@ -116,19 +111,19 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
     if (System.getenv("NOT_DEV") == 'true') {
-        jarJar(implementation("dev.anvilcraft.lib:anvillib-config-neoforge-1.21.11:latest.release"))
-        jarJar(implementation("dev.anvilcraft.lib:anvillib-integration-neoforge-1.21.11:latest.release"))
-        jarJar(implementation("dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-1.21.11:latest.release"))
-        jarJar(implementation("dev.anvilcraft.lib:anvillib-network-neoforge-1.21.11:latest.release"))
-        jarJar(implementation("dev.anvilcraft.lib:anvillib-recipe-neoforge-1.21.11:latest.release"))
-        jarJar(implementation("dev.anvilcraft.lib:anvillib-registrum-neoforge-1.21.11:latest.release"))
+        jarJar(implementation("dev.anvilcraft.lib:anvillib-config-neoforge-26.1:latest.release"))
+        jarJar(implementation("dev.anvilcraft.lib:anvillib-integration-neoforge-26.1:latest.release"))
+        jarJar(implementation("dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-26.1:latest.release"))
+        jarJar(implementation("dev.anvilcraft.lib:anvillib-network-neoforge-26.1:latest.release"))
+        jarJar(implementation("dev.anvilcraft.lib:anvillib-recipe-neoforge-26.1:latest.release"))
+        jarJar(implementation("dev.anvilcraft.lib:anvillib-registrum-neoforge-26.1:latest.release"))
     } else {
-        jarJar(implementation project(":anvillib-config-neoforge-1.21.11"))
-        jarJar(implementation project(":anvillib-integration-neoforge-1.21.11"))
-        jarJar(implementation project(":anvillib-moveable-entity-block-neoforge-1.21.11"))
-        jarJar(implementation project(":anvillib-network-neoforge-1.21.11"))
-        jarJar(implementation project(":anvillib-recipe-neoforge-1.21.11"))
-        jarJar(implementation project(":anvillib-registrum-neoforge-1.21.11"))
+        jarJar(implementation project(":anvillib-config-neoforge-26.1"))
+        jarJar(implementation project(":anvillib-integration-neoforge-26.1"))
+        jarJar(implementation project(":anvillib-moveable-entity-block-neoforge-26.1"))
+        jarJar(implementation project(":anvillib-network-neoforge-26.1"))
+        jarJar(implementation project(":anvillib-recipe-neoforge-26.1"))
+        jarJar(implementation project(":anvillib-registrum-neoforge-26.1"))
     }
 }
 
