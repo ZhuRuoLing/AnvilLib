@@ -29,22 +29,16 @@ import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
 
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.SpawnPlacements.SpawnPredicate;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -209,48 +203,6 @@ public class EntityBuilder<T extends Entity, P> extends AbstractBuilder<EntityTy
             );
         });
         return this;
-    }
-
-    /**
-     * Create a spawn egg item for this entity using the given colors, not allowing for any extra configuration.
-     *
-     * @param primaryColor   The primary color of the egg
-     * @param secondaryColor The secondary color of the egg
-     * @return this {@link EntityBuilder}
-     * @deprecated This does not work properly, see <a href="https://github.com/MinecraftForge/MinecraftForge/pull/6299">this issue</a>.
-     * <p>
-     * As a temporary measure, uses a custom egg class that imperfectly emulates the functionality
-     */
-    @Deprecated
-    public EntityBuilder<T, P> defaultSpawnEgg(int primaryColor, int secondaryColor) {
-        return spawnEgg(primaryColor, secondaryColor).build();
-    }
-
-    /**
-     * Create a spawn egg item for this entity using the given colors, and return the builder for further configuration.
-     *
-     * @param primaryColor   The primary color of the egg
-     * @param secondaryColor The secondary color of the egg
-     * @return the {@link ItemBuilder} for the egg item
-     * @deprecated This does not work properly, see <a href="https://github.com/MinecraftForge/MinecraftForge/pull/6299">this issue</a>.
-     * <p>
-     * As a temporary measure, uses a custom egg class that imperfectly emulates the functionality
-     */
-    @SuppressWarnings(
-        {
-            "rawtypes",
-            "unchecked"
-        }
-    )
-    @Deprecated
-    public ItemBuilder<? extends SpawnEggItem, EntityBuilder<T, P>> spawnEgg(int primaryColor, int secondaryColor) {
-        var sup = asSupplier();
-        return getOwner().item(
-                this,
-                getName() + "_spawn_egg",
-                p -> new DeferredSpawnEggItem((Supplier<EntityType<? extends Mob>>) (Supplier) sup, primaryColor, secondaryColor, p)
-            ).tab(CreativeModeTabs.SPAWN_EGGS)
-            .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), ResourceLocation.withDefaultNamespace("item/template_spawn_egg")));
     }
 
     /**
