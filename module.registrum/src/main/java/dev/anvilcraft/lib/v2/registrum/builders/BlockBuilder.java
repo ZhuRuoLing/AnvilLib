@@ -306,7 +306,7 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      *
      * @param cons The callback which will be invoked during data generation.
      * @return this {@link BlockBuilder}
-     * @see #setData(ProviderType, NonNullBiConsumer)
+     * @see #setData(GeneratorType, NonNullBiConsumer)
      */
     public BlockBuilder<T, P> blockstate(NonNullBiConsumer<DataGenContext<Block, T>, RegistrumBlockstateProvider> cons) {
         return setData(ProviderType.BLOCKSTATE, cons);

@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 import com.google.common.collect.Maps;
 import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
 import dev.anvilcraft.lib.v2.registrum.providers.DataGenContext;
+import dev.anvilcraft.lib.v2.registrum.providers.GeneratorType;
 import dev.anvilcraft.lib.v2.registrum.providers.ProviderType;
 import dev.anvilcraft.lib.v2.registrum.providers.RegistrumItemModelProvider;
 import dev.anvilcraft.lib.v2.registrum.providers.RegistrumLangProvider;
@@ -256,7 +257,7 @@ public class ItemBuilder<T extends Item, P> extends AbstractBuilder<Item, T, P, 
      *
      * @param cons The callback which will be invoked during data creation
      * @return this {@link ItemBuilder}
-     * @see #setData(ProviderType, NonNullBiConsumer)
+     * @see #setData(GeneratorType, NonNullBiConsumer)
      */
     public ItemBuilder<T, P> model(NonNullBiConsumer<DataGenContext<Item, T>, RegistrumItemModelProvider> cons) {
         return setData(ProviderType.ITEM_MODEL, cons);
@@ -287,7 +288,7 @@ public class ItemBuilder<T extends Item, P> extends AbstractBuilder<Item, T, P, 
      *
      * @param cons The callback which will be invoked during data generation.
      * @return this {@link ItemBuilder}
-     * @see #setData(ProviderType, NonNullBiConsumer)
+     * @see #setData(GeneratorType, NonNullBiConsumer)
      */
     public ItemBuilder<T, P> recipe(NonNullBiConsumer<DataGenContext<Item, T>, RegistrumRecipeProvider> cons) {
         return setData(ProviderType.RECIPE, cons);
