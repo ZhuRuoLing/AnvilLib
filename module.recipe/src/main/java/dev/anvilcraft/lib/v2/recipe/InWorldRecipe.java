@@ -17,6 +17,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
@@ -43,7 +44,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
     /**
      * 配方图标
      */
-    private final @Unmodifiable ItemStack icon;
+    private final @Unmodifiable ItemStackTemplate icon;
     /**
      * 配方触发器
      */
@@ -87,7 +88,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
      * @param maxEfficiency  最大效率
      */
     public InWorldRecipe(
-        ItemStack icon,
+        ItemStackTemplate icon,
         IRecipeTrigger trigger,
         @Unmodifiable List<IRecipePredicate<?>> conflicting,
         @Unmodifiable List<IRecipePredicate<?>> nonConflicting,
@@ -118,7 +119,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
      * @param compatible     是否兼容
      */
     public InWorldRecipe(
-        ItemStack icon,
+        ItemStackTemplate icon,
         IRecipeTrigger trigger,
         @Unmodifiable List<IRecipePredicate<?>> conflicting,
         @Unmodifiable List<IRecipePredicate<?>> nonConflicting,
@@ -141,7 +142,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
      * @param maxEfficiency  最大效率
      */
     public InWorldRecipe(
-        ItemStack icon,
+        ItemStackTemplate icon,
         IRecipeTrigger trigger,
         @Unmodifiable List<IRecipePredicate<?>> conflicting,
         @Unmodifiable List<IRecipePredicate<?>> nonConflicting,
@@ -172,7 +173,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
      * @param compatible     是否兼容
      */
     public InWorldRecipe(
-        ItemStack icon,
+        ItemStackTemplate icon,
         IRecipeTrigger trigger,
         @Unmodifiable List<IRecipePredicate<?>> conflicting,
         @Unmodifiable List<IRecipePredicate<?>> nonConflicting,
@@ -249,7 +250,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
     /**
      * 组装配方结果
      *
-     * @param context  配方上下文
+     * @param context 配方上下文
      * @return 配方结果物品堆
      */
     @Override
@@ -263,7 +264,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
         for (IRecipeOutcome<?> outcome : this.outcomes) {
             outcome.acceptWithChance(context);
         }
-        return this.icon.copy();
+        return this.icon.create();
     }
 
     @Override
@@ -310,7 +311,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
         return RecipeBookCategories.CRAFTING_MISC;
     }
 
-    public @Unmodifiable ItemStack icon() {
+    public @Unmodifiable ItemStackTemplate icon() {
         return icon;
     }
 
@@ -352,7 +353,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
         private static final Codec<IRecipeOutcome<?>> OUTCOME_CODEC = LibRegistries.OUTCOME_TYPE_REGISTRY.byNameCodec()
             .dispatch(IRecipeOutcome::getType, IRecipeOutcome.Type::codec);
         public static final MapCodec<InWorldRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            ItemStack.CODEC.fieldOf("icon").orElseGet(Items.ANVIL::getDefaultInstance).forGetter(InWorldRecipe::icon),
+            ItemStackTemplate.CODEC.fieldOf("icon").orElseGet(() -> new ItemStackTemplate(Items.ANVIL)).forGetter(InWorldRecipe::icon),
             LibRegistries.TRIGGER_REGISTRY.byNameCodec().fieldOf("trigger").forGetter(InWorldRecipe::trigger),
             PREDICATE_CODEC.listOf().fieldOf("conflicting").forGetter(InWorldRecipe::conflicting),
             PREDICATE_CODEC.listOf().fieldOf("non_conflicting").forGetter(InWorldRecipe::nonConflicting),
@@ -401,7 +402,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
             RegistryFriendlyByteBuf buf,
             InWorldRecipe recipe
         ) {
-            ItemStack.STREAM_CODEC.encode(buf, recipe.icon());
+            ItemStackTemplate.STREAM_CODEC.encode(buf, recipe.icon());
             buf.writeIdentifier(Objects.requireNonNull(recipe.trigger().getId()));
             buf.writeVarInt(recipe.conflicting().size());
             for (IRecipePredicate<?> predicate : recipe.conflicting()) {
@@ -430,7 +431,7 @@ public class InWorldRecipe implements Recipe<InWorldRecipeContext>, IPrioritized
          * @return 解码出的配方
          */
         private static InWorldRecipe decode(RegistryFriendlyByteBuf buf) {
-            ItemStack icon = ItemStack.STREAM_CODEC.decode(buf);
+            ItemStackTemplate icon = ItemStackTemplate.STREAM_CODEC.decode(buf);
             IRecipeTrigger trigger = Objects.requireNonNull(LibRegistries.TRIGGER_REGISTRY.getValue(buf.readIdentifier()));
             List<IRecipePredicate<?>> conflicting = decodeRecipePredicateList(buf);
             List<IRecipePredicate<?>> nonConflicting = decodeRecipePredicateList(buf);

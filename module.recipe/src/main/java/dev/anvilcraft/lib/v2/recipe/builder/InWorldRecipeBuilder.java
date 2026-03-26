@@ -30,6 +30,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.ItemLike;
@@ -61,7 +62,7 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
     /**
      * 配方图标
      */
-    protected final NonNullList<ItemStack> icon = NonNullList.withSize(1, Items.ANVIL.getDefaultInstance());
+    protected final NonNullList<ItemStackTemplate> icon = NonNullList.withSize(1, new ItemStackTemplate(Items.ANVIL));
     /**
      * 偏移量
      */
@@ -165,7 +166,7 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
      * @param icon 配方图标物品堆
      * @return 当前构建器实例
      */
-    public T icon(ItemStack icon) {
+    public T icon(ItemStackTemplate icon) {
         this.icon.set(0, icon);
         return this.self();
     }
@@ -958,7 +959,7 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
     }
 
     public Item getResult() {
-        return this.icon.getFirst().getItem();
+        return this.icon.getFirst().item().value();
     }
 
     @Override
