@@ -22,7 +22,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
@@ -32,6 +31,8 @@ import net.minecraft.world.phys.Vec3;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import javax.annotation.Nullable;
 
 /**
  * 生成物品配方结果类，用于定义在配方执行时生成物品的结果
@@ -192,7 +193,7 @@ public record SpawnItem(ItemStackTemplate item, Vec3 offset, NumberProvider coun
         /**
          * 物品堆
          */
-        private ItemStackTemplate item = new ItemStackTemplate(Items.AIR);
+        private @Nullable ItemStackTemplate item = null;
 
         /**
          * 函数列表
@@ -329,7 +330,7 @@ public record SpawnItem(ItemStackTemplate item, Vec3 offset, NumberProvider coun
          * @return 生成物品配方结果
          */
         public SpawnItem build() {
-            return new SpawnItem(this.item, this.offset, this.count, this.functions);
+            return new SpawnItem(Objects.requireNonNull(this.item), this.offset, this.count, this.functions);
         }
     }
 }
