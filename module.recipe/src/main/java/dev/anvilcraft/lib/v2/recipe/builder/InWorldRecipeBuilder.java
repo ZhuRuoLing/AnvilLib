@@ -29,7 +29,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
@@ -776,7 +775,7 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
      * @param stack  物品堆
      * @return 当前构建器实例
      */
-    public T spawnItem(Vec3 offset, double chance, ItemStack stack) {
+    public T spawnItem(Vec3 offset, double chance, ItemStackTemplate stack) {
         return this.out(SpawnItem.builder().offset(offset).count((float) chance).item(stack).build());
     }
 
@@ -787,7 +786,7 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
      * @param stack  物品堆
      * @return 当前构建器实例
      */
-    public T spawnItem(Vec3 offset, ItemStack stack) {
+    public T spawnItem(Vec3 offset, ItemStackTemplate stack) {
         return this.spawnItem(offset, 1, stack);
     }
 
@@ -801,7 +800,7 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
      * @param stack  物品堆
      * @return 当前构建器实例
      */
-    public T spawnItem(double x, double y, double z, double chance, ItemStack stack) {
+    public T spawnItem(double x, double y, double z, double chance, ItemStackTemplate stack) {
         return this.spawnItem(new Vec3(x, y, z), chance, stack);
     }
 
@@ -814,7 +813,7 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
      * @param stack 物品堆
      * @return 当前构建器实例
      */
-    public T spawnItem(double x, double y, double z, ItemStack stack) {
+    public T spawnItem(double x, double y, double z, ItemStackTemplate stack) {
         return this.spawnItem(new Vec3(x, y, z), stack);
     }
 
@@ -824,7 +823,7 @@ public class InWorldRecipeBuilder<T extends InWorldRecipeBuilder<T>> implements 
      * @param stack 物品堆
      * @return 当前构建器实例
      */
-    public T spawnItem(ItemStack stack) {
+    public T spawnItem(ItemStackTemplate stack) {
         return this.spawnItem(this.offset, stack);
     }
 

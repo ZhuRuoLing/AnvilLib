@@ -6,16 +6,14 @@ import dev.anvilcraft.lib.v2.recipe.outcome.SpawnItem;
 import dev.anvilcraft.lib.v2.recipe.util.CodecUtil;
 import dev.anvilcraft.lib.v2.recipe.util.NumberProviderUtil;
 import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentPatch;
-import net.minecraft.core.component.PatchedDataComponentMap;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -36,7 +34,7 @@ import java.util.Optional;
  * @param stack 物品堆栈
  * @param count 数量提供器（可以是固定值或概率分布）
  */
-public record ChanceItemStack(ItemStack stack, NumberProvider count) {
+public record ChanceItemStack(ItemStackTemplate stack, NumberProvider count) {
     /**
      * 构造一个带概率的物品堆栈
      *
@@ -54,7 +52,7 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
      * @param count      数量提供器
      */
     private ChanceItemStack(Holder<Item> item, DataComponentPatch components, NumberProvider count) {
-        this(new ItemStack(item, 1, components), count);
+        this(new ItemStackTemplate(item, 1, components), count);
     }
 
     /**
@@ -65,7 +63,7 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
      * @return ChanceItemStack实例
      */
     public static ChanceItemStack of(ItemLike item, NumberProvider amount) {
-        return new ChanceItemStack(new ItemStack(item, 1), amount);
+        return new ChanceItemStack(new ItemStackTemplate(item.asItem(), 1), amount);
     }
 
     /**
@@ -76,7 +74,7 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
      * @return ChanceItemStack实例
      */
     public static ChanceItemStack of(ItemLike item, int count) {
-        return new ChanceItemStack(new ItemStack(item, 1), ConstantValue.exactly(count));
+        return new ChanceItemStack(new ItemStackTemplate(item.asItem(), 1), ConstantValue.exactly(count));
     }
 
     /**
@@ -86,8 +84,8 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
      * @param amount 数量提供器
      * @return ChanceItemStack实例
      */
-    public static ChanceItemStack of(ItemStack stack, NumberProvider amount) {
-        return new ChanceItemStack(stack.copyWithCount(1), amount);
+    public static ChanceItemStack of(ItemStackTemplate stack, NumberProvider amount) {
+        return new ChanceItemStack(stack, amount);
     }
 
     /**
@@ -96,8 +94,8 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
      * @param stack 物品堆栈
      * @return ChanceItemStack实例
      */
-    public static ChanceItemStack of(ItemStack stack) {
-        return new ChanceItemStack(stack.copyWithCount(1), ConstantValue.exactly(stack.getCount()));
+    public static ChanceItemStack of(ItemStackTemplate stack) {
+        return new ChanceItemStack(stack, ConstantValue.exactly(stack.count()));
     }
 
     /**
@@ -107,8 +105,8 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
      * @param count 数量
      * @return ChanceItemStack实例
      */
-    public static ChanceItemStack of(ItemStack stack, int count) {
-        return new ChanceItemStack(stack.copyWithCount(1), ConstantValue.exactly(count));
+    public static ChanceItemStack of(ItemStackTemplate stack, int count) {
+        return new ChanceItemStack(stack, ConstantValue.exactly(count));
     }
 
     /**
@@ -119,8 +117,8 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
      * @param chance 概率
      * @return ChanceItemStack实例
      */
-    public static ChanceItemStack of(ItemStack stack, int count, float chance) {
-        return new ChanceItemStack(stack.copyWithCount(1), BinomialDistributionGenerator.binomial(count, chance));
+    public static ChanceItemStack of(ItemStackTemplate stack, int count, float chance) {
+        return new ChanceItemStack(stack, BinomialDistributionGenerator.binomial(count, chance));
     }
 
     /**
@@ -130,8 +128,8 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
      * @param chance 概率
      * @return ChanceItemStack实例
      */
-    public static ChanceItemStack of(ItemStack stack, float chance) {
-        return new ChanceItemStack(stack.copyWithCount(1), BinomialDistributionGenerator.binomial(stack.getCount(), chance));
+    public static ChanceItemStack of(ItemStackTemplate stack, float chance) {
+        return new ChanceItemStack(stack, BinomialDistributionGenerator.binomial(stack.count(), chance));
     }
 
     /**
@@ -147,7 +145,7 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
      * ChanceItemStack的网络流编解码器
      */
     public static final StreamCodec<RegistryFriendlyByteBuf, ChanceItemStack> STREAM_CODEC = StreamCodec.composite(
-        ItemStack.STREAM_CODEC,
+        ItemStackTemplate.STREAM_CODEC,
         ChanceItemStack::stack,
         CodecUtil.NUMBER_PROVIDER_STREAM_CODEC,
         ChanceItemStack::count,
@@ -160,7 +158,7 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
      * @return 物品
      */
     public Item getItem() {
-        return this.stack.getItem();
+        return this.stack.item().value();
     }
 
     /**
@@ -187,12 +185,7 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
      * @return 数据组件补丁
      */
     public DataComponentPatch getComponentsPatch() {
-        DataComponentMap components = this.stack.getComponents();
-        if (components instanceof PatchedDataComponentMap patched) {
-            return patched.asPatch();
-        } else {
-            return DataComponentPatch.EMPTY;
-        }
+       return this.stack.components();
     }
 
     /**
@@ -205,7 +198,7 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
         return SpawnItem.builder().item(this.stack).count(this.count).offset(offset).build();
     }
 
-    public ItemStack getResult(ServerLevel level) {
+    public ItemStackTemplate getResult(ServerLevel level) {
         LootContext context = new LootContext.Builder(
             new LootParams(
                 level,
@@ -214,6 +207,6 @@ public record ChanceItemStack(ItemStack stack, NumberProvider count) {
                 0
             )
         ).create(Optional.empty());
-        return this.stack().copyWithCount(Math.clamp(this.count().getInt(context), 1, 99));
+        return this.stack().withCount(Math.clamp(this.count().getInt(context), 1, 99));
     }
 }

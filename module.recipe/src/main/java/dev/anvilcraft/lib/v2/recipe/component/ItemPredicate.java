@@ -58,7 +58,7 @@ public record ItemPredicate(
 
     @Override
     public boolean test(ItemStack itemStack) {
-        return this.testIgnoreCount(itemStack) && this.testCount(itemStack.getCount());
+        return this.testIgnoreCount(itemStack) && this.testCount(itemStack.count());
     }
 
     @Override

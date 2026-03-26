@@ -20,6 +20,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.phys.Vec3;
@@ -82,7 +83,7 @@ public record ItemIngredientPredicate(
 
     @Override
     public boolean test(ItemStack itemStack) {
-        return this.testIgnoreCount(itemStack) && this.testCount(itemStack.getCount());
+        return this.testIgnoreCount(itemStack) && this.testCount(itemStack.count());
     }
 
     @Override
@@ -101,14 +102,14 @@ public record ItemIngredientPredicate(
         return new HasItemIngredient(offset, range, this, List.of());
     }
 
-    private static final Int2ObjectMap<ItemStack[]> INGREDIENT_CACHE = new Int2ObjectArrayMap<>();
+    private static final Int2ObjectMap<ItemStackTemplate[]> INGREDIENT_CACHE = new Int2ObjectArrayMap<>();
 
     /**
      * 获取物品数组
      *
      * @return 物品数组
      */
-    public ItemStack[] getItems() {
+    public ItemStackTemplate[] getItems() {
         int hash = this.hashCode();
         if (!INGREDIENT_CACHE.containsKey(hash)) {
             //noinspection deprecation
@@ -116,10 +117,10 @@ public record ItemIngredientPredicate(
                 hash,
                 this.items()
                     .map(itemSet -> itemSet.stream()
-                        .map(itemHolder -> new ItemStack(itemHolder, this.count(), this.components().exact().asPatch()))
-                        .toArray(ItemStack[]::new))
-                    .orElse(new ItemStack[]{
-                        new ItemStack(
+                        .map(itemHolder -> new ItemStackTemplate(itemHolder, this.count(), this.components().exact().asPatch()))
+                        .toArray(ItemStackTemplate[]::new))
+                    .orElse(new ItemStackTemplate[]{
+                        new ItemStackTemplate(
                             Items.BARRIER.builtInRegistryHolder(),
                             this.count(),
                             this.components().exact().asPatch()
@@ -189,9 +190,9 @@ public record ItemIngredientPredicate(
          * @param stack 物品堆栈
          * @return 构建器实例
          */
-        public <D> Builder of(ItemStack stack) {
-            Item item = stack.getItem();
-            ItemStack defaultInstance = item.getDefaultInstance();
+        public <D> Builder of(ItemStackTemplate stack) {
+            Item item = stack.item().value();
+            ItemStackTemplate defaultInstance = new ItemStackTemplate(item);
             this.of(item);
             for (TypedDataComponent<?> component : item.components()) {
                 Object o = defaultInstance.get(component.type());

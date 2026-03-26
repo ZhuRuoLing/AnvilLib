@@ -15,6 +15,7 @@ import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.storage.TagValueOutput;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +64,7 @@ public record NbtPredicate(CompoundTag tag) implements Predicate<Tag> {
      * @param stack 物品堆栈
      * @return 是否匹配
      */
-    public boolean test(ItemStack stack) {
+    public boolean test(ItemStackTemplate stack) {
         CustomData customdata = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         return customdata.matchedBy(this.tag);
     }
@@ -85,7 +86,7 @@ public record NbtPredicate(CompoundTag tag) implements Predicate<Tag> {
      * @return NBT标签
      */
     public static CompoundTag getEntityTagToCompare(Entity entity) {
-        CompoundTag compoundtag = new CompoundTag();
+        CompoundTag compoundtag;
         try (
             ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(entity.problemPath(), log)
         ) {
@@ -93,9 +94,9 @@ public record NbtPredicate(CompoundTag tag) implements Predicate<Tag> {
             entity.saveWithoutId(output);
             compoundtag = output.buildResult();
             if (entity instanceof Player) {
-                ItemStack itemstack = ((Player) entity).getInventory().getSelectedItem();
-                if (!itemstack.isEmpty()) {
-                    compoundtag.put("SelectedItem", ItemStack.CODEC.encode(itemstack, NbtOps.INSTANCE, new CompoundTag()).getOrThrow());
+                ItemStack itemStack = ((Player) entity).getInventory().getSelectedItem();
+                if (!itemStack.isEmpty()) {
+                    compoundtag.put("SelectedItem", ItemStack.CODEC.encode(itemStack, NbtOps.INSTANCE, new CompoundTag()).getOrThrow());
                 }
             }
         }

@@ -40,14 +40,14 @@ public interface IItemStackPredicate extends Predicate<ItemStack> {
     /**
      * 测试物品堆栈是否匹配（忽略数量）
      *
-     * @param itemStack 物品堆栈
+     * @param ItemStackTemplate 物品堆栈
      * @return 是否匹配
      */
-    default boolean testIgnoreCount(ItemStack itemStack) {
-        if (this.items().isPresent() && !itemStack.is(this.items().get())) {
+    default boolean testIgnoreCount(ItemStack ItemStackTemplate) {
+        if (this.items().isPresent() && !ItemStackTemplate.is(this.items().get())) {
             return false;
         } else {
-            return this.components().test(itemStack);
+            return this.components().test(ItemStackTemplate);
         }
     }
 

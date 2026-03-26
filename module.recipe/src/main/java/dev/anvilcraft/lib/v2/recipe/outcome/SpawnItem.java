@@ -21,6 +21,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
@@ -40,7 +42,7 @@ import java.util.List;
  * @param count     数量
  * @param functions 函数列表
  */
-public record SpawnItem(ItemStack item, Vec3 offset, NumberProvider count, List<IOutcomeFunction<?>> functions)
+public record SpawnItem(ItemStackTemplate item, Vec3 offset, NumberProvider count, List<IOutcomeFunction<?>> functions)
     implements IRecipeOutcome<SpawnItem> {
     /**
      * 构造一个新的生成物品配方结果
@@ -61,7 +63,7 @@ public record SpawnItem(ItemStack item, Vec3 offset, NumberProvider count, List<
      * @param count  数量
      */
     public SpawnItem(Holder<Item> item, DataComponentPatch patch, Vec3 offset, NumberProvider count, List<IOutcomeFunction<?>> functions) {
-        this(new ItemStack(item, 1, patch), offset, count, functions);
+        this(new ItemStackTemplate(item, 1, patch), offset, count, functions);
     }
 
     /**
@@ -92,7 +94,7 @@ public record SpawnItem(ItemStack item, Vec3 offset, NumberProvider count, List<
     @SuppressWarnings("unchecked")
     public void accept(InWorldRecipeContext context) {
         ItemCache cache = context.computeIfAbsent(ItemCache.ITEM_CACHE);
-        ItemStack stack = this.item.copyWithCount(context.getInt(this.count, 0, 99));
+        ItemStack stack = this.item.withCount(context.getInt(this.count, 0, 99)).create();
         BlockCache blockCache = context.computeIfAbsent(BlockCache.BLOCK_CACHE);
         Vec3 offset = context.getPos().add(this.offset);
         BlockPos blockPos = BlockPos.containing(offset);
@@ -123,7 +125,7 @@ public record SpawnItem(ItemStack item, Vec3 offset, NumberProvider count, List<
                     .forGetter(spawnItem -> spawnItem.item().typeHolder()),
                 DataComponentPatch.CODEC
                     .optionalFieldOf("components", DataComponentPatch.EMPTY)
-                    .forGetter(spawnItem -> spawnItem.item().getComponentsPatch()),
+                    .forGetter(spawnItem -> spawnItem.item().components()),
                 Vec3.CODEC
                     .fieldOf("offset")
                     .forGetter(SpawnItem::offset),
@@ -141,7 +143,7 @@ public record SpawnItem(ItemStack item, Vec3 offset, NumberProvider count, List<
          * 流编解码器
          */
         public static final StreamCodec<RegistryFriendlyByteBuf, SpawnItem> STREAM_CODEC = StreamCodec.composite(
-            ItemStack.STREAM_CODEC,
+            ItemStackTemplate.STREAM_CODEC,
             SpawnItem::item,
             CodecUtil.VEC3_STREAM_CODEC,
             SpawnItem::offset,
@@ -190,7 +192,7 @@ public record SpawnItem(ItemStack item, Vec3 offset, NumberProvider count, List<
         /**
          * 物品堆
          */
-        private ItemStack item = ItemStack.EMPTY;
+        private ItemStackTemplate item = new ItemStackTemplate(Items.AIR);
 
         /**
          * 函数列表
@@ -286,7 +288,7 @@ public record SpawnItem(ItemStack item, Vec3 offset, NumberProvider count, List<
          * @param item 物品堆
          * @return 构建器实例
          */
-        public Builder item(ItemStack item) {
+        public Builder item(ItemStackTemplate item) {
             this.item = item;
             return this;
         }
@@ -298,7 +300,7 @@ public record SpawnItem(ItemStack item, Vec3 offset, NumberProvider count, List<
          * @return 构建器实例
          */
         public Builder item(Item item) {
-            return this.item(item.getDefaultInstance());
+            return this.item(new ItemStackTemplate(item));
         }
 
         /**

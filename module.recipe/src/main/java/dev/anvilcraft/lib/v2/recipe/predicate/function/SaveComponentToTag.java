@@ -10,18 +10,18 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.world.item.ItemStackTemplate;
 
 import java.util.Objects;
 
 public record SaveComponentToTag<T>(
     DataComponentType<T> component,
     Identifier path
-) implements IPredicateFunction<ItemStack> {
+) implements IPredicateFunction<ItemStackTemplate> {
     @Override
-    public ItemStack apply(InWorldRecipeContext context, ItemStack stack) {
+    public ItemStackTemplate apply(InWorldRecipeContext context, ItemStackTemplate stack) {
         RegistryOps<Tag> ops = context.getNbtRegistryOps();
         T object = stack.get(this.component);
         DataResult<Tag> result = Objects.requireNonNull(this.component.codec()).encodeStart(ops, object);
