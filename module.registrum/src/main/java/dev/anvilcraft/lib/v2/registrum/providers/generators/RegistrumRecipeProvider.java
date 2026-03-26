@@ -945,4 +945,8 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
     public HolderGetter<Item> getItems() {
         return this.items;
     }
+
+    public HolderLookup.Provider getRegistries() {
+        return this.registries;
+    }
 }
