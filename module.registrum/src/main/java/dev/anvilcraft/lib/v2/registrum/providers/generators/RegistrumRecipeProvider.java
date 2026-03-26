@@ -24,6 +24,7 @@ import net.minecraft.advancements.criterion.InventoryChangeTrigger;
 import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.advancements.criterion.MinMaxBounds;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -876,10 +877,6 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
         return super.shapeless(p_362256_, p_363786_, p_365368_);
     }
 
-    public RecipeOutput getOutput() {
-        return this.output;
-    }
-
     @Override
     public void nineBlockStorageRecipes(
         RecipeCategory unpackedFormCategory,
@@ -939,5 +936,13 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
             packingRecipeId,
             packingRecipeGroup
         );
+    }
+
+    public RecipeOutput getOutput() {
+        return this.output;
+    }
+
+    public HolderGetter<Item> getItems() {
+        return this.items;
     }
 }
