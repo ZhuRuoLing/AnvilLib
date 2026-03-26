@@ -876,5 +876,68 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
         return super.shapeless(p_362256_, p_363786_, p_365368_);
     }
 
+    public RecipeOutput getOutput() {
+        return this.output;
+    }
 
+    @Override
+    public void nineBlockStorageRecipes(
+        RecipeCategory unpackedFormCategory,
+        ItemLike unpackedForm,
+        RecipeCategory packedFormCategory,
+        ItemLike packedForm,
+        String packingRecipeId,
+        @Nullable String packingRecipeGroup,
+        String unpackingRecipeId,
+        @Nullable String unpackingRecipeGroup
+    ) {
+        super.nineBlockStorageRecipes(
+            unpackedFormCategory,
+            unpackedForm,
+            packedFormCategory,
+            packedForm,
+            packingRecipeId,
+            packingRecipeGroup,
+            unpackingRecipeId,
+            unpackingRecipeGroup
+        );
+    }
+
+    @Override
+    public void nineBlockStorageRecipesRecipesWithCustomUnpacking(
+        RecipeCategory unpackedFormCategory,
+        ItemLike unpackedForm,
+        RecipeCategory packedFormCategory,
+        ItemLike packedForm,
+        String unpackingRecipeId,
+        String unpackingRecipeGroup
+    ) {
+        super.nineBlockStorageRecipesRecipesWithCustomUnpacking(
+            unpackedFormCategory,
+            unpackedForm,
+            packedFormCategory,
+            packedForm,
+            unpackingRecipeId,
+            unpackingRecipeGroup
+        );
+    }
+
+    @Override
+    public void nineBlockStorageRecipesWithCustomPacking(
+        RecipeCategory unpackedFormCategory,
+        ItemLike unpackedForm,
+        RecipeCategory packedFormCategory,
+        ItemLike packedForm,
+        String packingRecipeId,
+        String packingRecipeGroup
+    ) {
+        super.nineBlockStorageRecipesWithCustomPacking(
+            unpackedFormCategory,
+            unpackedForm,
+            packedFormCategory,
+            packedForm,
+            packingRecipeId,
+            packingRecipeGroup
+        );
+    }
 }
