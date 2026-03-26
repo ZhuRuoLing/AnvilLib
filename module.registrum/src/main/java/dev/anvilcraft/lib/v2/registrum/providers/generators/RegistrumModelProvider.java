@@ -18,8 +18,13 @@ import dev.anvilcraft.lib.v2.registrum.providers.RegistrumProvider;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.ModelProvider;
+import net.minecraft.core.Holder;
 import net.minecraft.data.PackOutput;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.fml.LogicalSide;
+
+import java.util.stream.Stream;
 
 public class RegistrumModelProvider extends ModelProvider implements RegistrumProvider {
 
@@ -31,9 +36,19 @@ public class RegistrumModelProvider extends ModelProvider implements RegistrumPr
     }
 
     @Override
-    protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+    public void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
         new RegistrumBlockModelGenerator(parent, blockModels.blockStateOutput, blockModels.itemModelOutput, blockModels.modelOutput).run();
         new RegistrumItemModelGenerator(parent, itemModels.itemModelOutput, itemModels.modelOutput).run();
+    }
+
+    @Override
+    public Stream<? extends Holder<Block>> getKnownBlocks() {
+        return super.getKnownBlocks();
+    }
+
+    @Override
+    public Stream<? extends Holder<Item>> getKnownItems() {
+        return super.getKnownItems();
     }
 
     @Override

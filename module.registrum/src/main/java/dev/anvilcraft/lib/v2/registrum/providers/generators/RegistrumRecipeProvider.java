@@ -19,6 +19,7 @@ import dev.anvilcraft.lib.v2.registrum.util.DataIngredient;
 import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
 import lombok.experimental.Delegate;
 import net.minecraft.advancements.Criterion;
+import net.minecraft.advancements.criterion.BredAnimalsTrigger;
 import net.minecraft.advancements.criterion.EnterBlockTrigger;
 import net.minecraft.advancements.criterion.InventoryChangeTrigger;
 import net.minecraft.advancements.criterion.ItemPredicate;
@@ -487,6 +488,21 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
     }
 
     @Override
+    public void oneToOneConversionRecipe(ItemLike product, ItemLike resource, @org.jspecify.annotations.Nullable String group) {
+        super.oneToOneConversionRecipe(product, resource, group);
+    }
+
+    @Override
+    public void oneToOneConversionRecipe(
+        ItemLike product,
+        ItemLike resource,
+        @org.jspecify.annotations.Nullable String group,
+        int productCount
+    ) {
+        super.oneToOneConversionRecipe(product, resource, group, productCount);
+    }
+
+    @Override
     public void oreSmelting(
         List<ItemLike> p_250172_,
         RecipeCategory p_250588_,
@@ -510,6 +526,21 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
         String p_251984_
     ) {
         super.oreBlasting(p_251504_, p_248846_, cookingBookCategory, p_249735_, p_248783_, p_250303_, p_251984_);
+    }
+
+    @Override
+    public <T extends AbstractCookingRecipe> void oreCooking(
+        AbstractCookingRecipe.Factory<T> factory,
+        List<ItemLike> smeltables,
+        RecipeCategory craftingCategory,
+        CookingBookCategory cookingCategory,
+        ItemLike result,
+        float experience,
+        int cookingTime,
+        String group,
+        String fromDesc
+    ) {
+        super.oreCooking(factory, smeltables, craftingCategory, cookingCategory, result, experience, cookingTime, group, fromDesc);
     }
 
     @Override
@@ -598,6 +629,11 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
     }
 
     @Override
+    public void shelf(ItemLike result, ItemLike strippedLogs) {
+        super.shelf(result, strippedLogs);
+    }
+
+    @Override
     public RecipeBuilder slabBuilder(RecipeCategory p_251707_, ItemLike p_251284_, Ingredient p_248824_) {
         return super.slabBuilder(p_251707_, p_251284_, p_248824_);
     }
@@ -656,6 +692,16 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
     @Override
     public void stainedGlassFromGlassAndDye(ItemLike p_126087_, ItemLike p_126088_) {
         super.stainedGlassFromGlassAndDye(p_126087_, p_126088_);
+    }
+
+    @Override
+    public void dryGhast(ItemLike result) {
+        super.dryGhast(result);
+    }
+
+    @Override
+    public void harness(ItemLike result, ItemLike wool) {
+        super.harness(result, wool);
     }
 
     @Override
@@ -759,6 +805,23 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
     }
 
     @Override
+    public <T extends AbstractCookingRecipe> void cookRecipes(String source, AbstractCookingRecipe.Factory<T> factory, int cookingTime) {
+        super.cookRecipes(source, factory, cookingTime);
+    }
+
+    @Override
+    public <T extends AbstractCookingRecipe> void simpleCookingRecipe(
+        String source,
+        AbstractCookingRecipe.Factory<T> factory,
+        int cookingTime,
+        ItemLike base,
+        ItemLike result,
+        float experience
+    ) {
+        super.simpleCookingRecipe(source, factory, cookingTime, base, result, experience);
+    }
+
+    @Override
     public void waxRecipes(FeatureFlagSet p_313879_) {
         super.waxRecipes(p_313879_);
     }
@@ -774,8 +837,28 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
     }
 
     @Override
+    public void waxedChiseled(Block result, Block material) {
+        super.waxedChiseled(result, material);
+    }
+
+    @Override
     public void suspiciousStew(Item p_360920_, SuspiciousEffectHolder p_361278_) {
         super.suspiciousStew(p_360920_, p_361278_);
+    }
+
+    @Override
+    public void dyedItem(Item target, String group) {
+        super.dyedItem(target, group);
+    }
+
+    @Override
+    public void dyedShulkerBoxRecipe(Item dye, Item dyedResult) {
+        super.dyedShulkerBoxRecipe(dye, dyedResult);
+    }
+
+    @Override
+    public void dyedBundleRecipe(Item dye, Item dyedResult) {
+        super.dyedBundleRecipe(dye, dyedResult);
     }
 
     @Override
@@ -790,6 +873,11 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
 
     public static Criterion<EnterBlockTrigger.TriggerInstance> insideOf(Block p_125980_) {
         return RecipeProvider.insideOf(p_125980_);
+    }
+
+    @Override
+    public Criterion<BredAnimalsTrigger.TriggerInstance> bredAnimal() {
+        return super.bredAnimal();
     }
 
     @Override
@@ -850,6 +938,11 @@ public class RegistrumRecipeProvider extends RecipeProvider implements RecipeOut
     @Override
     public Ingredient tag(TagKey<Item> p_364630_) {
         return super.tag(p_364630_);
+    }
+
+    @Override
+    public ShapedRecipeBuilder shaped(RecipeCategory category, ItemStackTemplate stack) {
+        return super.shaped(category, stack);
     }
 
     @Override
