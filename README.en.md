@@ -2,7 +2,7 @@
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21.5-green.svg)](https://minecraft.net/)
 [![Maven Central](https://img.shields.io/maven-central/v/dev.anvilcraft.lib/anvillib-neoforge-1.21.5)](https://central.sonatype.com/search?q=anvillib)
-[![NeoForge](https://img.shields.io/badge/NeoForge-21.1.x-orange.svg)](https://neoforged.net/)
+[![NeoForge](https://img.shields.io/badge/NeoForge-21.5.x-orange.svg)](https://neoforged.net/)
 [![License](https://img.shields.io/badge/License-MIT%20License-blue.svg)](https://opensource.org/licenses/MIT)
 
 **AnvilLib** is a NeoForge mod library developed by [Anvil Dev](https://github.com/Anvil-Dev), providing Minecraft mod developers with a
@@ -15,6 +15,7 @@ AnvilLib adopts a modular design and includes the following functional modules:
 | Module                    | Description                                       |
 |---------------------------|---------------------------------------------------|
 | **Config**                | Annotation-based configuration system             |
+| **Codec**                 | Data codecs and network serialization helpers     |
 | **Integration**           | Mod compatibility integration framework           |
 | **Network**               | Networking API with automatic packet registration |
 | **Recipe**                | In-world recipe system                            |
@@ -52,6 +53,33 @@ public class MyModConfig {
 
 // Register configuration
 MyModConfig config = ConfigManager.register("my_mod", MyModConfig::new);
+```
+
+### Codec Module
+
+Provides practical helpers around Mojang `Codec` and `StreamCodec` to reduce boilerplate in
+packet payloads, registry object serialization, and data-driven systems.
+
+**Key Features:**
+
+- Common game-domain codecs: `Item` / `Block` / `BlockState` / `EntityType` / `Vec3` / `Vec3i`
+- `Codec` <-> `StreamCodec` bridges (registry-aware, NBT intermediate form)
+- Compact network encoding for `NumberProvider`
+- High-arity `composite(...)` overloads (`Function7` through `Function16`)
+
+**Usage Example:**
+
+```java
+public record ExamplePayload(Item item, int count) {
+    public static final StreamCodec<RegistryFriendlyByteBuf, ExamplePayload> STREAM_CODEC =
+        StreamCodec.composite(
+            StreamCodecUtil.ITEM,
+            ExamplePayload::item,
+            ByteBufCodecs.VAR_INT,
+            ExamplePayload::count,
+            ExamplePayload::new
+        );
+}
 ```
 
 ### Integration Module
@@ -190,6 +218,7 @@ dependencies {
 
     // Or import individual modules as needed
     implementation "dev.anvilcraft.lib:anvillib-config-neoforge-1.21.5:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-codec-neoforge-1.21.5:2.0.0"
     implementation "dev.anvilcraft.lib:anvillib-integration-neoforge-1.21.5:2.0.0"
     implementation "dev.anvilcraft.lib:anvillib-network-neoforge-1.21.5:2.0.0"
     implementation "dev.anvilcraft.lib:anvillib-recipe-neoforge-1.21.5:2.0.0"
@@ -210,6 +239,7 @@ dependencies {
 
     // Optional single-module example
     implementation("dev.anvilcraft.lib:anvillib-network-neoforge-1.21.5:2.0.0")
+    implementation("dev.anvilcraft.lib:anvillib-codec-neoforge-1.21.5:2.0.0")
 }
 ```
 
@@ -233,7 +263,7 @@ gradlew.bat build
 
 - Java 21+
 - Minecraft 1.21.5
-- NeoForge 21.1.x
+- NeoForge 21.5.x
 
 ## License
 

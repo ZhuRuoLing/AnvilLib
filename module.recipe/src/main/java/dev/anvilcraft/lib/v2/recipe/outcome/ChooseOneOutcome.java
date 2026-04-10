@@ -3,8 +3,8 @@ package dev.anvilcraft.lib.v2.recipe.outcome;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.anvilcraft.lib.v2.codec.StreamCodecUtil;
 import dev.anvilcraft.lib.v2.recipe.init.reicpe.LibRecipeOutcomeTypes;
-import dev.anvilcraft.lib.v2.recipe.util.CodecUtil;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -237,7 +237,7 @@ public record ChooseOneOutcome(NumberProvider chance, List<Choice> choices) impl
         /**
          * 流编解码器
          */
-        public static final StreamCodec<RegistryFriendlyByteBuf, ChooseOneOutcome> STREAM_CODEC = CodecUtil.codec2Stream(Type.CODEC);
+        public static final StreamCodec<RegistryFriendlyByteBuf, ChooseOneOutcome> STREAM_CODEC = StreamCodecUtil.codec2Stream(Type.CODEC);
 
         /**
          * 获取MapCodec编解码器

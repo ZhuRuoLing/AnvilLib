@@ -3,8 +3,8 @@ package dev.anvilcraft.lib.v2.recipe.outcome;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.anvilcraft.lib.v2.codec.StreamCodecUtil;
 import dev.anvilcraft.lib.v2.recipe.init.reicpe.LibRecipeOutcomeTypes;
-import dev.anvilcraft.lib.v2.recipe.util.CodecUtil;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -75,7 +75,7 @@ public record ProduceExplosion(Vec3 offset, float power, boolean fire, Level.Exp
         /**
          * 流编解码器
          */
-        public static final StreamCodec<RegistryFriendlyByteBuf, ProduceExplosion> STREAM_CODEC = CodecUtil.codec2Stream(Type.CODEC);
+        public static final StreamCodec<RegistryFriendlyByteBuf, ProduceExplosion> STREAM_CODEC = StreamCodecUtil.codec2Stream(Type.CODEC);
 
         /**
          * 获取MapCodec编解码器

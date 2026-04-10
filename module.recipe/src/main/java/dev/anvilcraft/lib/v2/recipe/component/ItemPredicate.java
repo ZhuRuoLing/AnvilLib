@@ -1,9 +1,8 @@
 package dev.anvilcraft.lib.v2.recipe.component;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.anvilcraft.lib.v2.recipe.util.CodecUtil;
+import dev.anvilcraft.lib.v2.codec.StreamCodecUtil;
 import net.minecraft.advancements.critereon.DataComponentMatchers;
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.core.Holder;
@@ -20,7 +19,6 @@ import net.minecraft.world.level.ItemLike;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -29,9 +27,9 @@ import java.util.Optional;
  * 用于定义物品匹配规则，包括物品类型、数量范围、组件和子谓词
  * </p>
  *
- * @param items         物品集合
- * @param count         数量范围
- * @param components    数据组件谓词
+ * @param items      物品集合
+ * @param count      数量范围
+ * @param components 数据组件谓词
  */
 public record ItemPredicate(
     Optional<HolderSet<Item>> items, MinMaxBounds.Ints count, DataComponentMatchers components
@@ -39,24 +37,16 @@ public record ItemPredicate(
     /**
      * ItemPredicate编解码器
      */
-    public static final Codec<ItemPredicate> CODEC = RecordCodecBuilder.create(
-        instance -> instance.group(
-            RegistryCodecs
-                .homogeneousList(Registries.ITEM)
-                .optionalFieldOf("items")
-                .forGetter(ItemPredicate::items),
-            MinMaxBounds.Ints.CODEC
-                .optionalFieldOf("count", MinMaxBounds.Ints.ANY)
-                .forGetter(ItemPredicate::count),
-            DataComponentMatchers.CODEC.codec()
-                .optionalFieldOf("components", DataComponentMatchers.ANY)
-                .forGetter(ItemPredicate::components)
-        ).apply(instance, ItemPredicate::new));
+    public static final Codec<ItemPredicate> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+        RegistryCodecs.homogeneousList(Registries.ITEM).optionalFieldOf("items").forGetter(ItemPredicate::items),
+        MinMaxBounds.Ints.CODEC.optionalFieldOf("count", MinMaxBounds.Ints.ANY).forGetter(ItemPredicate::count),
+        DataComponentMatchers.CODEC.codec().optionalFieldOf("components", DataComponentMatchers.ANY).forGetter(ItemPredicate::components)
+    ).apply(instance, ItemPredicate::new));
 
     /**
      * ItemPredicate流编解码器
      */
-    public static final StreamCodec<RegistryFriendlyByteBuf, ItemPredicate> STREAM_CODEC = CodecUtil.codec2Stream(ItemPredicate.CODEC);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ItemPredicate> STREAM_CODEC = StreamCodecUtil.codec2Stream(ItemPredicate.CODEC);
 
     @Override
     public boolean test(ItemStack itemStack) {

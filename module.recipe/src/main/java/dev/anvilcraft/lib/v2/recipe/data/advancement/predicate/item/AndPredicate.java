@@ -3,10 +3,9 @@ package dev.anvilcraft.lib.v2.recipe.data.advancement.predicate.item;
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.anvilcraft.lib.v2.recipe.util.CodecUtil;
+import dev.anvilcraft.lib.v2.codec.CodecUtil;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.predicates.DataComponentPredicate;
-import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 import java.util.Map;
