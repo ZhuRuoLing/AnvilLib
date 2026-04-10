@@ -1,7 +1,7 @@
 package dev.anvilcraft.lib.v2.recipe.data.advancement.predicate.item;
 
 import com.mojang.serialization.Codec;
-import dev.anvilcraft.lib.v2.recipe.util.CodecUtil;
+import dev.anvilcraft.lib.v2.codec.CodecUtil;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.predicates.DataComponentPredicate;
 

@@ -2,7 +2,7 @@
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-26.1-green.svg)](https://minecraft.net/)
 [![Maven Central](https://img.shields.io/maven-central/v/dev.anvilcraft.lib/anvillib-neoforge-26.1)](https://central.sonatype.com/search?q=anvillib)
-[![NeoForge](https://img.shields.io/badge/NeoForge-21.1.x-orange.svg)](https://neoforged.net/)
+[![NeoForge](https://img.shields.io/badge/NeoForge-26.1.x-orange.svg)](https://neoforged.net/)
 [![License](https://img.shields.io/badge/License-MIT%20License-blue.svg)](https://opensource.org/licenses/MIT)
 
 **AnvilLib** 是一个由 [Anvil Dev](https://github.com/Anvil-Dev) 开发的 NeoForge 模组库，为 Minecraft 模组开发者提供一系列实用的工具和框架。
@@ -14,6 +14,7 @@ AnvilLib 采用模块化设计，包含以下功能模块：
 | 模块                        | 说明             |
 |---------------------------|----------------|
 | **Config**                | 基于注解的配置系统      |
+| **Codec**                 | 数据编解码与网络序列化工具  |
 | **Integration**           | 模组兼容性集成框架      |
 | **Network**               | 网络通信与数据包自动注册框架 |
 | **Recipe**                | 世界内配方系统        |
@@ -51,6 +52,32 @@ public class MyModConfig {
 
 // 注册配置
 MyModConfig config = ConfigManager.register("my_mod", MyModConfig::new);
+```
+
+### Codec 模块
+
+提供围绕 Mojang `Codec` 与 `StreamCodec` 的实用工具，减少网络包、配方数据与注册表对象序列化时的样板代码。
+
+**主要特性：**
+
+- 常用对象编解码：`Item` / `Block` / `BlockState` / `EntityType` / `Vec3` / `Vec3i`
+- `Codec` 与 `StreamCodec` 互转（支持注册表上下文 + NBT 中间格式）
+- `NumberProvider` 的紧凑网络编码
+- `composite(...)` 高阶重载（支持 `Function7` 到 `Function16`）
+
+**使用示例：**
+
+```java
+public record ExamplePayload(Item item, int count) {
+    public static final StreamCodec<RegistryFriendlyByteBuf, ExamplePayload> STREAM_CODEC =
+        StreamCodec.composite(
+            StreamCodecUtil.ITEM,
+            ExamplePayload::item,
+            ByteBufCodecs.VAR_INT,
+            ExamplePayload::count,
+            ExamplePayload::new
+        );
+}
 ```
 
 ### Integration 模块
@@ -188,6 +215,7 @@ dependencies {
 
     // 或按需引入单独模块
     implementation "dev.anvilcraft.lib:anvillib-config-neoforge-26.1:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-codec-neoforge-26.1:2.0.0"
     implementation "dev.anvilcraft.lib:anvillib-integration-neoforge-26.1:2.0.0"
     implementation "dev.anvilcraft.lib:anvillib-network-neoforge-26.1:2.0.0"
     implementation "dev.anvilcraft.lib:anvillib-recipe-neoforge-26.1:2.0.0"
@@ -208,6 +236,7 @@ dependencies {
 
     // 按需引入示例
     implementation("dev.anvilcraft.lib:anvillib-network-neoforge-26.1:2.0.0")
+    implementation("dev.anvilcraft.lib:anvillib-codec-neoforge-26.1:2.0.0")
 }
 ```
 
@@ -229,9 +258,9 @@ gradlew.bat build
 
 ## 环境要求
 
-- Java 21+
+- Java 25+
 - Minecraft 26.1
-- NeoForge 21.1.x
+- NeoForge 26.1.x
 
 ## 许可证
 
