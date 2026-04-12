@@ -10,6 +10,9 @@ plugins {
     id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
 
+// Ensure renderdoc-loader is evaluated before this project
+evaluationDependsOn(':anvillib-rendering-neoforge-26.1:renderdoc-loader-internal')
+
 String buildType = 'snapshot'
 String buildNumber
 if (System.getenv("CI_BUILD") == 'false') buildNumber = null
@@ -35,7 +38,6 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 neoForge {
     // Specify the version of NeoForge to use.
     version = libs.versions.neoForge.get()
-
     // This line is optional. Access Transformers are automatically detected
     accessTransformers.from('src/main/resources/META-INF/accesstransformer.cfg')
 
@@ -49,10 +51,20 @@ neoForge {
     runs {
         client {
             client()
-
+            devLogin = true
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
             systemProperty 'anvillib.rendering.debugMode', 'true'
+        }
+
+        clientRenderDoc {
+            client()
+
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty 'anvillib.rendering.debugMode', 'true'
+            systemProperty('neoforge.rendernurse.renderdoc.library', file("libs/renderdoc.dll").absolutePath)
+            taskBefore(rootProject.project(':anvillib-rendering-neoforge-26.1:renderdoc-loader-internal').tasks.getByName('jar'))
+            jvmArgument("-javaagent:" + rootProject.project(':anvillib-rendering-neoforge-26.1:renderdoc-loader-internal').tasks.getByName('jar').archiveFile.get().asFile.absolutePath)
         }
 
         server {
@@ -263,4 +275,12 @@ machete {
 
 lombok {
     version = "1.18.44"
+}
+
+// Task dependency for clientRenderDoc run configuration
+
+tasks.configureEach {
+    if (name == 'runClientRenderDoc') {
+        dependsOn ':anvillib-rendering-neoforge-26.1:renderdoc-loader-internal:jar'
+    }
 }

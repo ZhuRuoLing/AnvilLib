@@ -1,9 +1,6 @@
 package dev.anvilcraft.lib.v2.rendering.bloom;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.buffers.Std140Builder;
-import com.mojang.blaze3d.buffers.Std140SizeCalculator;
 import com.mojang.blaze3d.pipeline.MainTarget;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderTarget;
@@ -25,14 +22,15 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.anvilcraft.lib.v2.rendering.ALRPipelines;
 import dev.anvilcraft.lib.v2.rendering.ALRendering;
 import lombok.Getter;
-import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.neoforged.neoforge.client.pipeline.PipelineModifier;
 import org.joml.Matrix4f;
-import org.lwjgl.system.MemoryStack;
+import org.joml.Vector2f;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 
@@ -42,26 +40,35 @@ public class BloomPostEffect {
         ALRendering.location("redirect_to_bloom")
     );
 
-    public static final int UNIFORM_TRANSFORM_SIZE = new Std140SizeCalculator().putMat4f().get();
-    public static final int UNIFORM_BLUR_SIZE = new Std140SizeCalculator().putVec2().get();
-    public static final int UNIFORM_BLOOM_SIZE = new Std140SizeCalculator().putFloat().get();
+    public static final int UNIFORM_TRANSFORM_SIZE = TransformsUbo.DEFINITION.size();
+    public static final int UNIFORM_BLUR_SIZE = BlurParametersUbo.DEFINITION.size();
+    public static final int UNIFORM_BLOOM_SIZE = BloomParametersUbo.DEFINITION.size();
 
     @Getter
     private final RenderTarget bloomInputTarget = new MainTarget(854, 480, false);
     private final RenderTarget bloomTempTarget = new TextureTarget("BloomTemp", 854, 480, false);
-    private final Matrix4f projectionMatrix = new Matrix4f();
     private final GpuDevice device = RenderSystem.getDevice();
-    private final GpuBuffer uniformBuffer = device.createBuffer(
-        () -> "BloomPostEffect UBO",
+
+    private final GpuBuffer transformUBO = device.createBuffer(
+        () -> "BloomPostEffect->TransformUBO",
         GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_UNIFORM,
-        UNIFORM_TRANSFORM_SIZE + UNIFORM_BLUR_SIZE + UNIFORM_BLOOM_SIZE
+        UNIFORM_TRANSFORM_SIZE
     );
 
-    private final GpuBufferSlice transformUBO = uniformBuffer.slice(0, UNIFORM_TRANSFORM_SIZE);
-    private final GpuBufferSlice blurUBO = uniformBuffer.slice(UNIFORM_TRANSFORM_SIZE, UNIFORM_BLUR_SIZE);
-    private final GpuBufferSlice bloomUBO = uniformBuffer.slice(UNIFORM_TRANSFORM_SIZE + UNIFORM_BLUR_SIZE, UNIFORM_BLOOM_SIZE);
+    private final GpuBuffer blurUBO = device.createBuffer(
+        () -> "BloomPostEffect->BlurUBO",
+        GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_UNIFORM,
+        UNIFORM_BLUR_SIZE
+    );
+
+    private final GpuBuffer bloomUBO = device.createBuffer(
+        () -> "BloomPostEffect->BloomApplyUBO",
+        GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_UNIFORM,
+        UNIFORM_BLOOM_SIZE
+    );
+
     private final GpuBuffer vertexBuffer = device.createBuffer(
-        () -> "BloomPostEffect Vertex Buffer",
+        () -> "BloomPostEffect->VertexBuffer",
         GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_VERTEX,
         1024
     );
@@ -94,52 +101,104 @@ public class BloomPostEffect {
     );
 
     @Getter
-    @Setter
-    private float bloomIntensity;
+    private final BlurParametersUbo blurParameters;
+    @Getter
+    private final BloomParametersUbo bloomParameters;
+    private final TransformsUbo transformsUbo = new TransformsUbo(new Matrix4f());
+    private final List<Runnable> bloomCalls = new ArrayList<>();
     private int width;
     private int height;
     private int indexCount;
+    private boolean dirty = false;
 
-    public BloomPostEffect(float bloomIntensity) {
-        this.bloomIntensity = bloomIntensity;
+    public BloomPostEffect() {
+        this(1.25f, 1.943f, 1.105f, 0.08f, 0.8f);
+    }
+
+    public BloomPostEffect(float bloomIntensity, float sampleStepLength, float colorMultiplier, float bloomThreshold, float bloomIntensityMultiplier) {
         Window window = Minecraft.getInstance().getWindow();
         this.width = window.getWidth();
         this.height = window.getHeight();
+        this.blurParameters = new BlurParametersUbo(sampleStepLength, colorMultiplier, new Vector2f());
+        this.bloomParameters = new BloomParametersUbo(bloomIntensity, bloomThreshold, bloomIntensityMultiplier);
+        resize(width, height);
     }
 
     @SuppressWarnings("DataFlowIssue")
     public void beginFrame() {
-        device.createCommandEncoder().clearColorAndDepthTextures(
-            bloomInputTarget.getColorTexture(),
-            0,
-            bloomInputTarget.getDepthTexture(),
-            0
-        );
-        device.createCommandEncoder().clearColorTexture(
-            bloomTempTarget.getColorTexture(),
-            0
-        );
+        clearColorAndDepth(bloomInputTarget, 0);
+        clearColorAndDepth(bloomTempTarget, 0);
+        dirty = false;
+        bloomCalls.clear();
+    }
+
+    public void markDirty() {
+        dirty = true;
+    }
+
+    public void drawBloomed(Runnable runnable) {
+        bloomCalls.add(runnable);
+        markDirty();
+    }
+
+    public void beginBloomDraw() {
+        setupOutputOverride();
+        bloomInputTarget.copyDepthFrom(Minecraft.getInstance().getMainRenderTarget());
+    }
+
+    public void endBloomDraw() {
+        teardownOutputOverride();
+        // more cleanup needed here maybe
+    }
+
+    public void setupOutputOverride() {
+        RenderSystem.outputColorTextureOverride = bloomInputTarget.getColorTextureView();
+        RenderSystem.outputDepthTextureOverride = bloomInputTarget.getDepthTextureView();
+        markDirty();
+    }
+
+    public void teardownOutputOverride() {
+        RenderSystem.outputColorTextureOverride = null;
+        RenderSystem.outputDepthTextureOverride = null;
+    }
+
+    private void runBloomDraws() {
+        if (bloomCalls.isEmpty()) return;
+        beginBloomDraw();
+        for (Runnable bloomCall : bloomCalls) {
+            bloomCall.run();
+        }
+        endBloomDraw();
     }
 
     @SuppressWarnings("DataFlowIssue")
     public void process() {
+        if (!dirty) return;
+        runBloomDraws();
         CommandEncoder commandEncoder = device.createCommandEncoder();
 
-        try (MemoryStack memoryStack = MemoryStack.stackPush()) {
-            commandEncoder.writeToBuffer(transformUBO, Std140Builder.onStack(memoryStack, UNIFORM_TRANSFORM_SIZE).putMat4f(projectionMatrix).get());
-            commandEncoder.writeToBuffer(bloomUBO, Std140Builder.onStack(memoryStack, UNIFORM_BLOOM_SIZE).putFloat(bloomIntensity).get());
-        }
+        transformsUbo.upload(commandEncoder, transformUBO.slice());
 
         blurOnce(commandEncoder, bloomInputTarget, bloomTempTarget, true);
+
+        clearColorAndDepth(bloomInputTarget, 0);
         blurOnce(commandEncoder, bloomTempTarget, bloomInputTarget, true);
+
+        clearColorAndDepth(bloomTempTarget, 0);
         blurOnce(commandEncoder, bloomInputTarget, bloomTempTarget, false);
+
+        clearColorAndDepth(bloomInputTarget, 0);
         blurOnce(commandEncoder, bloomTempTarget, bloomInputTarget, false);
+
+        // backup depth texture
         bloomInputTarget.copyDepthFrom(Minecraft.getInstance().getMainRenderTarget());
+
+        clearColorAndDepth(bloomTempTarget, 0);
         applyBloom(commandEncoder, bloomInputTarget, Minecraft.getInstance().getMainRenderTarget().getColorTextureView(), bloomTempTarget);
         commandEncoder.copyTextureToTexture(
             bloomTempTarget.getColorTexture(),
             Minecraft.getInstance().getMainRenderTarget().getColorTexture(),
-            1,
+            0,
             0,
             0,
             0,
@@ -150,6 +209,14 @@ public class BloomPostEffect {
         Minecraft.getInstance().getMainRenderTarget().copyDepthFrom(bloomInputTarget);
     }
 
+    private void clearColorAndDepth(RenderTarget rt, int color) {
+        if (rt.useDepth) {
+            device.createCommandEncoder().clearColorAndDepthTextures(rt.getColorTexture(), color, rt.getDepthTexture(), 1);
+        } else {
+            device.createCommandEncoder().clearColorTexture(rt.getColorTexture(), color);
+        }
+    }
+
     @SuppressWarnings("DataFlowIssue")
     private void applyBloom(
         CommandEncoder commandEncoder,
@@ -157,14 +224,13 @@ public class BloomPostEffect {
         GpuTextureView gameTexture,
         RenderTarget outputTarget
     ) {
+        transformsUbo.upload(commandEncoder, transformUBO.slice());
+        bloomParameters.upload(commandEncoder, bloomUBO.slice());
         RenderPass bloomPass = commandEncoder.createRenderPass(
             () -> "BloomPostEffect BloomApply",
             outputTarget.getColorTextureView(),
             OptionalInt.of(0)
         );
-        try (MemoryStack memoryStack = MemoryStack.stackPush()) {
-            commandEncoder.writeToBuffer(transformUBO, Std140Builder.onStack(memoryStack, UNIFORM_TRANSFORM_SIZE).putMat4f(projectionMatrix).get());
-        }
         bloomPass.setPipeline(ALRPipelines.APPLY_BLOOM);
         bloomPass.setUniform("Transforms", transformUBO);
         bloomPass.setUniform("BloomParameters", bloomUBO);
@@ -179,18 +245,21 @@ public class BloomPostEffect {
 
     @SuppressWarnings("DataFlowIssue")
     private void blurOnce(CommandEncoder commandEncoder, RenderTarget inputTarget, RenderTarget outputTarget, boolean horizontal) {
+        Vector2f direction;
+        if (horizontal) {
+            direction = new Vector2f(1f, 0f);
+        } else {
+            direction = new Vector2f(0f, 1f);
+        }
+        blurParameters.setDirection(direction);
+        blurParameters.upload(commandEncoder, blurUBO.slice());
+
         RenderPass blurPass = commandEncoder.createRenderPass(
             () -> "BloomPostEffect Blur " + (horizontal ? "H" : "V"),
             outputTarget.getColorTextureView(),
             OptionalInt.of(0)
         );
-        try (MemoryStack memoryStack = MemoryStack.stackPush();) {
-            if (horizontal) {
-                commandEncoder.writeToBuffer(blurUBO, Std140Builder.onStack(memoryStack, UNIFORM_BLUR_SIZE).putVec2(1, 0).get());
-            } else {
-                commandEncoder.writeToBuffer(blurUBO, Std140Builder.onStack(memoryStack, UNIFORM_BLUR_SIZE).putVec2(0, 1).get());
-            }
-        }
+
         blurPass.setPipeline(ALRPipelines.BLUR);
         blurPass.setUniform("Transforms", transformUBO);
         blurPass.setUniform("BlurParameters", blurUBO);
@@ -207,17 +276,17 @@ public class BloomPostEffect {
         this.height = height;
         bloomInputTarget.resize(width, height);
         bloomTempTarget.resize(width, height);
-        projectionMatrix.setOrtho(
-            0, width, height, 0, 0.1f, 1000
+        transformsUbo.getProjMat().setOrtho(
+            0, width, 0, height, -1, -10000f
         );
 
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder builder = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
-        builder.addVertex(0, 0, 10).setUv(0, 0);
-        builder.addVertex(0, height, 10).setUv(0, 1);
-        builder.addVertex(width, height, 10).setUv(1, 1);
-        builder.addVertex(width, 0, 10).setUv(1, 0);
+        builder.addVertex(0, 0, 100).setUv(0, 0);
+        builder.addVertex(0, height, 100).setUv(0, 1);
+        builder.addVertex(width, height, 100).setUv(1, 1);
+        builder.addVertex(width, 0, 100).setUv(1, 0);
 
         MeshData data = builder.buildOrThrow();
         CommandEncoder commandEncoder = device.createCommandEncoder();

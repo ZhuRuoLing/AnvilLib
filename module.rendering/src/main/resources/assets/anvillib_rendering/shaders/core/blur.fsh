@@ -4,11 +4,21 @@
 
 layout(std140) uniform BlurParameters {
     vec2 BlurDir;
+    float SampleStepLength;
+    float ColorMultiplier;
 };
 
 uniform sampler2D DiffuseSampler;
 
-const float weight[7] = float[] (0.227027, 0.1945946, 0.1516216, 0.124054, 0.016216, 0.0111, 0.0100);
+const float weight[7] = float[] (
+    0.1827621234,
+    0.1566532716,
+    0.1220589867,
+    0.0998664144,
+    0.0130542649,
+    0.0089357635,
+    0.0080502373
+);
 
 in vec2 texCoord;
 
@@ -19,8 +29,8 @@ void main() {
 
     vec3 result = texture(DiffuseSampler, texCoord).rgb * weight[0];
     for (int i = 1; i < 7; ++i) {
-        result += texture(DiffuseSampler, texCoord + vec2(BlurDir.x * texOffset.x * i * 1.943, BlurDir.y * texOffset.y * i * 1.943)).rgb * weight[i];
-        result += texture(DiffuseSampler, texCoord - vec2(BlurDir.x * texOffset.x * i * 1.943, BlurDir.y * texOffset.y * i * 1.943)).rgb * weight[i];
+        result += texture(DiffuseSampler, texCoord + vec2(BlurDir.x * texOffset.x * i * SampleStepLength, BlurDir.y * texOffset.y * i * SampleStepLength)).rgb * weight[i];
+        result += texture(DiffuseSampler, texCoord - vec2(BlurDir.x * texOffset.x * i * SampleStepLength, BlurDir.y * texOffset.y * i * SampleStepLength)).rgb * weight[i];
     }
-    fragColor = vec4(saturate(toneMap(result) * 1.105), 1.0);
+    fragColor = vec4(saturate(result * ColorMultiplier), 1.0);
 }
