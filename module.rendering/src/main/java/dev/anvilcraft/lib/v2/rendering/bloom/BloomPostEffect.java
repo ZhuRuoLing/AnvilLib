@@ -82,15 +82,6 @@ public class BloomPostEffect {
         OptionalDouble.empty()
     );
 
-    private final GpuSampler tempSampler = device.createSampler(
-        AddressMode.CLAMP_TO_EDGE,
-        AddressMode.CLAMP_TO_EDGE,
-        FilterMode.LINEAR,
-        FilterMode.LINEAR,
-        1,
-        OptionalDouble.empty()
-    );
-
     private final GpuSampler mainSampler = device.createSampler(
         AddressMode.CLAMP_TO_EDGE,
         AddressMode.CLAMP_TO_EDGE,
