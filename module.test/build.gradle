@@ -109,14 +109,14 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
 dependencies {
-    implementation project(":anvillib-config-neoforge-1.21.4")
-    implementation project(":anvillib-codec-neoforge-1.21.4")
-    implementation project(":anvillib-integration-neoforge-1.21.4")
-    interfaceInjectionData(implementation project(":anvillib-moveable-entity-block-neoforge-1.21.4"))
-    implementation project(":anvillib-network-neoforge-1.21.4")
-    interfaceInjectionData(implementation project(":anvillib-recipe-neoforge-1.21.4"))
-    implementation project(":anvillib-registrum-neoforge-1.21.4")
-    implementation project(":anvillib-wheel-neoforge-1.21.4")
+    implementation project(":anvillib-config-neoforge-1.21.5")
+    implementation project(":anvillib-codec-neoforge-1.21.5")
+    implementation project(":anvillib-integration-neoforge-1.21.5")
+    interfaceInjectionData(implementation project(":anvillib-moveable-entity-block-neoforge-1.21.5"))
+    implementation project(":anvillib-network-neoforge-1.21.5")
+    interfaceInjectionData(implementation project(":anvillib-recipe-neoforge-1.21.5"))
+    implementation project(":anvillib-registrum-neoforge-1.21.5")
+    implementation project(":anvillib-wheel-neoforge-1.21.5")
 }
 
 tasks.withType(JavaExec).configureEach {

@@ -1,14 +1,17 @@
 package dev.anvilcraft.lib.v2.wheel.client.gui.component;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.Window;
+import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import dev.anvilcraft.lib.v2.wheel.client.init.LibShaders;
+import dev.anvilcraft.lib.v2.wheel.client.init.LibRenders;
 import dev.anvilcraft.lib.v2.wheel.util.MathUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,9 +19,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.renderer.CompiledShaderProgram;
-import net.minecraft.client.renderer.CoreShaders;
-import net.minecraft.client.renderer.ShaderProgram;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -26,6 +27,7 @@ import org.joml.Vector2f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.OptionalInt;
 
 public class WheelWidget extends AbstractWidget {
     public static final int IGNORE_CURSOR_MOVE_LENGTH = 15;
@@ -302,8 +304,6 @@ public class WheelWidget extends AbstractWidget {
 
     @Override
     protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        RenderSystem.enableDepthTest();
-        RenderSystem.enableBlend();
         this.renderClosingAnimation(guiGraphics);
         if (!this.shouldRender()) {
             return;
@@ -358,8 +358,6 @@ public class WheelWidget extends AbstractWidget {
             );
             poseStack.popPose();
         }
-        RenderSystem.disableDepthTest();
-        RenderSystem.disableBlend();
     }
 
     public void renderClosingAnimation(GuiGraphics guiGraphics) {
@@ -518,6 +516,24 @@ public class WheelWidget extends AbstractWidget {
         float innerDiameter,
         float outerDiameter
     ) {
+        guiGraphics.drawSpecial((bufferSource)->{
+            VertexConsumer vertexConsumer = bufferSource.getBuffer(LibRenders.getRING());
+            PoseStack poseStack = guiGraphics.pose();
+            Matrix4f matrix4f = poseStack.last().pose();
+            float x1 = centerX - outerDiameter - 5;
+            float y1 = centerY - outerDiameter - 5;
+            float x2 = centerX + outerDiameter + 5;
+            float y2 = centerY + outerDiameter + 5;
+            vertexConsumer.addVertex(matrix4f, x1, y1, RING_Z).setColor(color);
+            vertexConsumer.addVertex(matrix4f, x2, y2, RING_Z).setColor(color);
+            vertexConsumer.addVertex(matrix4f, x2, y1, RING_Z).setColor(color);
+            vertexConsumer.addVertex(matrix4f, x1, y2, RING_Z).setColor(color);
+
+            Window window = Minecraft.getInstance().getWindow();
+            float guiScale = (float) window.getGuiScale();
+
+            vertexConsumer.
+        });
         PoseStack poseStack = guiGraphics.pose();
         Matrix4f matrix4f = poseStack.last().pose();
         Tesselator tesselator = Tesselator.getInstance();
@@ -530,24 +546,33 @@ public class WheelWidget extends AbstractWidget {
         float x2 = centerX + outerDiameter + 5;
         float y2 = centerY + outerDiameter + 5;
         bufferBuilder.addVertex(matrix4f, x1, y1, RING_Z).setColor(color);
-        bufferBuilder.addVertex(matrix4f, x1, y2, RING_Z).setColor(color);
         bufferBuilder.addVertex(matrix4f, x2, y2, RING_Z).setColor(color);
         bufferBuilder.addVertex(matrix4f, x2, y1, RING_Z).setColor(color);
+        bufferBuilder.addVertex(matrix4f, x1, y2, RING_Z).setColor(color);
 
         Window window = Minecraft.getInstance().getWindow();
         float guiScale = (float) window.getGuiScale();
-        RenderSystem.disableDepthTest();
-        ShaderProgram ringShader = LibShaders.getRingShader();
-        if (ringShader == null) {
+
+        RenderPipeline ringPipeline = LibRenders.getRING_PIPELINE();
+        if (ringPipeline == null) {
             renderRingFallback(guiGraphics, centerX, centerY, color, innerDiameter, outerDiameter);
-            RenderSystem.enableDepthTest();
             return;
         }
+        GpuTexture texture = Minecraft.getInstance().getMainRenderTarget().getColorTexture();
+        if(texture!=null) {
+            RenderPass renderPass = RenderSystem.getDevice()
+                .createCommandEncoder()
+                .createRenderPass(texture, OptionalInt.empty());
+            renderPass.setPipeline(ringPipeline);
+            renderPass.setUniform("Center", centerX * guiScale, centerY * guiScale);
+            renderPass.setUniform("InnerDiameter", innerDiameter * guiScale);
+            renderPass.setUniform("OuterDiameter", outerDiameter * guiScale);
+
+        }
         @SuppressWarnings("resource")
-        CompiledShaderProgram compiledRingShader = RenderSystem.setShader(ringShader);
+        CompiledShaderProgram compiledRingShader = RenderSystem.setShader(ringPipeline);
         if (compiledRingShader == null) {
             renderRingFallback(guiGraphics, centerX, centerY, color, innerDiameter, outerDiameter);
-            RenderSystem.enableDepthTest();
             return;
         }
 
@@ -563,7 +588,6 @@ public class WheelWidget extends AbstractWidget {
 
         RenderSystem.setShaderColor(1, 1, 1, 1);
         BufferUploader.drawWithShader(Objects.requireNonNull(bufferBuilder.build()));
-        RenderSystem.enableDepthTest();
     }
 
     public static void renderSelectionEffect(
@@ -591,18 +615,15 @@ public class WheelWidget extends AbstractWidget {
 
         Window window = Minecraft.getInstance().getWindow();
         float guiScale = (float) window.getGuiScale();
-        RenderSystem.disableDepthTest();
-        ShaderProgram selectionShader = LibShaders.getSelectionShader();
-        if (selectionShader == null) {
+        RenderPipeline selectionPipeline = LibRenders.getSELECTION_PIPELINE();
+        if (selectionPipeline == null) {
             renderSelectionFallback(guiGraphics, centerX, centerY, color, radius);
-            RenderSystem.enableDepthTest();
             return;
         }
         @SuppressWarnings("resource")
-        CompiledShaderProgram compiledSelectionShader = RenderSystem.setShader(selectionShader);
+        CompiledShaderProgram compiledSelectionShader = RenderSystem.setShader(selectionPipeline);
         if (compiledSelectionShader == null) {
             renderSelectionFallback(guiGraphics, centerX, centerY, color, radius);
-            RenderSystem.enableDepthTest();
             return;
         }
 
@@ -618,7 +639,6 @@ public class WheelWidget extends AbstractWidget {
 
         RenderSystem.setShaderColor(1, 1, 1, 1);
         BufferUploader.drawWithShader(Objects.requireNonNull(bufferBuilder.build()));
-        RenderSystem.enableDepthTest();
     }
 
     private static void renderRingFallback(
