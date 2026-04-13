@@ -13,39 +13,40 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import org.jetbrains.annotations.Nullable;
 
-@Slf4j
 public class LibRenders {
-    public static final RenderPipeline.Snippet WHEEL_SNIPPET = RenderPipeline.builder(RenderPipelines.MATRICES_COLOR_SNIPPET)
+
+    public static final RenderPipeline.Snippet SNIPPET_COMMON = RenderPipeline.builder()
+        .withUniform("ColorModulator", UniformType.VEC4)
+        .withUniform("ModelViewMat", UniformType.MATRIX4X4)
+        .withUniform("ProjMat", UniformType.MATRIX4X4)
+        .withBlend(BlendFunction.TRANSLUCENT)
+        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+        .buildSnippet();
+
+    public static final RenderPipeline RING_PIPELINE = RenderPipeline.builder(SNIPPET_COMMON)
+        .withLocation(AnvilLibWheel.of("pipeline/ring"))
+        .withVertexShader("core/position_color")
+        .withFragmentShader(AnvilLibWheel.of("core/ring"))
+        .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
         .withUniform("Center", UniformType.VEC2)
         .withUniform("InnerDiameter", UniformType.FLOAT)
         .withUniform("OuterDiameter", UniformType.FLOAT)
         .withUniform("AntiAliasingRadius", UniformType.FLOAT)
-        .withDepthTestFunction(DepthTestFunction.EQUAL_DEPTH_TEST)
-        .withBlend(BlendFunction.OVERLAY)
-        .buildSnippet();
-
-    @Getter
-    private static final @Nullable RenderPipeline RING_PIPELINE = RenderPipeline.builder(LibRenders.WHEEL_SNIPPET)
-        .withLocation("pipeline/stars")
-        .withVertexShader("core/position_color")
-        .withFragmentShader(AnvilLibWheel.of("core/ring"))
-        .withBlend(BlendFunction.OVERLAY)
-        .withDepthWrite(false)
-        .withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS)
         .build();
 
-    @Getter
-    private static final @Nullable RenderPipeline SELECTION_PIPELINE = RenderPipeline.builder(LibRenders.WHEEL_SNIPPET)
-        .withLocation("pipeline/stars")
+    public static final @Nullable RenderPipeline SELECTION_PIPELINE = RenderPipeline.builder(SNIPPET_COMMON)
+        .withLocation(AnvilLibWheel.of("pipeline/selection"))
         .withVertexShader("core/position_color")
         .withFragmentShader(AnvilLibWheel.of("core/selection"))
-        .withBlend(BlendFunction.OVERLAY)
-        .withDepthWrite(false)
-        .withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS)
+        .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
+        .withUniform("Center", UniformType.VEC2)
+        .withUniform("FramebufferSize", UniformType.VEC2)
+        .withUniform("Radius", UniformType.FLOAT)
+        .withUniform("AntiAliasingRadius", UniformType.FLOAT)
         .build();
 
-    @Getter
-    private static final RenderType RING = RenderType.create(
+
+    public static final RenderType RING = RenderType.create(
         "anvillib_ring",
         1536,
         false,
@@ -54,8 +55,7 @@ public class LibRenders {
         RenderType.CompositeState.builder().createCompositeState(false)
     );
 
-    @Getter
-    private static final RenderType SELECTION = RenderType.create(
+    public static final RenderType SELECTION = RenderType.create(
         "anvillib_selection",
         1536,
         false,

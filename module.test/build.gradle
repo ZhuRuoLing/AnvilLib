@@ -30,6 +30,9 @@ repositories {
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+def rdcDyLibPath = file("run/renderdoc.dll").absolutePath
+def rdcLoaderPath = file("run/render-nurse-0.0.14.jar").absolutePath
+
 
 neoForge {
     // Specify the version of NeoForge to use.
@@ -51,6 +54,16 @@ neoForge {
 
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        renderDocClient {
+            client()
+
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty("neoforge.rendernurse.renderdoc.library", rdcDyLibPath)
+            jvmArgument("-javaagent:" + rdcLoaderPath)
+            jvmArgument("--enable-preview")
+            jvmArgument("--enable-native-access=ALL-UNNAMED")
         }
 
         server {
@@ -119,14 +132,14 @@ dependencies {
     implementation project(":anvillib-wheel-neoforge-1.21.5")
 }
 
-tasks.withType(JavaExec).configureEach {
-    javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-    // Keep JVM crash artifacts inside the module for easier debugging.
-    jvmArgs '-XX:ErrorFile=' + project.layout.buildDirectory.file('hs_err_pid%p.log').get().asFile.absolutePath
-    jvmArgs '-XX:ReplayDataFile=' + project.layout.buildDirectory.file('replay_pid%p.log').get().asFile.absolutePath
-}
+//tasks.withType(JavaExec).configureEach {
+//    javaLauncher = javaToolchains.launcherFor {
+//        languageVersion = JavaLanguageVersion.of(21)
+//    }
+//    // Keep JVM crash artifacts inside the module for easier debugging.
+//    jvmArgs '-XX:ErrorFile=' + project.layout.buildDirectory.file('hs_err_pid%p.log').get().asFile.absolutePath
+//    jvmArgs '-XX:ReplayDataFile=' + project.layout.buildDirectory.file('replay_pid%p.log').get().asFile.absolutePath
+//}
 
 // This block of code expands all declared replace properties in the specified resource targets.
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.

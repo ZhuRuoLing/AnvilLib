@@ -1,15 +1,16 @@
 package dev.anvilcraft.lib.v2.wheel.client.gui.component;
 
+import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.anvilcraft.lib.v2.wheel.client.init.LibRenders;
 import dev.anvilcraft.lib.v2.wheel.util.MathUtil;
@@ -26,9 +27,10 @@ import org.joml.Vector2f;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.OptionalDouble;
 import java.util.OptionalInt;
 
+@SuppressWarnings("DataFlowIssue")
 public class WheelWidget extends AbstractWidget {
     public static final int IGNORE_CURSOR_MOVE_LENGTH = 15;
     private static final float RING_Z = 60f;
@@ -133,32 +135,63 @@ public class WheelWidget extends AbstractWidget {
     }
 
     public WheelWidget(
-        int x, int y, int width, int height,
-        float ringInnerRadius, float ringOuterRadius,
-        int delay, int animationMs, int closingAnimationMs,
+        int x,
+        int y,
+        int width,
+        int height,
+        float ringInnerRadius,
+        float ringOuterRadius,
+        int delay,
+        int animationMs,
+        int closingAnimationMs,
         int ringColor,
-        int selectionEffectColor, int selectionEffectRadius, float selectionAnimationSpeedFactor,
-        int textColor, float textScale,
+        int selectionEffectColor,
+        int selectionEffectRadius,
+        float selectionAnimationSpeedFactor,
+        int textColor,
+        float textScale,
         List<RawSection> sections
     ) {
         this(
-            x, y, width, height, Component.empty(),
-            ringInnerRadius, ringOuterRadius,
-            delay, animationMs, closingAnimationMs,
+            x,
+            y,
+            width,
+            height,
+            Component.empty(),
+            ringInnerRadius,
+            ringOuterRadius,
+            delay,
+            animationMs,
+            closingAnimationMs,
             ringColor,
-            selectionEffectColor, selectionEffectRadius, selectionAnimationSpeedFactor,
-            textColor, textScale, 0f,
+            selectionEffectColor,
+            selectionEffectRadius,
+            selectionAnimationSpeedFactor,
+            textColor,
+            textScale,
+            0f,
             sections
         );
     }
 
     public WheelWidget(
-        int x, int y, int width, int height, Component message,
-        float ringInnerRadius, float ringOuterRadius,
-        int delay, int animationMs, int closingAnimationMs,
+        int x,
+        int y,
+        int width,
+        int height,
+        Component message,
+        float ringInnerRadius,
+        float ringOuterRadius,
+        int delay,
+        int animationMs,
+        int closingAnimationMs,
         int ringColor,
-        int selectionEffectColor, int selectionEffectRadius, float selectionAnimationSpeedFactor,
-        int textColor, float textScale, float degreeOffsetAngle,
+        int selectionEffectColor,
+        int selectionEffectRadius,
+        float selectionAnimationSpeedFactor,
+        int textColor,
+        float textScale,
+        float degreeOffsetAngle,
         List<RawSection> sections
     ) {
         super(x, y, width, height, message);
@@ -265,9 +298,9 @@ public class WheelWidget extends AbstractWidget {
         double rotation = cursorPos.x < 0 ? Math.PI - rot : Math.PI + rot;
         for (WheelSection section : this.sections) {
             if ((
-                    section.angleStart > section.angleEnd && rotation >= section.angleStart
+                section.angleStart > section.angleEnd && rotation >= section.angleStart
                     || rotation >= section.angleStart && rotation <= section.angleEnd
-                )
+            )
                 && section.selectable
             ) {
                 this.currentAngle = section.angle;
@@ -516,24 +549,6 @@ public class WheelWidget extends AbstractWidget {
         float innerDiameter,
         float outerDiameter
     ) {
-        guiGraphics.drawSpecial((bufferSource)->{
-            VertexConsumer vertexConsumer = bufferSource.getBuffer(LibRenders.getRING());
-            PoseStack poseStack = guiGraphics.pose();
-            Matrix4f matrix4f = poseStack.last().pose();
-            float x1 = centerX - outerDiameter - 5;
-            float y1 = centerY - outerDiameter - 5;
-            float x2 = centerX + outerDiameter + 5;
-            float y2 = centerY + outerDiameter + 5;
-            vertexConsumer.addVertex(matrix4f, x1, y1, RING_Z).setColor(color);
-            vertexConsumer.addVertex(matrix4f, x2, y2, RING_Z).setColor(color);
-            vertexConsumer.addVertex(matrix4f, x2, y1, RING_Z).setColor(color);
-            vertexConsumer.addVertex(matrix4f, x1, y2, RING_Z).setColor(color);
-
-            Window window = Minecraft.getInstance().getWindow();
-            float guiScale = (float) window.getGuiScale();
-
-            vertexConsumer.
-        });
         PoseStack poseStack = guiGraphics.pose();
         Matrix4f matrix4f = poseStack.last().pose();
         Tesselator tesselator = Tesselator.getInstance();
@@ -546,48 +561,32 @@ public class WheelWidget extends AbstractWidget {
         float x2 = centerX + outerDiameter + 5;
         float y2 = centerY + outerDiameter + 5;
         bufferBuilder.addVertex(matrix4f, x1, y1, RING_Z).setColor(color);
+        bufferBuilder.addVertex(matrix4f, x1, y2, RING_Z).setColor(color);
         bufferBuilder.addVertex(matrix4f, x2, y2, RING_Z).setColor(color);
         bufferBuilder.addVertex(matrix4f, x2, y1, RING_Z).setColor(color);
-        bufferBuilder.addVertex(matrix4f, x1, y2, RING_Z).setColor(color);
-
+        MeshData built = bufferBuilder.build();
         Window window = Minecraft.getInstance().getWindow();
         float guiScale = (float) window.getGuiScale();
+        RenderSystem.AutoStorageIndexBuffer sequentialBuffer = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
+        GpuBuffer indexBuffer = sequentialBuffer.getBuffer(built.drawState().indexCount());
+        GpuBuffer vertexBuffer = LibRenders.RING_PIPELINE.getVertexFormat().uploadImmediateVertexBuffer(built.vertexBuffer());
+        built.close();
 
-        RenderPipeline ringPipeline = LibRenders.getRING_PIPELINE();
-        if (ringPipeline == null) {
-            renderRingFallback(guiGraphics, centerX, centerY, color, innerDiameter, outerDiameter);
-            return;
-        }
-        GpuTexture texture = Minecraft.getInstance().getMainRenderTarget().getColorTexture();
-        if(texture!=null) {
-            RenderPass renderPass = RenderSystem.getDevice()
-                .createCommandEncoder()
-                .createRenderPass(texture, OptionalInt.empty());
-            renderPass.setPipeline(ringPipeline);
-            renderPass.setUniform("Center", centerX * guiScale, centerY * guiScale);
-            renderPass.setUniform("InnerDiameter", innerDiameter * guiScale);
-            renderPass.setUniform("OuterDiameter", outerDiameter * guiScale);
+        RenderTarget mainRenderTarget = Minecraft.getInstance().getMainRenderTarget();
+        RenderPass renderPass = RenderSystem.getDevice()
+            .createCommandEncoder()
+            .createRenderPass(mainRenderTarget.getColorTexture(), OptionalInt.empty(), mainRenderTarget.getDepthTexture(), OptionalDouble.empty());
+        renderPass.setPipeline(LibRenders.RING_PIPELINE);
+        renderPass.setUniform("Center", centerX * guiScale, centerY * guiScale);
+        renderPass.setUniform("InnerDiameter", innerDiameter * guiScale);
+        renderPass.setUniform("OuterDiameter", outerDiameter * guiScale);
 
-        }
-        @SuppressWarnings("resource")
-        CompiledShaderProgram compiledRingShader = RenderSystem.setShader(ringPipeline);
-        if (compiledRingShader == null) {
-            renderRingFallback(guiGraphics, centerX, centerY, color, innerDiameter, outerDiameter);
-            return;
-        }
+        renderPass.setUniform("AntiAliasingRadius", 1.25f);
 
-        compiledRingShader
-            .safeGetUniform("Center")
-            .set(centerX * guiScale, centerY * guiScale);
-        compiledRingShader
-            .safeGetUniform("InnerDiameter")
-            .set(innerDiameter * guiScale);
-        compiledRingShader
-            .safeGetUniform("OuterDiameter")
-            .set(outerDiameter * guiScale);
-
-        RenderSystem.setShaderColor(1, 1, 1, 1);
-        BufferUploader.drawWithShader(Objects.requireNonNull(bufferBuilder.build()));
+        renderPass.setIndexBuffer(indexBuffer, sequentialBuffer.type());
+        renderPass.setVertexBuffer(0, vertexBuffer);
+        renderPass.drawIndexed(0, 6);
+        renderPass.close();
     }
 
     public static void renderSelectionEffect(
@@ -597,6 +596,9 @@ public class WheelWidget extends AbstractWidget {
         int color,
         float radius
     ) {
+        RenderPipeline selectionPipeline = LibRenders.SELECTION_PIPELINE;
+        if (selectionPipeline == null) return;
+
         PoseStack poseStack = guiGraphics.pose();
         Matrix4f matrix4f = poseStack.last().pose();
         Tesselator tesselator = Tesselator.getInstance();
@@ -612,102 +614,28 @@ public class WheelWidget extends AbstractWidget {
         bufferBuilder.addVertex(matrix4f, x1, y2, SELECTION_Z).setColor(color);
         bufferBuilder.addVertex(matrix4f, x2, y2, SELECTION_Z).setColor(color);
         bufferBuilder.addVertex(matrix4f, x2, y1, SELECTION_Z).setColor(color);
-
+        MeshData built = bufferBuilder.build();
         Window window = Minecraft.getInstance().getWindow();
         float guiScale = (float) window.getGuiScale();
-        RenderPipeline selectionPipeline = LibRenders.getSELECTION_PIPELINE();
-        if (selectionPipeline == null) {
-            renderSelectionFallback(guiGraphics, centerX, centerY, color, radius);
-            return;
-        }
-        @SuppressWarnings("resource")
-        CompiledShaderProgram compiledSelectionShader = RenderSystem.setShader(selectionPipeline);
-        if (compiledSelectionShader == null) {
-            renderSelectionFallback(guiGraphics, centerX, centerY, color, radius);
-            return;
-        }
+        RenderSystem.AutoStorageIndexBuffer sequentialBuffer = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
+        GpuBuffer indexBuffer = sequentialBuffer.getBuffer(built.drawState().indexCount());
+        GpuBuffer vertexBuffer = selectionPipeline.getVertexFormat().uploadImmediateVertexBuffer(built.vertexBuffer());
+        built.close();
 
-        compiledSelectionShader
-            .safeGetUniform("Center")
-            .set(centerX * guiScale, centerY * guiScale);
-        compiledSelectionShader
-            .safeGetUniform("FramebufferSize")
-            .set((float) window.getWidth(), (float) window.getHeight());
-        compiledSelectionShader
-            .safeGetUniform("Radius")
-            .set(radius * guiScale);
+        RenderTarget mainRenderTarget = Minecraft.getInstance().getMainRenderTarget();
+        RenderPass renderPass = RenderSystem.getDevice()
+            .createCommandEncoder()
+            .createRenderPass(mainRenderTarget.getColorTexture(), OptionalInt.empty(), mainRenderTarget.getDepthTexture(), OptionalDouble.empty());
+        renderPass.setPipeline(selectionPipeline);
+        renderPass.setUniform("Center", centerX * guiScale, centerY * guiScale);
+        renderPass.setUniform("FramebufferSize", (float) window.getWidth(), (float) window.getHeight());
+        renderPass.setUniform("Radius", radius * guiScale);
+        renderPass.setUniform("AntiAliasingRadius", 1.25f);
 
-        RenderSystem.setShaderColor(1, 1, 1, 1);
-        BufferUploader.drawWithShader(Objects.requireNonNull(bufferBuilder.build()));
+        renderPass.setIndexBuffer(indexBuffer, sequentialBuffer.type());
+        renderPass.setVertexBuffer(0, vertexBuffer);
+        renderPass.drawIndexed(0, 6);
+        renderPass.close();
     }
 
-    private static void renderRingFallback(
-        GuiGraphics guiGraphics,
-        float centerX,
-        float centerY,
-        int color,
-        float innerDiameter,
-        float outerDiameter
-    ) {
-        PoseStack poseStack = guiGraphics.pose();
-        Matrix4f matrix4f = poseStack.last().pose();
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.begin(
-            VertexFormat.Mode.TRIANGLE_STRIP,
-            DefaultVertexFormat.POSITION_COLOR
-        );
-        float innerRadius = innerDiameter / 2f;
-        float outerRadius = outerDiameter / 2f;
-        int segments = 96;
-        for (int i = 0; i <= segments; i++) {
-            float angle = (float) (Math.PI * 2 * i / segments);
-            float sin = (float) Math.sin(angle);
-            float cos = (float) Math.cos(angle);
-            bufferBuilder.addVertex(matrix4f, centerX + cos * outerRadius, centerY + sin * outerRadius, RING_Z).setColor(color);
-            bufferBuilder.addVertex(matrix4f, centerX + cos * innerRadius, centerY + sin * innerRadius, RING_Z).setColor(color);
-        }
-        //noinspection resource
-        RenderSystem.setShader(CoreShaders.POSITION_COLOR);
-        RenderSystem.setShaderColor(1, 1, 1, 1);
-        BufferUploader.drawWithShader(Objects.requireNonNull(bufferBuilder.build()));
-    }
-
-    private static void renderSelectionFallback(
-        GuiGraphics guiGraphics,
-        float centerX,
-        float centerY,
-        int color,
-        float radius
-    ) {
-        renderDisc(guiGraphics, centerX, centerY, radius, color);
-    }
-
-    private static void renderDisc(
-        GuiGraphics guiGraphics,
-        float centerX,
-        float centerY,
-        float radius,
-        int centerColor
-    ) {
-        PoseStack poseStack = guiGraphics.pose();
-        Matrix4f matrix4f = poseStack.last().pose();
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tesselator.begin(
-            VertexFormat.Mode.TRIANGLE_FAN,
-            DefaultVertexFormat.POSITION_COLOR
-        );
-        int edgeColor = centerColor & 0x00FFFFFF;
-        int segments = 48;
-        bufferBuilder.addVertex(matrix4f, centerX, centerY, SELECTION_Z).setColor(centerColor);
-        for (int i = 0; i <= segments; i++) {
-            float angle = (float) (Math.PI * 2 * i / segments);
-            float sin = (float) Math.sin(angle);
-            float cos = (float) Math.cos(angle);
-            bufferBuilder.addVertex(matrix4f, centerX + cos * radius, centerY + sin * radius, SELECTION_Z).setColor(edgeColor);
-        }
-        //noinspection resource
-        RenderSystem.setShader(CoreShaders.POSITION_COLOR);
-        RenderSystem.setShaderColor(1, 1, 1, 1);
-        BufferUploader.drawWithShader(Objects.requireNonNull(bufferBuilder.build()));
-    }
 }
