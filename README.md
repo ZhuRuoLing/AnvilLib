@@ -20,6 +20,7 @@ AnvilLib 采用模块化设计，包含以下功能模块：
 | **Recipe**                | 世界内配方系统        |
 | **Moveable Entity Block** | 可被活塞推动的方块实体支持  |
 | **Registrum**             | 简化的注册系统        |
+| **Wheel**                 | 轮盘菜单客户端 API    |
 | **Main**                  | 聚合模块（包含全部子模块）  |
 
 ## 模块介绍
@@ -189,6 +190,35 @@ public static final RegistryEntry<Item> MY_ITEM = REGISTRUM
     .register();
 ```
 
+### Wheel 模块
+
+提供轮盘菜单的客户端 API，用于快速选择并触发操作。
+
+**主要特性：**
+
+- 两种打开方式：`TAP` 与 `HOLD`（松开触发）
+- 内置分页（`slotsPerPage`，默认 `8`）
+- `TAP` 模式支持子菜单
+- 通过 `WheelMenuBuilder` 定义条目渲染与回调
+
+**使用示例：**
+
+```java
+WheelMenuModel model = WheelMenuBuilder.create()
+    .slotsPerPage(8)
+    .action(
+        "heal", Component.literal("Heal"), iconRenderer, ctx -> {
+        }
+    )
+    .build();
+
+WheelScreenController controller = new WheelScreenController();
+controller.openTap(model);
+// HOLD 模式：按键按下/松开边沿分别调用
+controller.onHoldKeyPressed(model);
+controller.onHoldKeyReleased();
+```
+
 ### Main 模块
 
 `anvillib-neoforge-26.1` 为聚合发行模块，默认打包并重导出以下子模块：
@@ -199,6 +229,9 @@ public static final RegistryEntry<Item> MY_ITEM = REGISTRUM
 - `recipe`
 - `moveable-entity-block`
 - `registrum`
+- `wheel`
+
+`anvillib-test-neoforge-26.1` 为开发/测试模块，不包含在聚合运行时产物中。
 
 ## 依赖引入
 
@@ -221,6 +254,7 @@ dependencies {
     implementation "dev.anvilcraft.lib:anvillib-recipe-neoforge-26.1:2.0.0"
     implementation "dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-26.1:2.0.0"
     implementation "dev.anvilcraft.lib:anvillib-registrum-neoforge-26.1:2.0.0"
+    implementation "dev.anvilcraft.lib:anvillib-wheel-neoforge-26.1:2.0.0"
 }
 ```
 
@@ -237,6 +271,7 @@ dependencies {
     // 按需引入示例
     implementation("dev.anvilcraft.lib:anvillib-network-neoforge-26.1:2.0.0")
     implementation("dev.anvilcraft.lib:anvillib-codec-neoforge-26.1:2.0.0")
+    implementation("dev.anvilcraft.lib:anvillib-wheel-neoforge-26.1:2.0.0")
 }
 ```
 

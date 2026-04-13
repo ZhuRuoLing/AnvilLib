@@ -1,0 +1,14 @@
+[versions]
+minecraft = "1.21.6"
+neoForge = "21.6.20-beta"
+modDevGradle = "2.0.140"
+lombok = "8.7.1"
+machete = "2.0.1"
+
+[libraries]
+neoForge = { group = "net.neoforged", name = "neoforge", version.ref = "neoForge" }
+
+[plugins]
+modDevGradle = { id = "net.neoforged.moddev", version.ref = "modDevGradle" }
+lombok = { id = "io.freefair.lombok", version.ref = "lombok" }
+machete = { id = "io.github.p03w.machete", version.ref = "machete" }
