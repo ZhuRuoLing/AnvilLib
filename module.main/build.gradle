@@ -25,9 +25,19 @@ base {
 }
 
 repositories {
-    maven { url = "https://server.cjsah.net:1002/maven/" }
     mavenLocal()
-    mavenCentral()
+    exclusiveContent {
+        forRepositories(
+                mavenCentral(),
+                maven { // Anvil Lib
+                    name = "Cjsah Maven"
+                    url = "https://server.cjsah.net:1002/maven/"
+                }
+        )
+        filter {
+            includeGroup "dev.anvilcraft.lib"
+        }
+    }
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -120,17 +130,23 @@ dependencies {
         jarJar(implementation("dev.anvilcraft.lib:anvillib-codec-neoforge-1.21.5:latest.release"))
         jarJar(implementation("dev.anvilcraft.lib:anvillib-integration-neoforge-1.21.5:latest.release"))
         jarJar(implementation("dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-1.21.5:latest.release"))
+        interfaceInjectionData("dev.anvilcraft.lib:anvillib-moveable-entity-block-neoforge-1.21.5:latest.release")
         jarJar(implementation("dev.anvilcraft.lib:anvillib-network-neoforge-1.21.5:latest.release"))
         jarJar(implementation("dev.anvilcraft.lib:anvillib-recipe-neoforge-1.21.5:latest.release"))
+        interfaceInjectionData("dev.anvilcraft.lib:anvillib-recipe-neoforge-1.21.5:latest.release")
         jarJar(implementation("dev.anvilcraft.lib:anvillib-registrum-neoforge-1.21.5:latest.release"))
+        jarJar(implementation("dev.anvilcraft.lib:anvillib-wheel-neoforge-1.21.5:latest.release"))
     } else {
         jarJar(implementation project(":anvillib-config-neoforge-1.21.5"))
         jarJar(implementation project(":anvillib-codec-neoforge-1.21.5"))
         jarJar(implementation project(":anvillib-integration-neoforge-1.21.5"))
         jarJar(implementation project(":anvillib-moveable-entity-block-neoforge-1.21.5"))
+        interfaceInjectionData project(":anvillib-moveable-entity-block-neoforge-1.21.5")
         jarJar(implementation project(":anvillib-network-neoforge-1.21.5"))
         jarJar(implementation project(":anvillib-recipe-neoforge-1.21.5"))
+        interfaceInjectionData project(":anvillib-recipe-neoforge-1.21.5")
         jarJar(implementation project(":anvillib-registrum-neoforge-1.21.5"))
+        jarJar(implementation project(":anvillib-wheel-neoforge-1.21.5"))
     }
 }
 
@@ -139,9 +155,9 @@ dependencies {
 // When "copyIdeResources" is enabled, this will also run before the game launches in IDE environments.
 // See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
 tasks.withType(ProcessResources).configureEach {
-    var replaceProperties = [minecraft_version      : minecraft_version,
+    var replaceProperties = [minecraft_version      : libs.versions.minecraft.get(),
                              minecraft_version_range: minecraft_version_range,
-                             neo_version            : neo_version,
+                             neo_version            : libs.versions.neoForge.get(),
                              neo_version_range      : neo_version_range,
                              loader_version_range   : loader_version_range,
                              mod_id                 : mod_id,
@@ -298,12 +314,12 @@ publishMods {
     curseforge {
         accessToken = System.getenv("CURSEFORGE_TOKEN")
         projectId = "1484302"
-        minecraftVersions.add(project.minecraft_version)
+        minecraftVersions.add(libs.versions.minecraft.get())
     }
 
     modrinth {
         accessToken = System.getenv("MODRINTH_TOKEN")
         projectId = "nKAcAL9b"
-        minecraftVersions.add(project.minecraft_version)
+        minecraftVersions.add(libs.versions.minecraft.get())
     }
 }
