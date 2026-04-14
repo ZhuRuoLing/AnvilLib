@@ -1,23 +1,16 @@
 package dev.anvilcraft.lib.v2.rendering.test;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.anvilcraft.lib.v2.rendering.ALRendering;
-import dev.anvilcraft.lib.v2.rendering.bloom.BloomPostEffect;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
-import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
-import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.geometry.BakedQuad;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
-
-import java.util.HashSet;
-import java.util.Set;
+import net.minecraft.world.item.Items;
 
 public class ALRTest {
 
@@ -25,9 +18,24 @@ public class ALRTest {
     public static void renderCarrotBloomed() {
         if (!ALRendering.DEBUG) return;
         renderCarrot();
-        ALRendering.getBloomPostEffect().beginBloomDraw();
-        renderCarrot();
-        ALRendering.getBloomPostEffect().endBloomDraw();
+        ALRendering.getBloomPostEffect().drawBloomed(ALRTest::submitCarrot);
+    }
+
+    private static void submitCarrot(SubmitNodeCollector nodeCollector, PoseStack poseStack) {
+        poseStack.pushPose();
+        poseStack.translate(-0.1, 0, 0.28);
+        poseStack.scale(0.5f, 0.5f, 0.5f);
+        ItemStackRenderState renderState = new ItemStackRenderState();
+        Minecraft.getInstance().getItemModelResolver().updateForTopItem(
+            renderState,
+            Items.CARROT.getDefaultInstance(),
+            ItemDisplayContext.FIXED,
+            Minecraft.getInstance().level,
+            Minecraft.getInstance().player,
+            42
+        );
+        renderState.submit(poseStack, nodeCollector, 15728880, OverlayTexture.NO_OVERLAY, 0);
+        poseStack.popPose();
     }
 
     public static void renderCarrot() {
@@ -37,38 +45,29 @@ public class ALRTest {
         poseStack.pushPose();
         poseStack.translate(-0.1, 0, 0.28);
         poseStack.scale(0.5f, 0.5f, 0.5f);
-        ItemModel model = minecraft.getModelManager().getItemModel(Identifier.withDefaultNamespace("carrot"));
-        if (model instanceof CuboidItemModelWrapper wrapper) {
-            MultiBufferSource.BufferSource bufferSource = minecraft.renderBuffers().bufferSource();
-            RenderSystem.pushPipelineModifier(BloomPostEffect.REDIRECT_TO_BLOOM);
-            SubmitNodeStorage.ItemSubmit submit = new SubmitNodeStorage.ItemSubmit(
-                poseStack.last(),
-                ItemDisplayContext.FIXED,
-                15728880,
-                OverlayTexture.NO_OVERLAY,
-                0,
-                ItemStackRenderState.LayerRenderState.EMPTY_TINTS,
-                wrapper.quads.getAll(),
-                ItemStackRenderState.FoilType.NONE
-            );
-            Set<RenderType> uniqueValues = new HashSet<>();
-            for (BakedQuad it : submit.quads()) {
-                RenderType renderType = it.materialInfo().itemRenderType();
-                uniqueValues.add(renderType);
-            }
-
-            minecraft.gameRenderer
-                .getFeatureRenderDispatcher()
-                .itemFeatureRenderer
-                .renderItem(
-                    bufferSource,
-                    minecraft.renderBuffers().outlineBufferSource(),
-                    submit
-                );
-
-            uniqueValues.forEach(bufferSource::endBatch);
-            poseStack.popPose();
-            RenderSystem.popPipelineModifier();
-        }
+        ItemStackRenderState renderState = new ItemStackRenderState();
+        Minecraft.getInstance().getItemModelResolver().updateForTopItem(
+            renderState,
+            Items.CARROT.getDefaultInstance(),
+            ItemDisplayContext.FIXED,
+            Minecraft.getInstance().level,
+            Minecraft.getInstance().player,
+            42
+        );
+        RenderBuffers renderBuffers = minecraft.renderBuffers();
+        FeatureRenderDispatcher frd = new FeatureRenderDispatcher(
+            new SubmitNodeStorage(),
+            minecraft.getModelManager(),
+            renderBuffers.bufferSource(),
+            minecraft.getAtlasManager(),
+            renderBuffers.outlineBufferSource(),
+            renderBuffers.crumblingBufferSource(),
+            minecraft.font,
+            minecraft.gameRenderer.getGameRenderState()
+        );
+        renderState.submit(poseStack, frd.getSubmitNodeStorage(), 15728880, OverlayTexture.NO_OVERLAY, 0);
+        frd.renderAllFeatures();
+        renderBuffers.bufferSource().endBatch();
+        poseStack.popPose();
     }
 }

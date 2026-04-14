@@ -17,16 +17,19 @@ import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.anvilcraft.lib.v2.rendering.ALRPipelines;
 import dev.anvilcraft.lib.v2.rendering.ALRendering;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.neoforged.neoforge.client.pipeline.PipelineModifier;
 import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
 import org.joml.Vector2f;
 
 import java.util.ArrayList;
@@ -96,7 +99,7 @@ public class BloomPostEffect {
     @Getter
     private final BloomParametersUbo bloomParameters;
     private final TransformsUbo transformsUbo = new TransformsUbo(new Matrix4f());
-    private final List<Runnable> bloomCalls = new ArrayList<>();
+    private final List<BloomRenderCallback> bloomCalls = new ArrayList<>();
     private int width;
     private int height;
     private int indexCount;
@@ -127,7 +130,7 @@ public class BloomPostEffect {
         dirty = true;
     }
 
-    public void drawBloomed(Runnable runnable) {
+    public void drawBloomed(BloomRenderCallback runnable) {
         bloomCalls.add(runnable);
         markDirty();
     }
@@ -153,19 +156,25 @@ public class BloomPostEffect {
         RenderSystem.outputDepthTextureOverride = null;
     }
 
-    private void runBloomDraws() {
+    private void runBloomDraws(Matrix4fc modelViewMatrix, FeatureRenderDispatcher featureRenderDispatcher) {
         if (bloomCalls.isEmpty()) return;
         beginBloomDraw();
-        for (Runnable bloomCall : bloomCalls) {
-            bloomCall.run();
+        PoseStack poseStack = new PoseStack();
+        RenderSystem.getModelViewStack().pushMatrix();
+        RenderSystem.getModelViewStack().set(modelViewMatrix);
+        for (BloomRenderCallback bloomCall : bloomCalls) {
+            bloomCall.render(featureRenderDispatcher.getSubmitNodeStorage(), poseStack);
         }
+        featureRenderDispatcher.renderAllFeatures();
+        Minecraft.getInstance().renderBuffers().bufferSource().endBatch();
+        RenderSystem.getModelViewStack().popMatrix();
         endBloomDraw();
     }
 
     @SuppressWarnings("DataFlowIssue")
-    public void process() {
+    public void process(Matrix4fc modelViewMatrix, FeatureRenderDispatcher featureRenderDispatcher) {
         if (!dirty) return;
-        runBloomDraws();
+        runBloomDraws(modelViewMatrix, featureRenderDispatcher);
         CommandEncoder commandEncoder = device.createCommandEncoder();
 
         transformsUbo.upload(commandEncoder, transformUBO.slice());
