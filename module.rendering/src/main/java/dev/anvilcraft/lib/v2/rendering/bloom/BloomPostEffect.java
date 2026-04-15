@@ -109,7 +109,13 @@ public class BloomPostEffect {
         this(1.25f, 1.943f, 1.105f, 0.08f, 0.8f);
     }
 
-    public BloomPostEffect(float bloomIntensity, float sampleStepLength, float colorMultiplier, float bloomThreshold, float bloomIntensityMultiplier) {
+    public BloomPostEffect(
+        float bloomIntensity,
+        float sampleStepLength,
+        float colorMultiplier,
+        float bloomThreshold,
+        float bloomIntensityMultiplier
+    ) {
         Window window = Minecraft.getInstance().getWindow();
         this.width = window.getWidth();
         this.height = window.getHeight();
@@ -283,10 +289,10 @@ public class BloomPostEffect {
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder builder = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
-        builder.addVertex(0, 0, 100).setUv(0, 0);
-        builder.addVertex(0, height, 100).setUv(0, 1);
-        builder.addVertex(width, height, 100).setUv(1, 1);
-        builder.addVertex(width, 0, 100).setUv(1, 0);
+        builder.addVertex(0,        0,      100).setUv(0, 0);
+        builder.addVertex(0,        height, 100).setUv(0, 1);
+        builder.addVertex(width,    height, 100).setUv(1, 1);
+        builder.addVertex(width,    0,      100).setUv(1, 0);
 
         MeshData data = builder.buildOrThrow();
         CommandEncoder commandEncoder = device.createCommandEncoder();

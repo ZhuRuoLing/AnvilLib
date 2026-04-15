@@ -2,20 +2,14 @@ package dev.anvilcraft.lib.v2.rendering.foundation.ubo;
 
 import com.mojang.blaze3d.buffers.Std140Builder;
 import com.mojang.blaze3d.buffers.Std140SizeCalculator;
-import lombok.Getter;
+import org.joml.Matrix4f;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import java.util.function.Function;
-import java.util.function.Supplier;
 
-@Getter
-public class UboLayoutEntry<T, I> {
-    private final UboLayoutEntryType<T> type;
-    private final Function<I, T> getter;
-
-    public UboLayoutEntry(UboLayoutEntryType<T> type, Function<I, T> getter) {
-        this.type = type;
-        this.getter = getter;
-    }
+public record UboLayoutEntry<T, I>(UboLayoutEntryType<T> type, Function<I, T> getter) {
 
     void acceptSizeCalculator(Std140SizeCalculator sizeCalculator) {
         type.acceptSizeCalculator(sizeCalculator);
@@ -37,19 +31,19 @@ public class UboLayoutEntry<T, I> {
         return builder(UboLayoutEntryType.FLOAT);
     }
 
-    public static <I1> Builder<org.joml.Vector2f, I1> ofVec2() {
+    public static <I1> Builder<Vector2f, I1> ofVec2f() {
         return builder(UboLayoutEntryType.VEC2);
     }
 
-    public static <I1> Builder<org.joml.Vector3f, I1> ofVec3() {
+    public static <I1> Builder<Vector3f, I1> ofVec3f() {
         return builder(UboLayoutEntryType.VEC3);
     }
 
-    public static <I1> Builder<org.joml.Vector4f, I1> ofVec4() {
+    public static <I1> Builder<Vector4f, I1> ofVec4f() {
         return builder(UboLayoutEntryType.VEC4);
     }
 
-    public static <I1> Builder<org.joml.Matrix4f, I1> ofMat4() {
+    public static <I1> Builder<Matrix4f, I1> ofMat4f() {
         return builder(UboLayoutEntryType.MAT4);
     }
 

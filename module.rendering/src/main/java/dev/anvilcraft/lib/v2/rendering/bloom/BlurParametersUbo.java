@@ -12,12 +12,13 @@ import org.joml.Vector2f;
 public class BlurParametersUbo extends UboObject<BlurParametersUbo> {
 
     public static final UboLayoutDefinition<BlurParametersUbo> DEFINITION = UboLayoutDefinition.create(
-        UboLayoutEntry.<BlurParametersUbo>ofVec2().forGetter(BlurParametersUbo::getDirection).build(),
+        UboLayoutEntry.<BlurParametersUbo>ofVec2f().forGetter(BlurParametersUbo::getDirection).build(),
         UboLayoutEntry.<BlurParametersUbo>ofFloat().forGetter(BlurParametersUbo::getSampleStepLength).build(),
         UboLayoutEntry.<BlurParametersUbo>ofFloat().forGetter(BlurParametersUbo::getColorMultiplier).build()
     );
 
     private float sampleStepLength;
+
     private float colorMultiplier;
     private Vector2f direction;
 

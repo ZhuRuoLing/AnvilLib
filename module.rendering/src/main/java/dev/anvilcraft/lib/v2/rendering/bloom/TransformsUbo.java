@@ -12,7 +12,7 @@ import org.joml.Matrix4f;
 public class TransformsUbo extends UboObject<TransformsUbo> {
 
     public static final UboLayoutDefinition<TransformsUbo> DEFINITION = UboLayoutDefinition.create(
-            UboLayoutEntry.<TransformsUbo>ofMat4().forGetter(TransformsUbo::getProjMat).build()
+            UboLayoutEntry.<TransformsUbo>ofMat4f().forGetter(TransformsUbo::getProjMat).build()
     );
 
     private Matrix4f projMat;
