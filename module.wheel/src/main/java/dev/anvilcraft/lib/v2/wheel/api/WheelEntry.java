@@ -1,5 +1,6 @@
 package dev.anvilcraft.lib.v2.wheel.api;
 
+import lombok.Getter;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,16 +15,18 @@ public final class WheelEntry {
 
     private final String id;
     private final Component label;
+    @Nullable
     private final WheelEntryRenderer renderer;
     @Nullable
     private final WheelEntryAction action;
     private final List<WheelEntry> submenu;
+    @Getter
     private final boolean placeholder;
 
     private WheelEntry(
         String id,
         Component label,
-        WheelEntryRenderer renderer,
+        @Nullable WheelEntryRenderer renderer,
         @Nullable WheelEntryAction action,
         List<WheelEntry> submenu,
         boolean placeholder
@@ -36,6 +39,18 @@ public final class WheelEntry {
         this.placeholder = placeholder;
     }
 
+    public static WheelEntry action(String id, Component label, WheelEntryAction action) {
+        Objects.requireNonNull(action, "action");
+        return new WheelEntry(
+            Objects.requireNonNull(id, "id"),
+            Objects.requireNonNull(label, "label"),
+            null,
+            action,
+            List.of(),
+            false
+        );
+    }
+
     public static WheelEntry action(String id, Component label, WheelEntryRenderer renderer, WheelEntryAction action) {
         Objects.requireNonNull(action, "action");
         return new WheelEntry(
@@ -44,6 +59,18 @@ public final class WheelEntry {
             Objects.requireNonNull(renderer, "renderer"),
             action,
             List.of(),
+            false
+        );
+    }
+
+    public static WheelEntry submenu(String id, Component label, List<WheelEntry> submenu) {
+        List<WheelEntry> submenuCopy = List.copyOf(Objects.requireNonNull(submenu, "submenu"));
+        return new WheelEntry(
+            Objects.requireNonNull(id, "id"),
+            Objects.requireNonNull(label, "label"),
+            null,
+            null,
+            submenuCopy,
             false
         );
     }
@@ -83,7 +110,7 @@ public final class WheelEntry {
         return this.label;
     }
 
-    public WheelEntryRenderer renderer() {
+    public @Nullable WheelEntryRenderer renderer() {
         return this.renderer;
     }
 
@@ -97,10 +124,6 @@ public final class WheelEntry {
 
     public boolean hasSubmenu() {
         return !this.submenu.isEmpty();
-    }
-
-    public boolean isPlaceholder() {
-        return this.placeholder;
     }
 
     public boolean isSelectable(WheelOpenMode mode) {

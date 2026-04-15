@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 public final class WheelMenuBuilder {
     private final List<WheelEntry> entries = new ArrayList<>();
     private int slotsPerPage = WheelMenuModel.DEFAULT_SLOTS_PER_PAGE;
+    private int deadZone = 15;
 
     private WheelMenuBuilder() {
     }
@@ -26,6 +27,20 @@ public final class WheelMenuBuilder {
         return this;
     }
 
+    public WheelMenuBuilder deadZone(int deadZone){
+        this.deadZone = deadZone;
+        return this;
+    }
+
+    public WheelMenuBuilder action(
+        String id,
+        Component label,
+        WheelEntryAction action
+    ) {
+        this.entries.add(WheelEntry.action(id, label, action));
+        return this;
+    }
+
     public WheelMenuBuilder action(
         String id,
         Component label,
@@ -33,6 +48,17 @@ public final class WheelMenuBuilder {
         WheelEntryAction action
     ) {
         this.entries.add(WheelEntry.action(id, label, renderer, action));
+        return this;
+    }
+
+    public WheelMenuBuilder submenu(
+        String id,
+        Component label,
+        Consumer<WheelSubmenuBuilder> submenuBuilder
+    ) {
+        WheelSubmenuBuilder builder = new WheelSubmenuBuilder();
+        Objects.requireNonNull(submenuBuilder, "submenuBuilder").accept(builder);
+        this.entries.add(WheelEntry.submenu(id, label, builder.buildEntries()));
         return this;
     }
 
@@ -49,11 +75,20 @@ public final class WheelMenuBuilder {
     }
 
     public WheelMenuModel build() {
-        return WheelMenuModel.of(List.copyOf(this.entries), this.slotsPerPage);
+        return WheelMenuModel.of(List.copyOf(this.entries), this.slotsPerPage, this.deadZone);
     }
 
     public static final class WheelSubmenuBuilder {
         private final List<WheelEntry> entries = new ArrayList<>();
+
+        public WheelSubmenuBuilder action(
+            String id,
+            Component label,
+            WheelEntryAction action
+        ) {
+            this.entries.add(WheelEntry.action(id, label, action));
+            return this;
+        }
 
         public WheelSubmenuBuilder action(
             String id,

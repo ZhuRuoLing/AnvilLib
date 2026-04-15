@@ -163,7 +163,14 @@ public class WheelScreen extends Screen {
     private void rebuildWheelWidget() {
         WheelPageModel page = this.currentPage();
         List<WheelWidget.RawSection> sections = page.slots().stream()
-            .map(entry -> new WheelWidget.RawSection(entry.label(), entry.renderer()::render, entry.isSelectable(this.openMode)))
+            .map(entry -> {
+                var renderer = entry.renderer();
+                return new WheelWidget.RawSection(
+                    entry.label(),
+                    renderer == null ? null : renderer::render,
+                    entry.isSelectable(this.openMode)
+                );
+            })
             .toList();
 
         this.wheelWidget = new WheelWidget(
@@ -173,7 +180,8 @@ public class WheelScreen extends Screen {
             this.height,
             Math.min(this.width, this.height) * WHEEL_INNER_RADIUS_SCALE,
             Math.min(this.width, this.height) * WHEEL_OUTER_RADIUS_SCALE,
-            sections
+            sections,
+            this.model.deadZone()
         );
         this.wheelWidget.clearSelection();
     }

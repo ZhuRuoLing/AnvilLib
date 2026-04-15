@@ -9,21 +9,23 @@ public final class WheelMenuModel {
 
     private final List<WheelEntry> rootEntries;
     private final int slotsPerPage;
+    private final int deadZone;
 
-    private WheelMenuModel(List<WheelEntry> rootEntries, int slotsPerPage) {
+    private WheelMenuModel(List<WheelEntry> rootEntries, int slotsPerPage, int deadZone) {
         if (slotsPerPage < 1) {
             throw new IllegalArgumentException("slotsPerPage must be >= 1");
         }
         this.rootEntries = List.copyOf(Objects.requireNonNull(rootEntries, "rootEntries"));
         this.slotsPerPage = slotsPerPage;
+        this.deadZone = deadZone;
     }
 
     public static WheelMenuModel of(List<WheelEntry> rootEntries) {
-        return new WheelMenuModel(rootEntries, DEFAULT_SLOTS_PER_PAGE);
+        return new WheelMenuModel(rootEntries, DEFAULT_SLOTS_PER_PAGE, 30);
     }
 
-    public static WheelMenuModel of(List<WheelEntry> rootEntries, int slotsPerPage) {
-        return new WheelMenuModel(rootEntries, slotsPerPage);
+    public static WheelMenuModel of(List<WheelEntry> rootEntries, int slotsPerPage, int deadZone) {
+        return new WheelMenuModel(rootEntries, slotsPerPage, deadZone);
     }
 
     public List<WheelEntry> rootEntries() {
@@ -32,6 +34,10 @@ public final class WheelMenuModel {
 
     public int slotsPerPage() {
         return this.slotsPerPage;
+    }
+
+    public int deadZone() {
+        return this.deadZone;
     }
 
     public int pageCount(List<WheelEntry> entries) {
