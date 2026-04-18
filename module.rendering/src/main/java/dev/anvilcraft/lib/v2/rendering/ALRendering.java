@@ -53,11 +53,6 @@ public class ALRendering {
     }
 
     @SubscribeEvent
-    public static void on(RenderLevelStageEvent.AfterTranslucentBlocks event) {
-        ALRTest.renderCarrotBloomed();
-    }
-
-    @SubscribeEvent
     public static void on(RenderLevelStageEvent.AfterLevel event) {
         Minecraft minecraft = Minecraft.getInstance();
         RenderBuffers renderBuffers = minecraft.renderBuffers();
