@@ -130,6 +130,7 @@ dependencies {
     interfaceInjectionData(implementation project(":anvillib-recipe-neoforge-26.1"))
     implementation project(":anvillib-registrum-neoforge-26.1")
     implementation project(":anvillib-wheel-neoforge-26.1")
+    implementation project(":anvillib-rendering-neoforge-26.1")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

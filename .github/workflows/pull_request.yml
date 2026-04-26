@@ -73,6 +73,16 @@ jobs:
       mod_id: anvillib_registrum
       ci_build: true
       pr_build: true
+
+  rendering:
+    uses: ./.github/workflows/build_and_test.yml
+    with:
+      module: rendering
+      module_id: anvillib-rendering
+      mod_id: anvillib_rendering
+      ci_build: true
+      pr_build: true
+
   wheel:
     uses: ./.github/workflows/build_and_test.yml
     with:
@@ -91,6 +101,7 @@ jobs:
       - recipe
       - registrum
       - wheel
+      - rendering
     uses: ./.github/workflows/build_and_test.yml
     with:
       module: main

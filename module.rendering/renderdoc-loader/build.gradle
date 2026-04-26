@@ -1,0 +1,92 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group = 'dev.anvilcraft.lib'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+    manifest {
+        attributes(
+            'Premain-Class': 'dev.anvilcraft.lib.renderdoc.loader.RenderDocAgent',
+            'Agent-Class': 'dev.anvilcraft.lib.renderdoc.loader.RenderDocAgent',
+            'Can-Redefine-Classes': 'false',
+            'Can-Retransform-Classes': 'false',
+            'Can-Set-Native-Method-Prefix': 'false'
+        )
+    }
+}
+
+tasks.register('sourcesJar', Jar) {
+    from sourceSets.main.allSource
+    archiveClassifier = 'sources'
+}
+
+tasks.register('javadocJar', Jar) {
+    from javadoc.destinationDir
+    dependsOn javadoc
+    archiveClassifier = 'javadoc'
+}
+
+javadoc {
+    options.encoding = 'UTF-8'
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+artifacts {
+    archives tasks.jar
+    archives tasks.sourcesJar
+    archives tasks.javadocJar
+}
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            from components.java
+
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom {
+                name = 'renderdoc-loader-internal'
+                description = 'Java Agent for dynamically loading RenderDoc DLL into JVM'
+                url = 'https://github.com/Anvil-Dev/AnvilLib'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/license/mit'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'Anvil-Dev'
+                        name = 'AnvilCraft Dev'
+                        email = 'admin@anvilcraft.dev'
+                    }
+                }
+                scm {
+                    url = 'https://github.com/Anvil-Dev/AnvilLib'
+                    connection = 'https://github.com/Anvil-Dev/AnvilLib.git'
+                    developerConnection = 'https://github.com/Anvil-Dev/AnvilLib.git'
+                }
+            }
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
