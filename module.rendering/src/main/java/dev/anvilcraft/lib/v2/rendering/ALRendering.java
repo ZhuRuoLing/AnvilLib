@@ -1,7 +1,6 @@
 package dev.anvilcraft.lib.v2.rendering;
 
 import dev.anvilcraft.lib.v2.rendering.bloom.BloomPostEffect;
-import dev.anvilcraft.lib.v2.rendering.test.ALRTest;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBuffers;
