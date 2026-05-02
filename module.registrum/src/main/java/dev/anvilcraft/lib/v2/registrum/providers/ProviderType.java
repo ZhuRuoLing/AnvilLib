@@ -20,8 +20,8 @@ import dev.anvilcraft.lib.v2.registrum.providers.generators.RegistrumModelProvid
 import dev.anvilcraft.lib.v2.registrum.providers.generators.RegistrumRecipeProvider;
 import dev.anvilcraft.lib.v2.registrum.providers.generators.RegistrumRecipeRunner;
 import dev.anvilcraft.lib.v2.registrum.providers.loot.RegistrumLootTableProvider;
-import dev.anvilcraft.lib.v2.registrum.util.nullness.FieldsAreNonnullByDefault;
-import dev.anvilcraft.lib.v2.registrum.util.nullness.NonNullSupplier;
+import dev.anvilcraft.lib.v2.util.nullness.FieldsAreNonnullByDefault;
+import dev.anvilcraft.lib.v2.util.nullness.NonNullSupplier;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -38,7 +38,6 @@ import net.neoforged.neoforge.data.loading.DatagenModLoader;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
@@ -149,18 +148,15 @@ public interface ProviderType<T extends RegistrumProvider> extends GeneratorType
 
     }
 
-    @Nonnull
     static <T extends RegistrumProvider> ProviderType<T> registerServerData(String name, SimpleServerDataFactory<T> factory) {
         return registerProvider(name, factory.asProvider());
     }
 
-    @Nonnull
     static <T extends RegistrumProvider> ProviderType<T> registerProvider(String name, ProviderType<T> type) {
         RegistrumDataProvider.TYPES.put(name, type);
         return type;
     }
 
-    @Nonnull
     static <T extends RegistrumProvider> ProviderType<T> registerClientProvider(String name, NonNullSupplier<ProviderType<T>> supplier) {
         if (!DatagenModLoader.isRunningDataGen()) return context -> null;
         var type = supplier.get();
@@ -168,7 +164,6 @@ public interface ProviderType<T extends RegistrumProvider> extends GeneratorType
         return type;
     }
 
-    @Nonnull
     static <T, R extends RegistrumTagsProvider<T>> ProviderType<R> registerTag(
         String name,
         ResourceKey<? extends Registry<T>> key,
@@ -182,7 +177,6 @@ public interface ProviderType<T extends RegistrumProvider> extends GeneratorType
         return type;
     }
 
-    @Nonnull
     static <T> ProviderType<RegistrumTagsProvider.IntrinsicImpl<T>> registerIntrinsicTag(
         String providerName,
         String typeName,
@@ -196,7 +190,6 @@ public interface ProviderType<T extends RegistrumProvider> extends GeneratorType
         );
     }
 
-    @Nonnull
     static <T> ProviderType<RegistrumTagsProvider.Impl<T>> registerDynamicTag(
         String providerName,
         String typeName,

@@ -5,7 +5,7 @@ import com.mojang.blaze3d.platform.Window;
 import dev.anvilcraft.lib.v2.wheel.AnvilLibWheel;
 import dev.anvilcraft.lib.v2.wheel.client.gui.render.state.RingRenderState;
 import dev.anvilcraft.lib.v2.wheel.client.gui.render.state.SelectionRenderState;
-import dev.anvilcraft.lib.v2.wheel.util.MathUtil;
+import dev.anvilcraft.lib.v2.util.MathUtil;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -18,7 +18,6 @@ import org.joml.Vector2f;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import javax.annotation.Nullable;
 
 @SuppressWarnings(

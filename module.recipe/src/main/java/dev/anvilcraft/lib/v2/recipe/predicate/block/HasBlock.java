@@ -1,6 +1,6 @@
 package dev.anvilcraft.lib.v2.recipe.predicate.block;
 
-import dev.anvilcraft.lib.v2.recipe.component.BlockStatePredicate;
+import dev.anvilcraft.lib.v2.util.predicate.BlockStatePredicate;
 import dev.anvilcraft.lib.v2.recipe.init.reicpe.LibRecipePredicateTypes;
 import lombok.Getter;
 import net.minecraft.tags.TagKey;
