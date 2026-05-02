@@ -1,6 +1,6 @@
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-package dev.anvilcraft.lib.v2.recipe.init.reicpe;
+package dev.anvilcraft.lib.v2.recipe.init.recipe;
 
 import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
 

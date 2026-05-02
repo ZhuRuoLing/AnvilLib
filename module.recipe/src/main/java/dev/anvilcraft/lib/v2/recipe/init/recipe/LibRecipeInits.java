@@ -1,4 +1,4 @@
-package dev.anvilcraft.lib.v2.recipe.init.reicpe;
+package dev.anvilcraft.lib.v2.recipe.init.recipe;
 
 import net.neoforged.bus.api.IEventBus;
 

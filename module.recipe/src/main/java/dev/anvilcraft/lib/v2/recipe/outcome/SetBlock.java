@@ -5,7 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.anvilcraft.lib.v2.codec.CodecUtil;
 import dev.anvilcraft.lib.v2.codec.StreamCodecUtil;
 import dev.anvilcraft.lib.v2.recipe.cache.BlockCache;
-import dev.anvilcraft.lib.v2.recipe.init.reicpe.LibRecipeOutcomeTypes;
+import dev.anvilcraft.lib.v2.recipe.init.recipe.LibRecipeOutcomeTypes;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
 import dev.anvilcraft.lib.v2.util.predicate.ChanceBlockState;
 import lombok.extern.slf4j.Slf4j;
@@ -107,7 +107,7 @@ public record SetBlock(BlockState state, CompoundTag nbt, Vec3 offset, NumberPro
                 CodecUtil.BLOCK_STATE_MAP_CODEC
                     .forGetter(SetBlock::state),
                 CompoundTag.CODEC
-                    .optionalFieldOf("nbt", null)
+                    .optionalFieldOf("nbt", new CompoundTag())
                     .forGetter(SetBlock::nbt),
                 Vec3.CODEC
                     .fieldOf("offset")

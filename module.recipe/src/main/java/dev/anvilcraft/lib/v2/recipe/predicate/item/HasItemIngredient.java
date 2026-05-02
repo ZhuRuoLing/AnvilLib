@@ -4,7 +4,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.anvilcraft.lib.v2.recipe.cache.ItemCache;
 import dev.anvilcraft.lib.v2.recipe.cache.item.ICacheInput;
 import dev.anvilcraft.lib.v2.util.predicate.ItemIngredientPredicate;
-import dev.anvilcraft.lib.v2.recipe.init.reicpe.LibRecipePredicateTypes;
+import dev.anvilcraft.lib.v2.recipe.init.recipe.LibRecipePredicateTypes;
 import dev.anvilcraft.lib.v2.recipe.predicate.IRecipePredicate;
 import dev.anvilcraft.lib.v2.recipe.predicate.function.IPredicateFunction;
 import dev.anvilcraft.lib.v2.recipe.predicate.function.SaveComponentToTag;
