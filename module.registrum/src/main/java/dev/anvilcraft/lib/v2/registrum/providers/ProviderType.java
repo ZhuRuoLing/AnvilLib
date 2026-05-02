@@ -27,6 +27,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.block.Block;
@@ -71,6 +72,11 @@ public interface ProviderType<T extends RegistrumProvider> extends GeneratorType
         "tags/enchantment",
         "enchantments",
         Registries.ENCHANTMENT
+    );
+    ProviderType<RegistrumTagsProvider.Impl<DamageType>> DAMAGE_TYPE_TAGS = registerDynamicTag(
+        "tags/damage_type",
+        "damage_types",
+        Registries.DAMAGE_TYPE
     );
     ProviderType<RegistrumItemTagsProvider> ITEM_TAGS = registerTag(
         "tags/item",
