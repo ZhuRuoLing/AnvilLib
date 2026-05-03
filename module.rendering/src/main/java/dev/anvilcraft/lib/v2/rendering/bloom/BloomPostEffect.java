@@ -46,10 +46,19 @@ public class BloomPostEffect {
     public static final int UNIFORM_TRANSFORM_SIZE = TransformsUbo.DEFINITION.size();
     public static final int UNIFORM_BLUR_SIZE = BlurParametersUbo.DEFINITION.size();
     public static final int UNIFORM_BLOOM_SIZE = BloomParametersUbo.DEFINITION.size();
+    public static final int UNIFORM_ENHANCED_BLOOM_SIZE = BloomPipelineParametersUbo.DEFINITION.size();
+
+    // todo: uses config or options
+    private static final int PASSES_AMOUNT = 5;
+    private static final int PASS_STEP = 1;
 
     @Getter
     private final RenderTarget bloomInputTarget = new MainTarget(854, 480, false);
     private final RenderTarget bloomTempTarget = new TextureTarget("BloomTemp", 854, 480, false);
+
+    private final RenderTarget[] downsampleTargets  = arrayInit("DownSample", PASSES_AMOUNT);
+    private final RenderTarget[] upsampleTargets    = arrayInit("UpSample", PASSES_AMOUNT - 1);
+
     private final GpuDevice device = RenderSystem.getDevice();
 
     private final GpuBuffer transformUBO = device.createBuffer(
@@ -68,6 +77,12 @@ public class BloomPostEffect {
         () -> "BloomPostEffect->BloomApplyUBO",
         GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_UNIFORM,
         UNIFORM_BLOOM_SIZE
+    );
+
+    private final GpuBuffer enhancedBloomParametersUBO = device.createBuffer(
+        () -> "BloomPostEffect->BloomParametersUBO",
+        GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_UNIFORM,
+        UNIFORM_ENHANCED_BLOOM_SIZE
     );
 
     private final GpuBuffer vertexBuffer = device.createBuffer(
@@ -98,12 +113,18 @@ public class BloomPostEffect {
     private final BlurParametersUbo blurParameters;
     @Getter
     private final BloomParametersUbo bloomParameters;
+    @Getter
+    private final BloomPipelineParametersUbo enhancedBloomParameters;
+
     private final TransformsUbo transformsUbo = new TransformsUbo(new Matrix4f());
     private final List<BloomRenderCallback> bloomCalls = new ArrayList<>();
     private int width;
     private int height;
     private int indexCount;
     private boolean dirty = false;
+
+    private int passes  = PASSES_AMOUNT;
+    private int step    = PASS_STEP;
 
     public BloomPostEffect() {
         this(1.25f, 1.943f, 1.105f, 0.08f, 0.8f);
@@ -121,6 +142,8 @@ public class BloomPostEffect {
         this.height = window.getHeight();
         this.blurParameters = new BlurParametersUbo(sampleStepLength, colorMultiplier, new Vector2f());
         this.bloomParameters = new BloomParametersUbo(bloomIntensity, bloomThreshold, bloomIntensityMultiplier);
+        this.enhancedBloomParameters = new BloomPipelineParametersUbo();
+
         resize(width, height);
     }
 
@@ -185,7 +208,10 @@ public class BloomPostEffect {
 
         transformsUbo.upload(commandEncoder, transformUBO.slice());
 
-        blurOnce(commandEncoder, bloomInputTarget, bloomTempTarget, true);
+        this.doDownSample(commandEncoder, bloomInputTarget);
+        this.doUpSample(commandEncoder);
+
+        /*blurOnce(commandEncoder, bloomInputTarget, bloomTempTarget, true);
 
         clearColorAndDepth(bloomInputTarget, 0);
         blurOnce(commandEncoder, bloomTempTarget, bloomInputTarget, true);
@@ -194,13 +220,13 @@ public class BloomPostEffect {
         blurOnce(commandEncoder, bloomInputTarget, bloomTempTarget, false);
 
         clearColorAndDepth(bloomInputTarget, 0);
-        blurOnce(commandEncoder, bloomTempTarget, bloomInputTarget, false);
+        blurOnce(commandEncoder, bloomTempTarget, bloomInputTarget, false);*/
 
         // backup depth texture
         bloomInputTarget.copyDepthFrom(Minecraft.getInstance().getMainRenderTarget());
 
         clearColorAndDepth(bloomTempTarget, 0);
-        applyBloom(commandEncoder, bloomInputTarget, Minecraft.getInstance().getMainRenderTarget().getColorTextureView(), bloomTempTarget);
+        applyBloom(commandEncoder, this.upsampleTargets[0], Minecraft.getInstance().getMainRenderTarget().getColorTextureView(), bloomTempTarget);
         commandEncoder.copyTextureToTexture(
             bloomTempTarget.getColorTexture(),
             Minecraft.getInstance().getMainRenderTarget().getColorTexture(),
@@ -277,6 +303,111 @@ public class BloomPostEffect {
         blurPass.close();
     }
 
+    private void doDownSample(
+            CommandEncoder commandEncoder,
+            RenderTarget inputTarget
+    ) {
+
+        this.downSample(
+                commandEncoder,
+                inputTarget,
+                this.downsampleTargets[0],
+                0
+        );
+
+        for (int i = 1; i < this.passes; i++) {
+            this.downSample(
+                    commandEncoder,
+                    this.downsampleTargets[i - 1],
+                    this.downsampleTargets[i],
+                    i
+            );
+        }
+
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    private void downSample(
+            CommandEncoder commandEncoder,
+            RenderTarget src,
+            RenderTarget dst,
+            int frameIndex
+    ) {
+        this            .enhancedBloomParameters.setFrameIndex(frameIndex);
+        this            .enhancedBloomParameters.setResolution(src.width, src.height);
+        this            .enhancedBloomParameters.upload(commandEncoder, enhancedBloomParametersUBO.slice());
+
+        var pass        = commandEncoder.createRenderPass(
+                () -> ("BloomPostEffect DownSample " + frameIndex),
+                dst.getColorTextureView(),
+                OptionalInt.of(0)
+        );
+
+        pass            .setPipeline(ALRPipelines.DOWNSAMPLE);
+        pass            .setUniform("Transforms", transformUBO);
+        pass            .setUniform("BloomParameters", enhancedBloomParametersUBO);
+        pass            .bindTexture("DiffuseSampler", src.getColorTextureView(), inputSampler);
+
+        pass            .setVertexBuffer(0, vertexBuffer);
+        RenderSystem    .AutoStorageIndexBuffer sequentialBuffer = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
+        pass            .setIndexBuffer(sequentialBuffer.getBuffer(indexCount), sequentialBuffer.type());
+        pass            .drawIndexed(0, 0, indexCount, 1);
+        pass            .close();
+    }
+
+    private void doUpSample(CommandEncoder commandEncoder) {
+        var steps   = this.passes;
+
+        this.upSample(
+                commandEncoder,
+                this.downsampleTargets[steps - 2],
+                this.downsampleTargets[steps - 1],
+                this.upsampleTargets[steps - 2],
+                steps - 1
+        );
+
+        for (int i = steps - 2; i > 0; i--) {
+            this.upSample(
+                    commandEncoder,
+                    this.downsampleTargets[i - 1],
+                    this.upsampleTargets[i],
+                    this.upsampleTargets[i - 1],
+                    i
+            );
+        }
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    private void upSample(
+            CommandEncoder commandEncoder,
+            RenderTarget curr,
+            RenderTarget prev,
+            RenderTarget dst,
+            int frameIndex
+    ) {
+        this            .enhancedBloomParameters.setFrameIndex(frameIndex);
+        this            .enhancedBloomParameters.setResolution(curr.width, curr.height);
+        this            .enhancedBloomParameters.upload(commandEncoder, enhancedBloomParametersUBO.slice());
+
+        var pass        = commandEncoder.createRenderPass(
+                        () -> ("BloomPostEffect UpSample " + frameIndex),
+                        dst.getColorTextureView(),
+                        OptionalInt.of(0)
+        );
+
+        pass            .setPipeline(ALRPipelines.UPSAMPLE);
+        pass            .setUniform("Transforms", transformUBO);
+        pass            .setUniform("BloomParameters", enhancedBloomParametersUBO);
+        pass            .bindTexture("DiffuseSampler", curr.getColorTextureView(), inputSampler);
+        pass            .bindTexture("PreviousSampler", prev.getColorTextureView(), mainSampler);
+
+        pass            .setVertexBuffer(0, vertexBuffer);
+        RenderSystem    .AutoStorageIndexBuffer sequentialBuffer = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS);
+        pass            .setIndexBuffer(sequentialBuffer.getBuffer(indexCount), sequentialBuffer.type());
+        pass            .drawIndexed(0, 0, indexCount, 1);
+        pass            .close();
+    }
+
     public void resize(int width, int height) {
         this.width = width;
         this.height = height;
@@ -299,9 +430,46 @@ public class BloomPostEffect {
         commandEncoder.writeToBuffer(vertexBuffer.slice(), data.vertexBuffer());
         this.indexCount = data.drawState().indexCount();
         data.close();
+
+        this.passes                     = PASSES_AMOUNT;
+
+        int pWidth                      = width;
+        int pHeight                     = height;
+        int step                        = this.step;
+
+        for (int i = 0; i < PASSES_AMOUNT; i++) {
+            pWidth                      >>= step;
+            pHeight                     >>= step;
+
+            if (pWidth == 0 || pHeight == 0) {
+                this.passes = i;
+                break;
+            }
+
+            this.downsampleTargets[i]   .resize(pWidth, pHeight);
+
+            if (i                       < PASSES_AMOUNT - 1) {
+                this.upsampleTargets[i] .resize(pWidth, pHeight);
+            }
+        }
     }
 
     public static RenderPipeline applyRedirect(RenderPipeline pipeline, Identifier name) {
         return pipeline;
+    }
+
+    private static RenderTarget[] arrayInit(String name, int size) {
+        RenderTarget[] targets  = new RenderTarget[size];
+
+        for (int i = 0; i < size; i++) {
+            var target          = new TextureTarget(
+                    "Bloom_" + name + "_" + i,
+                    854 >> i, 480 >> i,
+                    false
+            );
+            targets[i] = target;
+        }
+
+        return targets;
     }
 }
