@@ -36,7 +36,7 @@ public class GuiRendererMixin {
             value = "HEAD"
         )
     )
-    private void addElementsToMeshes(GuiRenderState.TraverseRange traverseRange, CallbackInfo ci) {
+    private void addElementsToMeshes(GuiRenderState.TraverseRange range, CallbackInfo ci) {
         this.anvillib$renderState = null;
     }
 
@@ -47,8 +47,8 @@ public class GuiRendererMixin {
             target = "Lnet/minecraft/client/gui/render/GuiRenderer;getBufferBuilder(Lcom/mojang/blaze3d/pipeline/RenderPipeline;)Lcom/mojang/blaze3d/vertex/BufferBuilder;"
         )
     )
-    private void addElementToMesh(GuiElementRenderState renderState, CallbackInfo ci) {
-        this.anvillib$renderState = renderState;
+    private void addElementToMesh(GuiElementRenderState elementState, CallbackInfo ci) {
+        this.anvillib$renderState = elementState;
     }
 
 
@@ -71,10 +71,15 @@ public class GuiRendererMixin {
             target = "Ljava/util/List;add(Ljava/lang/Object;)Z"
         )
     )
-    private <E> boolean recordDraws(List<E> instance, E e, Operation<Boolean> original, @Local GuiRenderer.MeshToDraw meshToDraw) {
+    private <E> boolean recordDraws(
+        List<E> instance,
+        E e,
+        Operation<Boolean> original,
+        @Local(name = "meshToDraw") GuiRenderer.MeshToDraw meshToDraw
+    ) {
         this.anvillib$renderStatesByMeshToDraw.computeIfPresent(
             meshToDraw,
-            (k, v) -> this.anvillib$renderStatesByDraw.put((GuiRenderer.Draw) e, v)
+            (_, v) -> this.anvillib$renderStatesByDraw.put((GuiRenderer.Draw) e, v)
         );
         return original.call(instance, e);
     }
@@ -88,12 +93,12 @@ public class GuiRendererMixin {
     private void executeDraw(
         GuiRenderer.Draw draw,
         RenderPass renderPass,
-        GpuBuffer buffer,
+        GpuBuffer indexBuffer,
         VertexFormat.IndexType indexType,
         CallbackInfo ci
     ) {
         this.anvillib$renderStatesByDraw.computeIfPresent(
-            draw, (k, v) -> {
+            draw, (_, v) -> {
                 if (v instanceof LibGuiElementRenderState state) {
                     state.bufferSlices().forEach(renderPass::setUniform);
                 }
@@ -106,7 +111,7 @@ public class GuiRendererMixin {
         method = "render",
         at = @At(value = "INVOKE", target = "Ljava/util/List;clear()V", ordinal = 0)
     )
-    public void render(GpuBufferSlice bufferSlice, CallbackInfo ci) {
+    public void render(GpuBufferSlice fogBuffer, CallbackInfo ci) {
         this.anvillib$renderStatesByDraw.clear();
         this.anvillib$renderStatesByMeshToDraw.clear();
     }
