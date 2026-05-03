@@ -20,6 +20,7 @@ import org.joml.Vector2f;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.annotation.Nullable;
 
 @SuppressWarnings(
@@ -315,7 +316,7 @@ public class WheelWidget extends AbstractWidget {
             outerDiameter * guiScale,
             1.25f
         );
-        guiGraphics.guiRenderState.addGuiElement(new RingRenderState(
+        guiGraphics.submitGuiElementRenderState(new RingRenderState(
             guiGraphics.pose(),
             x1,
             y1,
@@ -323,7 +324,7 @@ public class WheelWidget extends AbstractWidget {
             y2,
             color,
             writeUniform,
-            guiGraphics.scissorStack.peek()
+            guiGraphics.peekScissorStack()
         ));
     }
 
@@ -342,7 +343,7 @@ public class WheelWidget extends AbstractWidget {
             dotDiameter * guiScale,
             1.25f
         );
-        guiGraphics.guiRenderState.addGuiElement(new SelectionRenderState(
+        guiGraphics.submitGuiElementRenderState(new SelectionRenderState(
             guiGraphics.pose(),
             x1,
             y1,
@@ -350,7 +351,7 @@ public class WheelWidget extends AbstractWidget {
             y2,
             color,
             writeUniform,
-            guiGraphics.scissorStack.peek()
+            guiGraphics.peekScissorStack()
         ));
     }
 
@@ -382,7 +383,7 @@ public class WheelWidget extends AbstractWidget {
             shaderCenterAngle,
             rangeAngleRad
         );
-        guiGraphics.guiRenderState.addGuiElement(new AnnularSectorRenderState(
+        guiGraphics.submitGuiElementRenderState(new AnnularSectorRenderState(
             guiGraphics.pose(),
             x1,
             y1,
@@ -390,7 +391,7 @@ public class WheelWidget extends AbstractWidget {
             y2,
             color,
             writeUniform,
-            guiGraphics.scissorStack.peek()
+            guiGraphics.peekScissorStack()
         ));
     }
 

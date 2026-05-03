@@ -1,4 +1,4 @@
-package dev.anvilcraft.lib.v2.wheel.client.gui.render.state;
+package dev.anvilcraft.lib.v2.rendering.state;
 
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import net.minecraft.client.gui.navigation.ScreenRectangle;

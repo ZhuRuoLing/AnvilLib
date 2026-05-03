@@ -1,4 +1,4 @@
-package dev.anvilcraft.lib.v2.wheel.mixin;
+package dev.anvilcraft.lib.v2.rendering.mixins;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -7,7 +7,7 @@ import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import dev.anvilcraft.lib.v2.wheel.client.gui.render.state.LibGuiElementRenderState;
+import dev.anvilcraft.lib.v2.rendering.state.LibGuiElementRenderState;
 import net.minecraft.client.gui.render.GuiRenderer;
 import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
 import net.minecraft.client.renderer.state.gui.GuiRenderState;

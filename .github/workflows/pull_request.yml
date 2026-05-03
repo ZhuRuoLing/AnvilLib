@@ -111,6 +111,7 @@ jobs:
     uses: ./.github/workflows/build_and_test.yml
     needs:
       - util
+      - rendering
     with:
       module: wheel
       module_id: anvillib-wheel
