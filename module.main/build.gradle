@@ -131,6 +131,9 @@ dependencies {
         interfaceInjectionData("dev.anvilcraft.lib:anvillib-recipe-neoforge-26.1:latest.release")
         jarJar(api("dev.anvilcraft.lib:anvillib-registrum-neoforge-26.1:latest.release"))
         jarJar(api("dev.anvilcraft.lib:anvillib-wheel-neoforge-26.1:latest.release"))
+        jarJar(api("dev.anvilcraft.lib:anvillib-rendering-neoforge-26.1:latest.release"))
+        jarJar(api("dev.anvilcraft.lib:anvillib-multiblock-neoforge-26.1:latest.release"))
+        jarJar(api("dev.anvilcraft.lib:anvillib-util-neoforge-26.1:latest.release"))
     } else {
         jarJar(implementation project(":anvillib-config-neoforge-26.1"))
         jarJar(implementation project(":anvillib-codec-neoforge-26.1"))
@@ -142,6 +145,9 @@ dependencies {
         interfaceInjectionData project(":anvillib-recipe-neoforge-26.1")
         jarJar(implementation project(":anvillib-registrum-neoforge-26.1"))
         jarJar(implementation project(":anvillib-wheel-neoforge-26.1"))
+        jarJar(implementation project(":anvillib-rendering-neoforge-26.1"))
+        jarJar(implementation project(":anvillib-multiblock-neoforge-26.1"))
+        jarJar(implementation project(":anvillib-util-neoforge-26.1"))
     }
 }
 

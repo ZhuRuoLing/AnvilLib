@@ -9,6 +9,7 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.function.Predicate;
 
 public class NetworkUtil {
     public static void sendToAllPlayersExcluded(
@@ -16,7 +17,10 @@ public class NetworkUtil {
         CustomPacketPayload payload,
         CustomPacketPayload... payloads
     ) {
-        MinecraftServer server = Objects.requireNonNull(ServerLifecycleHooks.getCurrentServer(), "Cannot send clientbound payloads on the client");
+        MinecraftServer server = Objects.requireNonNull(
+            ServerLifecycleHooks.getCurrentServer(),
+            "Cannot send clientbound payloads on the client"
+        );
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             if (Objects.equals(player, excluded)) continue;
             PacketDistributor.sendToPlayer(player, payload, payloads);
@@ -31,6 +35,35 @@ public class NetworkUtil {
     ) {
         for (ServerPlayer player : level.players()) {
             if (Objects.equals(player, excluded)) continue;
+            PacketDistributor.sendToPlayer(player, payload, payloads);
+        }
+    }
+
+    public static void sendToAllPlayersIncluded(
+        @Nullable Predicate<ServerPlayer> included,
+        CustomPacketPayload payload,
+        CustomPacketPayload... payloads
+    ) {
+        if (included == null) included = (_) -> true;
+        MinecraftServer server = Objects.requireNonNull(
+            ServerLifecycleHooks.getCurrentServer(),
+            "Cannot send clientbound payloads on the client"
+        );
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            if (!included.test(player)) continue;
+            PacketDistributor.sendToPlayer(player, payload, payloads);
+        }
+    }
+
+    public static void sendToAllPlayersInDimensionIncluded(
+        ServerLevel level,
+        @Nullable Predicate<ServerPlayer> included,
+        CustomPacketPayload payload,
+        CustomPacketPayload... payloads
+    ) {
+        if (included == null) included = (_) -> true;
+        for (ServerPlayer player : level.players()) {
+            if (!included.test(player)) continue;
             PacketDistributor.sendToPlayer(player, payload, payloads);
         }
     }
