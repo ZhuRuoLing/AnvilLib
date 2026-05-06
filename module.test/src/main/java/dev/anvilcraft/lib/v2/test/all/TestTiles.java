@@ -7,7 +7,7 @@ import dev.anvilcraft.lib.v2.test.client.tesr.TestBloomTESR;
 
 public class TestTiles {
     public static final BlockEntityEntry<TestBloomTile> TEST_BLOOM = AnvilLibTest.REGISTRUM
-        .<TestBloomTile, TestBloomTESR.TestBloomRenderState>blockEntity("test_bloom", TestBloomTile::new)
+        .<TestBloomTile>blockEntity("test_bloom", TestBloomTile::new)
         .validBlock(TestBlocks.TEST_BLOOM)
         .renderer(() -> TestBloomTESR::new)
         .register();

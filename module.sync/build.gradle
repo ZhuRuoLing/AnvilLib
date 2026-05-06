@@ -6,21 +6,14 @@ plugins {
     alias libs.plugins.modDevGradle
     alias libs.plugins.lombok
     alias libs.plugins.machete
-    id 'org.jreleaser' version '1.23.0' apply false
+    id 'org.jreleaser' version '1.23.0'
     id "me.modmuss50.mod-publish-plugin" version "1.1.0"
-}
-
-boolean enableJreleaser = providers.gradleProperty('enableJreleaser')
-        .map { it.toBoolean() }
-        .getOrElse(false)
-
-if (enableJreleaser) {
-    apply plugin: 'org.jreleaser'
 }
 
 String buildType = 'snapshot'
 String buildNumber
-if (System.getenv("CI_BUILD") == 'false') buildNumber = null else {
+if (System.getenv("CI_BUILD") == 'false') buildNumber = null
+else {
     if (System.getenv("PR_BUILD") != 'false') buildType = 'pr'
     buildNumber = System.getenv("GITHUB_RUN_NUMBER")
 }
@@ -37,10 +30,7 @@ repositories {
     mavenCentral()
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(project.java_version)
-def rdcDyLibPath = file("run/renderdoc.dll").absolutePath
-def rdcLoaderPath = file("run/render-nurse-0.0.14.jar").absolutePath
-
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
     // Specify the version of NeoForge to use.
@@ -64,16 +54,6 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
-        renderDocClient {
-            client()
-
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-            systemProperty("neoforge.rendernurse.renderdoc.library", rdcDyLibPath)
-            jvmArgument("-javaagent:" + rdcLoaderPath)
-            jvmArgument("--enable-preview")
-            jvmArgument("--enable-native-access=ALL-UNNAMED")
-        }
-
         server {
             server()
             programArgument '--nogui'
@@ -88,7 +68,7 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
-        data {
+        clientData {
             clientData()
 
             // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
@@ -130,18 +110,15 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
 dependencies {
-    implementation project(":anvillib-config-neoforge-26.1")
-    implementation project(":anvillib-codec-neoforge-26.1")
-    implementation project(":anvillib-integration-neoforge-26.1")
-    interfaceInjectionData(implementation project(":anvillib-moveable-entity-block-neoforge-26.1"))
-    implementation project(":anvillib-multiblock-neoforge-26.1")
-    implementation project(":anvillib-network-neoforge-26.1")
-    interfaceInjectionData(implementation project(":anvillib-recipe-neoforge-26.1"))
-    implementation project(":anvillib-registrum-neoforge-26.1")
-    implementation project(":anvillib-util-neoforge-26.1")
-    implementation project(":anvillib-wheel-neoforge-26.1")
-    implementation project(":anvillib-rendering-neoforge-26.1")
-    implementation project(":anvillib-sync-neoforge-26.1")
+    if (System.getenv("NOT_DEV") == 'true') {
+        jarJar(api("dev.anvilcraft.lib:anvillib-codec-neoforge-26.1:latest.release"))
+        jarJar(api("dev.anvilcraft.lib:anvillib-network-neoforge-26.1:latest.release"))
+        jarJar(api("dev.anvilcraft.lib:anvillib-util-neoforge-26.1:latest.release"))
+    } else {
+        jarJar(implementation project(":anvillib-codec-neoforge-26.1"))
+        jarJar(implementation project(":anvillib-network-neoforge-26.1"))
+        jarJar(implementation project(":anvillib-util-neoforge-26.1"))
+    }
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -181,6 +158,7 @@ tasks.register('javadocJar', Jar) {
 
 javadoc {
     options.encoding = 'UTF-8'
+    options.addStringOption('tag', 'apiNote:a:API Note:')
     options.addStringOption('Xdoclint:none', '-quiet')
 }
 
@@ -260,21 +238,19 @@ publishing {
     }
 }
 
-plugins.withId('org.jreleaser') {
-    jreleaser {
-        signing {
-            active = 'ALWAYS'
-            armored = true
-        }
+jreleaser {
+    signing {
+        active = 'ALWAYS'
+        armored = true
+    }
 
-        deploy {
-            maven {
-                mavenCentral {
-                    sonatype {
-                        active = 'ALWAYS'
-                        url = 'https://central.sonatype.com/api/v1/publisher'
-                        stagingRepository('build/staging-deploy')
-                    }
+    deploy {
+        maven {
+            mavenCentral {
+                sonatype {
+                    active = 'ALWAYS'
+                    url = 'https://central.sonatype.com/api/v1/publisher'
+                    stagingRepository('build/staging-deploy')
                 }
             }
         }
