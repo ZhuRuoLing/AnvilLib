@@ -1,15 +1,19 @@
 package dev.anvilcraft.lib.v2.piston.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import dev.anvilcraft.lib.v2.piston.AnvilLibMoveableEntityBlock;
 import dev.anvilcraft.lib.v2.piston.IMoveableEntityBlock;
 import dev.anvilcraft.lib.v2.piston.injection.IPistonMovingBlockEntityExtension;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.piston.PistonMovingBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -61,16 +65,16 @@ abstract class PistonMovingBlockEntityMixin extends BlockEntity implements IPist
         Level level,
         BlockPos pos,
         BlockState state,
-        PistonMovingBlockEntity blockEntity,
+        PistonMovingBlockEntity entity,
         CallbackInfo ci,
-        @Local(ordinal = 1) BlockState moveState
+        @Local(name = "newState") BlockState newState
     ) {
         if (level.isClientSide()) return;
-        if (!(blockEntity instanceof IPistonMovingBlockEntityExtension blockEntity1)) return;
-        if (!(moveState.getBlock() instanceof IMoveableEntityBlock entityBlock)) return;
-        CompoundTag tag = blockEntity1.anvillib$clearData();
+        if (!(newState.getBlock() instanceof IMoveableEntityBlock entityBlock)) return;
+        CompoundTag tag = entity.anvillib$clearData();
         if (tag != null) {
-            entityBlock.setData(level, pos, tag);
+            ValueInput input = TagValueInput.create(new ProblemReporter.ScopedCollector(AnvilLibMoveableEntityBlock.LOGGER), level.registryAccess(), tag);
+            entityBlock.loadData(level, pos, input);
         }
     }
 
@@ -82,15 +86,16 @@ abstract class PistonMovingBlockEntityMixin extends BlockEntity implements IPist
         shift = At.Shift.AFTER
     )
     )
-    private void finalTick(CallbackInfo ci, @Local BlockState moveState) {
+    private void finalTick(CallbackInfo ci, @Local(name = "newState") BlockState newState) {
         if (this.level == null || this.level.isClientSide()) return;
         // noinspection ConstantValue
         if (!(this instanceof IPistonMovingBlockEntityExtension blockEntity1)) return;
-        if (!(moveState.getBlock() instanceof IMoveableEntityBlock entityBlock)) return;
+        if (!(newState.getBlock() instanceof IMoveableEntityBlock entityBlock)) return;
         CompoundTag tag = blockEntity1.anvillib$clearData();
         // noinspection ConstantValue
         if (tag != null) {
-            entityBlock.setData(level, this.worldPosition, tag);
+            ValueInput input = TagValueInput.create(new ProblemReporter.ScopedCollector(AnvilLibMoveableEntityBlock.LOGGER), level.registryAccess(), tag);
+            entityBlock.loadData(level, this.worldPosition, input);
         }
     }
 }

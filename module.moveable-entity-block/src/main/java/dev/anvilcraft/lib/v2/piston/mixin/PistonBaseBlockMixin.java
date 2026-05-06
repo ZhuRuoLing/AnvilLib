@@ -3,15 +3,17 @@ package dev.anvilcraft.lib.v2.piston.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import dev.anvilcraft.lib.v2.piston.AnvilLibMoveableEntityBlock;
 import dev.anvilcraft.lib.v2.piston.IMoveableEntityBlock;
 import dev.anvilcraft.lib.v2.piston.injection.IPistonMovingBlockEntityExtension;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,7 +25,7 @@ import java.util.List;
 @Mixin(value = PistonBaseBlock.class, priority = 943)
 abstract class PistonBaseBlockMixin {
     @Unique
-    private CompoundTag anvillib$nbt;
+    private TagValueOutput anvillib$nbt;
 
     @WrapOperation(
         method = "isPushable",
@@ -46,16 +48,16 @@ abstract class PistonBaseBlockMixin {
         )
     )
     private void setBlock(
-        Level level, BlockPos pos, Direction facing, boolean extending, CallbackInfoReturnable<Boolean> cir,
-        @Local(ordinal = 2) BlockPos blockpos,
-        @Local(ordinal = 1) Direction direction,
-        @Local(ordinal = 1) List<BlockState> list1,
-        @Local(ordinal = 1) int k
+        Level level, BlockPos pistonPos, Direction direction, boolean extending, CallbackInfoReturnable<Boolean> cir,
+        @Local(name = "pos") BlockPos pos,
+        @Local(name = "pushDirection") Direction pushDirection,
+        @Local(name = "toPushShapes") List<BlockState> toPushShapes,
+        @Local(name = "i") int i
     ) {
         if (level.isClientSide()) return;
-        this.anvillib$nbt = new CompoundTag();
-        if (list1.get(k).getBlock() instanceof IMoveableEntityBlock block) {
-            this.anvillib$nbt = block.clearData(level, blockpos.relative(direction.getOpposite()));
+        this.anvillib$nbt = TagValueOutput.createWithContext(new ProblemReporter.ScopedCollector(AnvilLibMoveableEntityBlock.LOGGER), level.registryAccess());
+        if (toPushShapes.get(i).getBlock() instanceof IMoveableEntityBlock block) {
+            block.storeData(level, pos.relative(pushDirection.getOpposite()), this.anvillib$nbt);
         }
     }
 
@@ -72,7 +74,7 @@ abstract class PistonBaseBlockMixin {
         )
     )
     private BlockEntity newMovingBlockEntity(
-        BlockPos pos,
+        BlockPos position,
         BlockState blockState,
         BlockState movedState,
         Direction direction,
@@ -80,9 +82,9 @@ abstract class PistonBaseBlockMixin {
         boolean isSourcePiston,
         Operation<BlockEntity> original
     ) {
-        BlockEntity blockEntity = original.call(pos, blockState, movedState, direction, extending, isSourcePiston);
+        BlockEntity blockEntity = original.call(position, blockState, movedState, direction, extending, isSourcePiston);
         if (blockEntity instanceof IPistonMovingBlockEntityExtension entity) {
-            entity.anvillib$setData(this.anvillib$nbt);
+            entity.anvillib$setData(this.anvillib$nbt.buildResult());
         }
         return blockEntity;
     }
