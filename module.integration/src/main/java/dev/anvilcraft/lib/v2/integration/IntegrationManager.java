@@ -59,6 +59,7 @@ public class IntegrationManager {
                 IntegrationInstance instance = new IntegrationInstance(modid, ModVersionRange.of(version), annotation.memberName(), type);
                 this.instances.put(modid, instance);
             }
+            meter.increment();
         }
         StartupNotificationManager.popBar(meter);
     }
