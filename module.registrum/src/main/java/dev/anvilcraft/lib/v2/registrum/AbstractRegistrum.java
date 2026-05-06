@@ -59,7 +59,6 @@ import lombok.extern.log4j.Log4j2;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -1084,19 +1083,19 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
 
     // Block Entities
 
-    public <T extends BlockEntity, R extends BlockEntityRenderState> BlockEntityBuilder<T, S, R> blockEntity(BlockEntityFactory<T> factory) {
+    public <T extends BlockEntity> BlockEntityBuilder<T, S> blockEntity(BlockEntityFactory<T> factory) {
         return blockEntity(self(), factory);
     }
 
-    public <T extends BlockEntity, R extends BlockEntityRenderState> BlockEntityBuilder<T, S, R> blockEntity(String name, BlockEntityFactory<T> factory) {
+    public <T extends BlockEntity> BlockEntityBuilder<T, S> blockEntity(String name, BlockEntityFactory<T> factory) {
         return blockEntity(self(), name, factory);
     }
 
-    public <T extends BlockEntity, P, R extends BlockEntityRenderState> BlockEntityBuilder<T, P, R> blockEntity(P parent, BlockEntityFactory<T> factory) {
+    public <T extends BlockEntity, P> BlockEntityBuilder<T, P> blockEntity(P parent, BlockEntityFactory<T> factory) {
         return blockEntity(parent, currentName(), factory);
     }
 
-    public <T extends BlockEntity, P, R extends BlockEntityRenderState> BlockEntityBuilder<T, P, R> blockEntity(P parent, String name, BlockEntityFactory<T> factory) {
+    public <T extends BlockEntity, P> BlockEntityBuilder<T, P> blockEntity(P parent, String name, BlockEntityFactory<T> factory) {
         return entry(name, callback -> BlockEntityBuilder.create(this, parent, name, callback, factory));
     }
 

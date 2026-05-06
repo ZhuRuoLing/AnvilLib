@@ -46,12 +46,12 @@ import javax.annotation.Nullable;
  * @param <T> The type of block entity being built
  * @param <P> Parent object type
  */
-public class BlockEntityBuilder<T extends BlockEntity, P, S extends BlockEntityRenderState>
-    extends AbstractBuilder<BlockEntityType<?>, BlockEntityType<T>, P, BlockEntityBuilder<T, P, S>> {
+public class BlockEntityBuilder<T extends BlockEntity, P>
+    extends AbstractBuilder<BlockEntityType<?>, BlockEntityType<T>, P, BlockEntityBuilder<T, P>> {
 
     public interface BlockEntityFactory<T extends BlockEntity> {
 
-        public T create(BlockEntityType<T> type, BlockPos pos, BlockState state);
+        T create(BlockEntityType<T> type, BlockPos pos, BlockState state);
 
     }
 
@@ -69,7 +69,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P, S extends BlockEntityR
      * @param factory  Factory to create the block entity
      * @return A new {@link BlockEntityBuilder} with reasonable default data generators.
      */
-    public static <T extends BlockEntity, P, S extends BlockEntityRenderState> BlockEntityBuilder<T, P, S> create(
+    public static <T extends BlockEntity, P, S extends BlockEntityRenderState> BlockEntityBuilder<T, P> create(
         AbstractRegistrum<?> owner,
         P parent,
         String name,
@@ -82,7 +82,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P, S extends BlockEntityR
     private final BlockEntityFactory<T> factory;
     private final Set<NonNullSupplier<? extends Block>> validBlocks = new HashSet<>();
     @Nullable
-    private NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T, ? super S>>> renderer;
+    private NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T, ?>>> renderer;
 
     protected BlockEntityBuilder(
         AbstractRegistrum<?> owner,
@@ -101,7 +101,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P, S extends BlockEntityR
      * @param block A supplier for the block to add at registration time
      * @return this {@link BlockEntityBuilder}
      */
-    public BlockEntityBuilder<T, P, S> validBlock(NonNullSupplier<? extends Block> block) {
+    public BlockEntityBuilder<T, P> validBlock(NonNullSupplier<? extends Block> block) {
         validBlocks.add(block);
         return this;
     }
@@ -113,7 +113,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P, S extends BlockEntityR
      * @return this {@link BlockEntityBuilder}
      */
     @SafeVarargs
-    public final BlockEntityBuilder<T, P, S> validBlocks(NonNullSupplier<? extends Block>... blocks) {
+    public final BlockEntityBuilder<T, P> validBlocks(NonNullSupplier<? extends Block>... blocks) {
         Arrays.stream(blocks).forEach(this::validBlock);
         return this;
     }
@@ -127,7 +127,7 @@ public class BlockEntityBuilder<T extends BlockEntity, P, S extends BlockEntityR
      * @param renderer A (server safe) supplier to an {@link Function} that will provide this block entity's renderer given the renderer dispatcher
      * @return this {@link BlockEntityBuilder}
      */
-    public BlockEntityBuilder<T, P, S> renderer(NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T, ? super S>>> renderer) {
+    public BlockEntityBuilder<T, P> renderer(NonNullSupplier<NonNullFunction<BlockEntityRendererProvider.Context, BlockEntityRenderer<? super T, ?>>> renderer) {
         if (this.renderer == null) { // First call only
             RegistrumDistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> this::registerRenderer);
         }

@@ -37,7 +37,6 @@ import dev.anvilcraft.lib.v2.util.nullness.NonNullUnaryOperator;
 import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelDispatcher;
-import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
@@ -213,8 +212,8 @@ public class BlockBuilder<T extends Block, P> extends AbstractBuilder<Block, T, 
      * @param factory A factory for the block entity
      * @return the {@link BlockEntityBuilder}
      */
-    public <BE extends BlockEntity, RS extends BlockEntityRenderState> BlockEntityBuilder<BE, BlockBuilder<T, P>, RS> blockEntity(BlockEntityFactory<BE> factory) {
-        return getOwner().<BE, BlockBuilder<T, P>, RS>blockEntity(this, getName(), factory).validBlock(asSupplier());
+    public <BE extends BlockEntity> BlockEntityBuilder<BE, BlockBuilder<T, P>> blockEntity(BlockEntityFactory<BE> factory) {
+        return getOwner().<BE, BlockBuilder<T, P>>blockEntity(this, getName(), factory).validBlock(asSupplier());
     }
 
     /**
