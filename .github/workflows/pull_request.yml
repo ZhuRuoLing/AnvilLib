@@ -118,6 +118,18 @@ jobs:
       mod_id: anvillib_wheel
       ci_build: true
       pr_build: true
+  sync:
+    uses: ./.github/workflows/build_and_test.yml
+    needs:
+      - util
+      - codec
+      - network
+    with:
+      module: sync
+      module_id: anvillib-sync
+      mod_id: anvillib_sync
+      ci_build: true
+      pr_build: true
   main:
     needs:
       - config
@@ -131,6 +143,7 @@ jobs:
       - registrum
       - util
       - wheel
+      - sync
     uses: ./.github/workflows/build_and_test.yml
     with:
       module: main
