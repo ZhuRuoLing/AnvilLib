@@ -3,7 +3,7 @@
 #moj_import <minecraft:dynamictransforms.glsl>
 #moj_import <minecraft:projection.glsl>
 
-#define MAX_SDFS 128
+#define MAX_SDFS 256
 
 struct Sdf {
     vec4                Shared;
