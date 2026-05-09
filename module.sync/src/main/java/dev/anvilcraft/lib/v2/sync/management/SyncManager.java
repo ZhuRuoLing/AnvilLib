@@ -1,7 +1,7 @@
 package dev.anvilcraft.lib.v2.sync.management;
 
 import dev.anvilcraft.lib.v2.sync.init.AnvilLibSyncRegistries;
-import dev.anvilcraft.lib.v2.sync.network.pyload.SyncPayload;
+import dev.anvilcraft.lib.v2.sync.network.payload.SyncPayload;
 import dev.anvilcraft.lib.v2.sync.util.SideUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.minecraft.resources.ResourceKey;
@@ -34,12 +34,7 @@ public class SyncManager {
             entry.dimensionGetter(),
             parent,
             id,
-            () -> SyncPayload.create(
-                parent,
-                entry.idCodec(),
-                id,
-                proxy
-            )
+            (flow) -> SyncPayload.create(parent, entry.idCodec(), id, proxy, flow)
         );
     }
 

@@ -1,7 +1,9 @@
-package dev.anvilcraft.lib.v2.sync.network.pyload;
+package dev.anvilcraft.lib.v2.sync.network.payload;
 
 import dev.anvilcraft.lib.v2.network.packet.IInsensitiveBiPacket;
+import dev.anvilcraft.lib.v2.network.packet.IPacket;
 import dev.anvilcraft.lib.v2.sync.AnvilLibSync;
+import dev.anvilcraft.lib.v2.sync.client.AnvilLibSyncClient;
 import dev.anvilcraft.lib.v2.sync.management.SyncProxy;
 import dev.anvilcraft.lib.v2.sync.management.SyncRegisterEntry;
 import dev.anvilcraft.lib.v2.sync.util.SideUtil;
@@ -23,7 +25,7 @@ import java.util.Objects;
 public record SyncPayload(
     byte[] array
 ) implements IInsensitiveBiPacket {
-    public static final Type<SyncPayload> TYPE = new Type<>(AnvilLibSync.of("sync"));
+    public static final Type<SyncPayload> TYPE = IPacket.type(AnvilLibSync.of("sync"));
     public static final StreamCodec<ByteBuf, SyncPayload> STREAM_CODEC = StreamCodec.composite(
         ByteBufCodecs.BYTE_ARRAY,
         SyncPayload::array,
@@ -34,12 +36,19 @@ public record SyncPayload(
         T parent,
         StreamCodec<? extends ByteBuf, ID> idCodec,
         ID id,
-        SyncProxy<?> field
+        SyncProxy<?> field,
+        PacketFlow flow
     ) {
         FriendlyByteBuf buf = SideUtil.createFriendlyByteBuf(Unpooled.buffer());
-        buf.writeUtf(parent.getClass().getName()); // ClassName
+        String syncConfig = "%s#%s".formatted(
+            parent.getClass().getName(), // ClassName
+            Objects.requireNonNull(field.getFieldName()) // FieldName
+        );
+        int syncConfigId = flow == PacketFlow.CLIENTBOUND
+                               ? AnvilLibSync.SYNC_CONFIG_MANAGER.getId(syncConfig)
+                               : AnvilLibSyncClient.SYNC_CONFIG_MANAGER.getId(syncConfig);
+        buf.writeVarInt(syncConfigId); // SyncConfigId
         Util.<StreamCodec<FriendlyByteBuf, ID>>cast(idCodec).encode(buf, id); // ObjectId
-        buf.writeUtf(Objects.requireNonNull(field.getFieldName())); // FieldName
         field.encode(buf); // FieldValue
         byte[] array = new byte[buf.readableBytes()];
         buf.readBytes(array);
@@ -50,7 +59,13 @@ public record SyncPayload(
     private void handler(IPayloadContext ctx) {
         FriendlyByteBuf buf = SideUtil.createFriendlyByteBuf(Unpooled.buffer());
         buf.writeBytes(this.array());
-        String className = buf.readUtf();  // ClassName
+        int syncConfigId = buf.readVarInt();
+        String syncConfig = SideUtil.isServer()
+                            ? AnvilLibSync.SYNC_CONFIG_MANAGER.getById(syncConfigId)
+                            : AnvilLibSyncClient.SYNC_CONFIG_MANAGER.getById(syncConfigId);
+        String[] syncConfigSplit = syncConfig.split("#");
+        String className = syncConfigSplit[0]; // ClassName
+        String fieldName = syncConfigSplit[1]; // FieldName
         Class<?> clazz = Class.forName(className);
         SyncRegisterEntry<?, ?> entry = Objects.requireNonNull(
             AnvilLibSync.SYNC_MANAGER.contains(clazz),
@@ -60,7 +75,6 @@ public record SyncPayload(
         Object object = entry.finder().apply(ctx, Util.cast(id));
         boolean isStatic = object instanceof Class<?>;
         if (isStatic) clazz = (Class<?>) object;
-        String fieldName = buf.readUtf(); // FieldName
         Field field = (clazz).getField(fieldName);
         SyncProxy<?> syncProxy = Util.cast(isStatic ? field.get(null) : field.get(object));
         syncProxy.setValue(buf, PacketFlow.SERVERBOUND.equals(ctx.flow())); // FieldValue

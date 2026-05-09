@@ -27,10 +27,18 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 public class SideUtil {
+    public static boolean isServer() {
+        if (Util.isServer()) {
+            return true;
+        } else if (Util.isClient()) {
+            return false;
+        }
+        throw new IllegalStateException("Cannot determine side: not client or server");
+    }
+
     public static @Nullable RegistryAccess registryAccess() {
         if (Util.isServer()) {
             return SideUtil.serverRegistryAccess();
@@ -111,7 +119,7 @@ public class SideUtil {
         @Nullable Function<T, ResourceKey<Level>> dimensionGetter,
         T obj,
         ID id,
-        Supplier<IPacket> pyload
+        Function<PacketFlow, IPacket> pyload
     ) {
         if (Util.isServer() && direction.isCreateByServer()) {
             SideUtil.serverSend(obj, id, pyload, dimension, dimensionGetter);
@@ -124,11 +132,11 @@ public class SideUtil {
     public static <T, ID> void serverSend(
         T obj,
         ID id,
-        Supplier<IPacket> pyload,
+        Function<PacketFlow, IPacket> pyload,
         boolean dimension,
         @Nullable Function<T, ResourceKey<Level>> dimensionGetter
     ) {
-        IPacket packet = pyload.get();
+        IPacket packet = pyload.apply(PacketFlow.CLIENTBOUND);
         if (!dimension || dimensionGetter == null) {
             PacketDistributor.sendToAllPlayers(packet);
             return;
@@ -148,7 +156,7 @@ public class SideUtil {
         PacketDistributor.sendToPlayersInDimension(level, packet);
     }
 
-    public static void clientSend(Supplier<IPacket> pyload) {
-        ClientPacketDistributor.sendToServer(pyload.get());
+    public static void clientSend(Function<PacketFlow, IPacket> pyload) {
+        ClientPacketDistributor.sendToServer(pyload.apply(PacketFlow.SERVERBOUND));
     }
 }

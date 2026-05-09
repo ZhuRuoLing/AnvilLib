@@ -1,0 +1,97 @@
+package dev.anvilcraft.lib.v2.sync.management;
+
+import dev.anvilcraft.lib.v2.sync.AnvilLibSync;
+import dev.anvilcraft.lib.v2.sync.network.payload.SyncConfigurationPayload;
+import lombok.SneakyThrows;
+import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.fml.loading.moddiscovery.ModFileInfo;
+import net.neoforged.neoforgespi.language.ModFileScanData;
+import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.Nullable;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Opcodes;
+
+import java.lang.annotation.ElementType;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
+public class SyncConfigManager {
+    public static final String SYNC_DESCRIPTOR = "Ldev/anvilcraft/lib/v2/sync/annotation/Sync;";
+    private static final String SYNC_PROXY_DESC = "Ldev/anvilcraft/lib/v2/sync/management/SyncProxy;";
+    public int usedId = 0;
+    public final Map<String, Integer> syncConfigs = new HashMap<>();
+    public final Map<Integer, String> syncConfigById = new HashMap<>();
+
+
+    @ApiStatus.Internal
+    @SneakyThrows
+    @SuppressWarnings("UnstableApiUsage")
+    public static void compileContent() {
+        for (ModFileInfo fileInfo : FMLLoader.getCurrent().getLoadingModList().getModFiles()) {
+            for (ModFileScanData.AnnotationData annotation : fileInfo.getFile().getScanResult().getAnnotations()) {
+                if (!annotation.annotationType().getDescriptor().equals(SyncConfigManager.SYNC_DESCRIPTOR)) continue;
+                if (annotation.targetType() != ElementType.TYPE) continue;
+                String className = annotation.clazz().getClassName();
+                ClassReader classReader = new ClassReader(className);
+                FieldListingVisitor fieldListingVisitor = new FieldListingVisitor(className, null);
+                classReader.accept(fieldListingVisitor, 0);
+            }
+        }
+    }
+
+    public static class FieldListingVisitor extends ClassVisitor {
+        private final String className;
+
+        FieldListingVisitor(String className, @Nullable ClassVisitor classVisitor) {
+            super(Opcodes.ASM9, classVisitor);
+            this.className = className;
+        }
+
+        @Override
+        public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+            if (Objects.equals(descriptor, SyncConfigManager.SYNC_PROXY_DESC) && (access & Opcodes.ACC_FINAL) != 0) {
+                AnvilLibSync.SYNC_CONFIG_MANAGER.register("%s#%s".formatted(this.className, name));
+            }
+            return super.visitField(access, name, descriptor, signature, value);
+        }
+    }
+
+    public void register(String syncConfig) {
+        this.syncConfigs.put(syncConfig, this.usedId);
+        this.syncConfigById.put(this.usedId, syncConfig);
+        this.usedId++;
+    }
+
+    public int getId(String syncConfig) {
+        return this.syncConfigs.get(syncConfig);
+    }
+
+    public String getById(int id) {
+        return this.syncConfigById.get(id);
+    }
+
+    public void clear() {
+        this.syncConfigs.clear();
+        this.syncConfigById.clear();
+        this.usedId = 0;
+    }
+
+
+    public void registerAll(Map<Integer, String> syncConfigById) {
+        this.clear();
+        syncConfigById.forEach((id, syncConfig) -> {
+            this.syncConfigs.put(syncConfig, id);
+            this.syncConfigById.put(id, syncConfig);
+            if (id >= this.usedId) {
+                this.usedId = id + 1;
+            }
+        });
+    }
+
+    public SyncConfigurationPayload createPyload() {
+        return new SyncConfigurationPayload(this.syncConfigById);
+    }
+}
