@@ -28,22 +28,33 @@ base {
 }
 
 repositories {
-    maven { url = "https://server.cjsah.net:1002/maven/" }
     mavenLocal()
-    mavenCentral()
+    exclusiveContent {
+        forRepositories(
+                mavenCentral(),
+                maven { // Anvil Lib
+                    name = "Cjsah Maven"
+                    url = "https://server.cjsah.net:1002/maven/"
+                }
+        )
+        filter {
+            includeGroup "dev.anvilcraft.lib"
+        }
+    }
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+java.toolchain.languageVersion = JavaLanguageVersion.of(project.java_version)
 
 neoForge {
     // Specify the version of NeoForge to use.
     version = libs.versions.neoForge.get()
+
     // This line is optional. Access Transformers are automatically detected
-    accessTransformers.from('src/main/resources/META-INF/accesstransformer.cfg')
+    // accessTransformers.add('src/main/resources/META-INF/accesstransformer.cfg')
 
     interfaceInjectionData {
-        // from 'src/main/resources/interface_injections.json'
-        // publish file('src/main/resources/interface_injections.json')
+         from 'src/main/resources/interface_injections.json'
+         publish file('src/main/resources/interface_injections.json')
     }
 
     // Default run configurations.
@@ -51,10 +62,9 @@ neoForge {
     runs {
         client {
             client()
-            devLogin = true
+
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-            systemProperty 'anvillib.rendering.debugMode', 'true'
         }
 
         clientRenderDoc {
@@ -123,6 +133,11 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
 dependencies {
+    if (System.getenv("NOT_DEV") == 'true') {
+        jarJar(api("dev.anvilcraft.lib:anvillib-rendering-neoforge-26.1:latest.release"))
+    } else {
+        jarJar(implementation project(":anvillib-rendering-neoforge-26.1"))
+    }
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -130,9 +145,9 @@ dependencies {
 // When "copyIdeResources" is enabled, this will also run before the game launches in IDE environments.
 // See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
 tasks.withType(ProcessResources).configureEach {
-    var replaceProperties = [minecraft_version      : minecraft_version,
+    var replaceProperties = [minecraft_version      : libs.versions.minecraft.get(),
                              minecraft_version_range: minecraft_version_range,
-                             neo_version            : neo_version,
+                             neo_version            : libs.versions.neoForge.get(),
                              neo_version_range      : neo_version_range,
                              loader_version_range   : loader_version_range,
                              mod_id                 : mod_id,
@@ -169,7 +184,7 @@ jar {
     from(rootProject.file("LICENSE"))
     from(rootProject.file("ASSETS_LICENSE"))
     from(rootProject.file("README.md"))
-    from(rootProject.file("README_en.md"))
+    from(rootProject.file("README.en.md"))
 }
 
 artifacts {
@@ -277,10 +292,24 @@ lombok {
     version = "1.18.44"
 }
 
-// Task dependency for clientRenderDoc run configuration
+publishMods {
+    file = jar.archiveFile
+    changelog = "Update"
+    type = BETA
+    modLoaders.add("neoforge")
 
-tasks.configureEach {
-    if (name == 'runClientRenderDoc') {
-        dependsOn ':anvillib-rendering-neoforge-26.1:renderdoc-loader-internal:jar'
+    additionalFiles.from(sourcesJar.archiveFile)
+    additionalFiles.from(javadocJar.archiveFile)
+
+    curseforge {
+        accessToken = System.getenv("CURSEFORGE_TOKEN")
+        projectId = "1484302"
+        minecraftVersions.add(libs.versions.minecraft.get())
+    }
+
+    modrinth {
+        accessToken = System.getenv("MODRINTH_TOKEN")
+        projectId = "nKAcAL9b"
+        minecraftVersions.add(libs.versions.minecraft.get())
     }
 }
