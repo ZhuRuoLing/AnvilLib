@@ -16,6 +16,99 @@ repositories {
 
 dependencies {}
 
+tasks.register("createModule") {
+    if (!project.hasProperty('id')) {
+        throw new GradleException("Id property is required. Use -Pid=<id> to specify the version.")
+    }
+    String id = project.property("id")
+    if (id.matches("[A-Z]+")) {
+        throw new GradleException("Id cannot be all uppercase.")
+    }
+    String name = id.substring(0, 1).toUpperCase() + id.substring(1)
+    String mod_id = "anvillib_$id"
+    String mod_name = "AnvilLib-$name"
+    String class_name = "AnvilLib$name"
+    File buildGradle = file("module.$id/build.gradle")
+    File gradleProperties = file("module.$id/gradle.properties")
+    File mainClass = file("module.$id/src/main/java/dev/anvilcraft/lib/v2/$id/${class_name}.java")
+    File packageInfo = file("module.$id/src/main/java/dev/anvilcraft/lib/v2/$id/package-info.java")
+    File modInfoPath = file("module.$id/src/main/resources/META-INF/")
+    File mixinConfig = file("module.$id/src/main/resources/${mod_id}.mixins.json")
+    buildGradle.parentFile.mkdirs()
+    mainClass.parentFile.mkdirs()
+    modInfoPath.mkdirs()
+    buildGradle.createNewFile()
+    gradleProperties.createNewFile()
+    mainClass.createNewFile()
+    mixinConfig.createNewFile()
+    copy {
+        from file("module.main/src/main/resources/META-INF/neoforge.mods.toml")
+        into modInfoPath
+    }
+    copy {
+        from file("module.main/src/main/resources/icon.png")
+        into file("module.$id/src/main/resources/")
+    }
+
+    buildGradle.write(
+            """
+            dependencies {
+            }
+            """.stripIndent().trim()
+    )
+    gradleProperties.write(
+            """
+            ## Mod Properties
+            mod_id=$mod_id
+            mod_name=$mod_name
+            mod_description=
+            """.stripIndent().trim()
+    )
+    mainClass.write(
+            """
+            package dev.anvilcraft.lib.v2.$id;
+            
+            import net.minecraft.resources.Identifier;
+            import net.neoforged.fml.common.Mod;
+            
+            @Mod(${class_name}.MOD_ID)
+            public class $class_name {
+                public static final String MOD_ID = "$mod_id";
+            
+                public static Identifier of(String path) {
+                    return Identifier.fromNamespaceAndPath(${class_name}.MOD_ID, path);
+                }
+            }
+            """.stripIndent().trim()
+    )
+    packageInfo.write(
+            """
+            @NullMarked
+            package dev.anvilcraft.lib.v2;
+            
+            import org.jspecify.annotations.NullMarked;
+            """.stripIndent().trim()
+    )
+    mixinConfig.write(
+            """
+            {
+              "required": true,
+              "minVersion": "0.8",
+              "package": "dev.anvilcraft.lib.v2.${id}.mixin",
+              "compatibilityLevel": "JAVA_8",
+              "refmap": "anvillib.refmap.json",
+              "mixins": [
+              ],
+              "client": [
+              ],
+              "injectors": {
+                "defaultRequire": 1
+              }
+            }
+            """.stripIndent().trim()
+    )
+}
+
 subprojects {
     if (it.name == "renderdoc-loader-internal") return
     apply plugin: 'java'
