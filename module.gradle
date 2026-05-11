@@ -12,6 +12,17 @@ base {
 }
 
 repositories {
+    exclusiveContent {
+        forRepositories(
+                maven { // Anvil Lib
+                    name = "Cjsah Maven"
+                    url = "https://server.cjsah.net:1002/maven/"
+                }
+        )
+        filter {
+            includeGroup "dev.anvilcraft.lib"
+        }
+    }
     maven { url = "https://server.cjsah.net:1002/maven/" }
     mavenLocal()
     mavenCentral()
