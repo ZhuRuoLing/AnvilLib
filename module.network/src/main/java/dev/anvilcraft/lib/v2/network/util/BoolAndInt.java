@@ -20,29 +20,29 @@ public record BoolAndInt(boolean bool, int integer) {
 
     private static void encode(ByteBuf buf, BoolAndInt data) {
         // zigzag encoding
-        int value = (data.integer << 1) ^ (data.integer >> 31);
+        long value = ((long) data.integer << 1) ^ (data.integer >> 31);
 
         // store bool
         value = (value << 1) | (data.bool ? 1 : 0);
 
         // VarInt encoding
         while((value & -128) != 0) {
-            buf.writeByte(value & 127 | 128);
+            buf.writeByte((int) (value & 127 | 128));
             value >>>= 7;
         }
 
-        buf.writeByte(value & 0x7F);
+        buf.writeByte((int) (value & 0x7F));
     }
 
     private static BoolAndInt decode(ByteBuf buf) {
-        int out = 0;
+        long out = 0;
         int bytes = 0;
 
         // VarInt decoding
         byte in;
         do {
             in = buf.readByte();
-            out |= (in & 127) << bytes++ * 7;
+            out |= (in & 127L) << bytes++ * 7;
             if (bytes > 5) {
                 throw new RuntimeException("VarInt too big");
             }
@@ -54,6 +54,6 @@ public record BoolAndInt(boolean bool, int integer) {
 
         out = (out >>> 1) ^ -(out & 1);
 
-        return new BoolAndInt(bool, out);
+        return new BoolAndInt(bool, (int) out);
     }
 }
