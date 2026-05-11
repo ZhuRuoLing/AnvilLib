@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "anvillib_test:block/test_cached_rendering"
+    }
+  }
+}
