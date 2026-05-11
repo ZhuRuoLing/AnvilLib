@@ -2,10 +2,9 @@ package dev.anvilcraft.lib.v2.space_select.client;
 
 import dev.anvilcraft.lib.v2.space_select.AnvilLibSpaceSelect;
 import dev.anvilcraft.lib.v2.space_select.District;
-import dev.anvilcraft.lib.v2.space_select.SpaceSelectItem;
+import dev.anvilcraft.lib.v2.space_select.DistrictManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
@@ -28,13 +27,22 @@ public final class SpaceSelectScrollHandler {
         boolean altDown = mc.hasAltDown();
         if (!ctrlDown && !altDown) return;
 
-        ItemStack heldStack = mc.player.getMainHandItem();
-        if (!(heldStack.getItem() instanceof SpaceSelectItem)) {
-            heldStack = mc.player.getOffhandItem();
-            if (!(heldStack.getItem() instanceof SpaceSelectItem)) return;
+        DistrictManager.DistrictKey mainHand = new DistrictManager.DistrictKey(
+            mc.player.getInventory().getSelectedSlot(),
+            false,
+            mc.player.getMainHandItem().getItem()
+        );
+        DistrictManager.DistrictKey offHand = new DistrictManager.DistrictKey(-1, true, mc.player.getOffhandItem().getItem());
+        DistrictManager.DistrictKey districtKey;
+        if (mainHand.check(mc.player)) {
+            districtKey = mainHand;
+        } else if (offHand.check(mc.player)) {
+            districtKey = offHand;
+        } else {
+            return;
         }
 
-        District district = AnvilLibSpaceSelectClient.MANAGER.getDistrictMap().get(heldStack);
+        District district = AnvilLibSpaceSelectClient.MANAGER.getDistrictMap().get(districtKey);
         if (district == null) return;
 
         double scrollY = event.getScrollDeltaY();

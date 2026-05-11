@@ -21,20 +21,20 @@ import java.util.Objects;
 @Getter
 public class ClientDistrictManager extends DistrictManager {
     private final District tempDistrict = new District(new BlockPos.MutableBlockPos(), new BlockPos.MutableBlockPos());
-    private final Map<ItemStack, BlockPos> selectingMap = new HashMap<>();
+    private final Map<DistrictKey, BlockPos> selectingMap = new HashMap<>();
 
-    public boolean isSelecting(ItemStack stack) {
-        return this.selectingMap.containsKey(stack);
+    public boolean isSelecting(DistrictKey districtKey) {
+        return this.selectingMap.containsKey(districtKey);
     }
 
-    public void startSelect(ItemStack stack, BlockPos blockPos) {
-        this.selectingMap.put(stack, blockPos);
+    public void startSelect(DistrictKey districtKey, BlockPos blockPos) {
+        this.selectingMap.put(districtKey, blockPos);
     }
 
-    public void endSelect(ItemStack stack, BlockPos blockPos) {
-        BlockPos start = this.selectingMap.remove(stack);
+    public void endSelect(DistrictKey districtKey, BlockPos blockPos) {
+        BlockPos start = this.selectingMap.remove(districtKey);
         if (start != null) {
-            this.select(stack, District.create(start, blockPos));
+            this.select(districtKey, District.create(start, blockPos));
             SpaceSelectPayload payload = new SpaceSelectPayload(
                 !(Objects.requireNonNull(Minecraft.getInstance().player).getMainHandItem().getItem() instanceof SpaceSelectItem),
                 start,
@@ -45,9 +45,9 @@ public class ClientDistrictManager extends DistrictManager {
     }
 
     @Override
-    public void clear(ItemStack stack) {
-        super.clear(stack);
-        this.selectingMap.remove(stack);
+    public void clear(DistrictKey districtKey) {
+        super.clear(districtKey);
+        this.selectingMap.remove(districtKey);
     }
 
     public @Nullable District getTempDistrict() {
@@ -66,10 +66,16 @@ public class ClientDistrictManager extends DistrictManager {
             return null;
         }
         BlockPos pos;
-        if (this.isSelecting(mainHandItem)) {
-            pos = this.getSelectingMap().get(mainHandItem);
+        DistrictManager.DistrictKey mainHand = new DistrictManager.DistrictKey(
+            player.getInventory().getSelectedSlot(),
+            false,
+            player.getMainHandItem().getItem()
+        );
+        DistrictManager.DistrictKey offHand = new DistrictManager.DistrictKey(-1, true, player.getOffhandItem().getItem());
+        if (this.isSelecting(mainHand)) {
+            pos = this.getSelectingMap().get(mainHand);
         } else {
-            pos = this.getSelectingMap().get(offhandItem);
+            pos = this.getSelectingMap().get(offHand);
         }
         if (pos == null) return null;
         this.tempDistrict.start()
