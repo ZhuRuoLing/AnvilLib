@@ -28,6 +28,7 @@ import dev.anvilcraft.lib.v2.registrum.builders.BlockEntityBuilder.BlockEntityFa
 import dev.anvilcraft.lib.v2.registrum.builders.Builder;
 import dev.anvilcraft.lib.v2.registrum.builders.BuilderCallback;
 import dev.anvilcraft.lib.v2.registrum.builders.ConditionBuilder;
+import dev.anvilcraft.lib.v2.registrum.builders.CreativeTabBuilder;
 import dev.anvilcraft.lib.v2.registrum.builders.EntityBuilder;
 import dev.anvilcraft.lib.v2.registrum.builders.FluidBuilder;
 import dev.anvilcraft.lib.v2.registrum.builders.ItemBuilder;
@@ -89,6 +90,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -114,7 +116,6 @@ import net.neoforged.neoforge.registries.RegistryBuilder;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.message.Message;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -156,10 +157,16 @@ import java.util.stream.Collectors;
  * For specifics as to building different registry entries, read the documentation on their respective builders.
  */
 @Log4j2
+@SuppressWarnings(
+    {
+        "unused",
+        "UnusedReturnValue",
+        "ConstantValue"
+    }
+)
 public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
-
     @Value
-    private class Registration<R, T extends R> {
+    private static class Registration<R, T extends R> {
         Identifier name;
         ResourceKey<? extends Registry<R>> type;
         NonNullSupplier<? extends T> creator;
@@ -302,17 +309,16 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     protected void onRegister(RegisterEvent event) {
         ResourceKey<? extends Registry<?>> type = event.getRegistryKey();
         if (type == null) {
-            log.debug(DebugMarkers.REGISTER, "Skipping invalid registry with no supertype: " + event.getRegistryKey().identifier());
+            log.debug(DebugMarkers.REGISTER, "Skipping invalid registry with no supertype: {}", event.getRegistryKey().identifier());
             return;
         }
         if (!registerCallbacks.isEmpty()) {
-            registerCallbacks.asMap()
-                .forEach((k, v) -> log.warn(
-                    "Found {} unused register callback(s) for entry {} [{}]. Was the entry ever registered?",
-                    v.size(),
-                    k.getLeft(),
-                    k.getRight().identifier()
-                ));
+            registerCallbacks.asMap().forEach((k, v) -> log.warn(
+                "Found {} unused register callback(s) for entry {} [{}]. Was the entry ever registered?",
+                v.size(),
+                k.getLeft(),
+                k.getRight().identifier()
+            ));
             registerCallbacks.clear();
             if (isDevEnvironment()) {
                 throw new IllegalStateException("Found unused register callbacks, see logs");
@@ -423,7 +429,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
      * @throws NullPointerException     if current name has not been set via {@link #object(String)}
      */
     public <R, T extends R> RegistryEntry<R, T> get(ResourceKey<? extends Registry<R>> type) {
-        return this.<R, T>get(currentName(), type);
+        return this.get(currentName(), type);
     }
 
     /**
@@ -463,7 +469,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
      * @return A {@link RegistryEntry} which will supply the requested entry, if it exists
      */
     public <R, T extends R> Optional<RegistryEntry<R, T>> getOptional(String name, ResourceKey<? extends Registry<R>> type) {
-        Registration<R, T> reg = this.<R, T>getRegistrationUnchecked(name, type);
+        Registration<R, T> reg = this.getRegistrationUnchecked(name, type);
         return reg == null ? Optional.empty() : Optional.of(reg.getDelegate());
     }
 
@@ -474,7 +480,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     }
 
     private <R, T extends R> Registration<R, T> getRegistration(String name, ResourceKey<? extends Registry<R>> type) {
-        Registration<R, T> reg = this.<R, T>getRegistrationUnchecked(name, type);
+        Registration<R, T> reg = this.getRegistrationUnchecked(name, type);
         if (reg != null) {
             return reg;
         }
@@ -515,7 +521,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         ResourceKey<? extends Registry<R>> registryType,
         NonNullConsumer<? super T> callback
     ) {
-        Registration<R, T> reg = this.<R, T>getRegistrationUnchecked(name, registryType);
+        Registration<R, T> reg = this.getRegistrationUnchecked(name, registryType);
         if (reg == null) {
             registerCallbacks.put(Pair.of(name, registryType), callback);
         } else {
@@ -533,7 +539,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
      * @return This {@link AbstractRegistrum} instance
      */
     public <R> S addRegisterCallback(ResourceKey<? extends Registry<R>> registryType, Runnable callback) {
-        afterRegisterCallbacks.put((ResourceKey<? extends Registry<?>>) registryType, callback);
+        afterRegisterCallbacks.put(registryType, callback);
         return self();
     }
 
@@ -596,9 +602,9 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         NonNullConsumer<? extends P> cons
     ) {
         if (!doDatagen.get()) return self();
-        @SuppressWarnings("null")
-        Consumer<?> existing = datagensByEntry.put(Pair.of(entry, registryType), type, cons);
+        @SuppressWarnings("null") Consumer<?> existing = datagensByEntry.put(Pair.of(entry, registryType), type, cons);
         if (existing != null) {
+            //noinspection SuspiciousMethodCalls
             datagens.remove(type, existing);
         }
         return addDataGenerator(type, cons);
@@ -707,6 +713,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
             provider.putSubProvider(type, gen);
         }
         datagens.get(type).forEach(cons -> {
+            @SuppressWarnings("OptionalAssignedToNull")
             Optional<Pair<String, ResourceKey<? extends Registry<?>>>> entry = null;
             if (log.isEnabled(Level.DEBUG, DebugMarkers.DATA)) {
                 entry = getEntryForGenerator(type, cons);
@@ -730,25 +737,24 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
             try {
                 ((Consumer<T>) cons).accept(gen);
             } catch (Exception e) {
+                //noinspection OptionalAssignedToNull
                 if (entry == null) {
                     entry = getEntryForGenerator(type, cons);
                 }
                 Message err;
                 if (entry.isPresent()) {
-                    err = log.getMessageFactory()
-                        .newMessage(
-                            "Unexpected error while running data generator of type {} for entry {} [{}]",
-                            RegistrumDataProvider.getTypeName(type),
-                            entry.get().getLeft(),
-                            entry.get().getRight().identifier()
-                        );
+                    err = log.getMessageFactory().newMessage(
+                        "Unexpected error while running data generator of type {} for entry {} [{}]",
+                        RegistrumDataProvider.getTypeName(type),
+                        entry.get().getLeft(),
+                        entry.get().getRight().identifier()
+                    );
                 } else {
-                    err = log.getMessageFactory()
-                        .newMessage(
-                            "Unexpected error while running unassociated data generator of type {} ({})",
-                            RegistrumDataProvider.getTypeName(type),
-                            type
-                        );
+                    err = log.getMessageFactory().newMessage(
+                        "Unexpected error while running unassociated data generator of type {} ({})",
+                        RegistrumDataProvider.getTypeName(type),
+                        type
+                    );
                 }
                 if (skipErrors) {
                     log.error(err);
@@ -799,6 +805,15 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     public S defaultCreativeTab(ResourceKey<CreativeModeTab> creativeModeTab) {
         defaultCreativeModeTab = creativeModeTab;
         return self();
+    }
+
+    /**
+     * Release under the MIT License. The full license text is available at <a href="https://opensource.org/license/mit">this</a>
+     *
+     * @author Gugle
+     */
+    public S defaultCreativeTab(RegistryEntry<CreativeModeTab, CreativeModeTab> tab) {
+        return defaultCreativeTab(tab.getKey());
     }
 
     /**
@@ -915,6 +930,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     ) {
         Registration<R, T> reg = new Registration<>(Identifier.fromNamespaceAndPath(modid, name), type, creator, entryFactory);
         log.trace(DebugMarkers.REGISTER, "Captured registration for entry {}:{} of type {}", getModid(), name, type.identifier());
+        //noinspection SuspiciousMethodCalls
         registerCallbacks.removeAll(Pair.of(name, type)).forEach(callback -> {
             @SuppressWarnings(
                 {
@@ -922,7 +938,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
                     "null"
                 }
             )
-            @NonNull NonNullConsumer<? super T> unsafeCallback = (NonNullConsumer<? super T>) callback;
+            NonNullConsumer<? super T> unsafeCallback = (NonNullConsumer<? super T>) callback;
             reg.addRegisterCallback(unsafeCallback);
         });
         registrations.put(type, name, reg);
@@ -1041,7 +1057,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         ResourceKey<Registry<R>> registryType,
         NonNullSupplier<T> factory
     ) {
-        return entry(name, callback -> new NoConfigBuilder<R, T, P>(this, parent, name, callback, registryType, factory));
+        return entry(name, callback -> new NoConfigBuilder<>(this, parent, name, callback, registryType, factory));
     }
 
     // Items
@@ -1060,7 +1076,8 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
 
     public <T extends Item, P> ItemBuilder<T, P> item(P parent, String name, NonNullFunction<Item.Properties, T> factory) {
         return entry(
-            name, callback -> ItemBuilder.create(this, parent, name, callback, factory)
+            name,
+            callback -> ItemBuilder.create(this, parent, name, callback, factory)
                 .transform(builder -> this.defaultCreativeModeTab == null ? builder : builder.tab(this.defaultCreativeModeTab))
         );
     }
@@ -1154,22 +1171,27 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     }
 
     public <T extends BaseFlowingFluid> FluidBuilder<T, S> fluid(
-        Identifier stillTexture, Identifier flowingTexture,
+        Identifier stillTexture,
+        Identifier flowingTexture,
         FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(self(), stillTexture, flowingTexture, fluidFactory);
     }
 
     public <T extends BaseFlowingFluid> FluidBuilder<T, S> fluid(
-        Identifier stillTexture, Identifier flowingTexture,
-        FluidBuilder.FluidTypeFactory typeFactory, FluidBuilder.FluidFactory<T> fluidFactory
+        Identifier stillTexture,
+        Identifier flowingTexture,
+        FluidBuilder.FluidTypeFactory typeFactory,
+        FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(self(), stillTexture, flowingTexture, typeFactory, fluidFactory);
     }
 
     public <T extends BaseFlowingFluid> FluidBuilder<T, S> fluid(
-        Identifier stillTexture, Identifier flowingTexture,
-        NonNullSupplier<FluidType> fluidType, FluidBuilder.FluidFactory<T> fluidFactory
+        Identifier stillTexture,
+        Identifier flowingTexture,
+        NonNullSupplier<FluidType> fluidType,
+        FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(self(), stillTexture, flowingTexture, fluidType, fluidFactory);
     }
@@ -1209,22 +1231,30 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     }
 
     public <T extends BaseFlowingFluid> FluidBuilder<T, S> fluid(
-        String name, Identifier stillTexture, Identifier flowingTexture,
+        String name,
+        Identifier stillTexture,
+        Identifier flowingTexture,
         FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(self(), name, stillTexture, flowingTexture, fluidFactory);
     }
 
     public <T extends BaseFlowingFluid> FluidBuilder<T, S> fluid(
-        String name, Identifier stillTexture, Identifier flowingTexture,
-        FluidBuilder.FluidTypeFactory typeFactory, FluidBuilder.FluidFactory<T> fluidFactory
+        String name,
+        Identifier stillTexture,
+        Identifier flowingTexture,
+        FluidBuilder.FluidTypeFactory typeFactory,
+        FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(self(), name, stillTexture, flowingTexture, typeFactory, fluidFactory);
     }
 
     public <T extends BaseFlowingFluid> FluidBuilder<T, S> fluid(
-        String name, Identifier stillTexture, Identifier flowingTexture,
-        NonNullSupplier<FluidType> fluidType, FluidBuilder.FluidFactory<T> fluidFactory
+        String name,
+        Identifier stillTexture,
+        Identifier flowingTexture,
+        NonNullSupplier<FluidType> fluidType,
+        FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(self(), name, stillTexture, flowingTexture, fluidType, fluidFactory);
     }
@@ -1264,22 +1294,30 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     }
 
     public <T extends BaseFlowingFluid, P> FluidBuilder<T, P> fluid(
-        P parent, Identifier stillTexture, Identifier flowingTexture,
+        P parent,
+        Identifier stillTexture,
+        Identifier flowingTexture,
         FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(parent, currentName(), stillTexture, flowingTexture, fluidFactory);
     }
 
     public <T extends BaseFlowingFluid, P> FluidBuilder<T, P> fluid(
-        P parent, Identifier stillTexture, Identifier flowingTexture,
-        FluidBuilder.FluidTypeFactory typeFactory, FluidBuilder.FluidFactory<T> fluidFactory
+        P parent,
+        Identifier stillTexture,
+        Identifier flowingTexture,
+        FluidBuilder.FluidTypeFactory typeFactory,
+        FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(parent, currentName(), stillTexture, flowingTexture, typeFactory, fluidFactory);
     }
 
     public <T extends BaseFlowingFluid, P> FluidBuilder<T, P> fluid(
-        P parent, Identifier stillTexture, Identifier flowingTexture,
-        NonNullSupplier<FluidType> fluidType, FluidBuilder.FluidFactory<T> fluidFactory
+        P parent,
+        Identifier stillTexture,
+        Identifier flowingTexture,
+        NonNullSupplier<FluidType> fluidType,
+        FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return fluid(parent, currentName(), stillTexture, flowingTexture, fluidType, fluidFactory);
     }
@@ -1313,12 +1351,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         );
     }
 
-    public <P> FluidBuilder<BaseFlowingFluid.Flowing, P> fluid(
-        P parent,
-        String name,
-        Identifier stillTexture,
-        Identifier flowingTexture
-    ) {
+    public <P> FluidBuilder<BaseFlowingFluid.Flowing, P> fluid(P parent, String name, Identifier stillTexture, Identifier flowingTexture) {
         return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, FluidType::new)).fluidModel(
             stillTexture,
             flowingTexture
@@ -1352,7 +1385,10 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     }
 
     public <T extends BaseFlowingFluid, P> FluidBuilder<T, P> fluid(
-        P parent, String name, Identifier stillTexture, Identifier flowingTexture,
+        P parent,
+        String name,
+        Identifier stillTexture,
+        Identifier flowingTexture,
         FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, fluidFactory)).fluidModel(
@@ -1362,18 +1398,26 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     }
 
     public <T extends BaseFlowingFluid, P> FluidBuilder<T, P> fluid(
-        P parent, String name, Identifier stillTexture, Identifier flowingTexture,
-        FluidBuilder.FluidTypeFactory typeFactory, FluidBuilder.FluidFactory<T> fluidFactory
+        P parent,
+        String name,
+        Identifier stillTexture,
+        Identifier flowingTexture,
+        FluidBuilder.FluidTypeFactory typeFactory,
+        FluidBuilder.FluidFactory<T> fluidFactory
     ) {
-        return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, typeFactory, fluidFactory)).fluidModel(
-            stillTexture,
-            flowingTexture
-        );
+        return entry(
+            name,
+            callback -> FluidBuilder.create(this, parent, name, callback, typeFactory, fluidFactory)
+        ).fluidModel(stillTexture, flowingTexture);
     }
 
     public <T extends BaseFlowingFluid, P> FluidBuilder<T, P> fluid(
-        P parent, String name, Identifier stillTexture, Identifier flowingTexture,
-        NonNullSupplier<FluidType> fluidType, FluidBuilder.FluidFactory<T> fluidFactory
+        P parent,
+        String name,
+        Identifier stillTexture,
+        Identifier flowingTexture,
+        NonNullSupplier<FluidType> fluidType,
+        FluidBuilder.FluidFactory<T> fluidFactory
     ) {
         return entry(name, callback -> FluidBuilder.create(this, parent, name, callback, fluidType, fluidFactory)).fluidModel(
             stillTexture,
@@ -1412,7 +1456,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         MenuFactory<T> factory,
         NonNullSupplier<ScreenFactory<T, SC>> screenFactory
     ) {
-        return entry(name, callback -> new MenuBuilder<T, SC, P>(this, parent, name, callback, factory, screenFactory));
+        return entry(name, callback -> new MenuBuilder<>(this, parent, name, callback, factory, screenFactory));
     }
 
     public <T extends AbstractContainerMenu, SC extends Screen & MenuAccess<T>> MenuBuilder<T, SC, S> menu(
@@ -1444,7 +1488,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         ForgeMenuFactory<T> factory,
         NonNullSupplier<ScreenFactory<T, SC>> screenFactory
     ) {
-        return entry(name, callback -> new MenuBuilder<T, SC, P>(this, parent, name, callback, factory, screenFactory));
+        return entry(name, callback -> new MenuBuilder<>(this, parent, name, callback, factory, screenFactory));
     }
 
     // Creative Tab
@@ -1485,10 +1529,7 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         String name,
         Consumer<CreativeModeTab.Builder> config
     ) {
-        this.defaultCreativeModeTab = ResourceKey.create(
-            Registries.CREATIVE_MODE_TAB,
-            Identifier.fromNamespaceAndPath(this.modid, name)
-        );
+        this.defaultCreativeModeTab = ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.fromNamespaceAndPath(this.modid, name));
         return this.generic(
             parent, name, Registries.CREATIVE_MODE_TAB, () -> {
                 var builder = CreativeModeTab.builder()
@@ -1502,6 +1543,33 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
                 return builder.build();
             }
         );
+    }
+
+    /**
+     * Release under the MIT License. The full license text is available at <a href="https://opensource.org/license/mit">this</a>
+     *
+     * @author Gugle
+     */
+    protected <P> CreativeTabBuilder<P> creativeTab(P parent, String name, Supplier<ItemLike> icon) {
+        return entry(name, callback -> CreativeTabBuilder.create(this, parent, name, callback, icon));
+    }
+
+    /**
+     * Release under the MIT License. The full license text is available at <a href="https://opensource.org/license/mit">this</a>
+     *
+     * @author Gugle
+     */
+    public CreativeTabBuilder<S> creativeTab(String name, ItemLike icon) {
+        return creativeTab(self(), name, () -> icon);
+    }
+
+    /**
+     * Release under the MIT License. The full license text is available at <a href="https://opensource.org/license/mit">this</a>
+     *
+     * @author Gugle
+     */
+    public CreativeTabBuilder<S> creativeTab(String name, Supplier<ItemLike> icon) {
+        return creativeTab(self(), name, icon);
     }
 
     // Attachment Type
@@ -1688,6 +1756,4 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
     ) {
         return recipe(self(), name, codec, streamCodec);
     }
-
-
 }
