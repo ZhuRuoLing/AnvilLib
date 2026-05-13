@@ -1749,6 +1749,11 @@ public abstract class AbstractRegistrum<S extends AbstractRegistrum<S>> {
         );
     }
 
+    /**
+     * Release under the MIT License. The full license text is available at <a href="https://opensource.org/license/mit">this</a>
+     *
+     * @author baka4n
+     */
     public <T extends Recipe<?>> RecipeEntry<T> recipe(
         String name,
         MapCodec<T> codec,
