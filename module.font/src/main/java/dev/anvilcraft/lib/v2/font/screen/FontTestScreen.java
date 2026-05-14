@@ -66,7 +66,8 @@ public class FontTestScreen extends Screen {
         );
         graphics.anvillib$centeredText(
             AnvilLibFont.getSelectFont(),
-            Component.literal("隨手存取 AI，隨時使用最佳效能。善用 Windows 11 功能，進而保護並提升您的數碼生活。"),
+            Component.literal("隨手存取 AI，隨時使用最佳效能。善用 Windows 11 功能，進而保護並提升您的數碼生活。")
+                .withStyle(Style.EMPTY.withItalic(true).withBold(true)),
             offsetX,
             offsetY + this.font.lineHeight * 6,
             0xFFFFFFFF
