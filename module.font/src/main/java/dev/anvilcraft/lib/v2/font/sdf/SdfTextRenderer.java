@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.Font;
 import java.util.List;
+import org.joml.Matrix3x2f;
 
 /**
  * SDF text renderer that draws strings via the SDF text render pipeline.
@@ -236,7 +237,7 @@ public final class SdfTextRenderer {
     ) {
         if (pq.atlasTexture() == null || pq.quads().isEmpty()) return;
         SdfTextRenderState state = new SdfTextRenderState(
-            graphics.pose(),
+            new Matrix3x2f(graphics.pose()),
             pq.quads(),
             pq.atlasTexture(),
             diffuseSampler,
