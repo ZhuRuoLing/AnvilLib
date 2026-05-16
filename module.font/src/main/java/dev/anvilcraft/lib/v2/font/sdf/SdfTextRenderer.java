@@ -42,13 +42,17 @@ public final class SdfTextRenderer {
         boolean dropShadow
     ) {
         if (text == null || text.isEmpty()) return;
+        SdfGlyphAtlas atlas = SdfGlyphAtlas.getIfReady(font);
+        if (atlas == null) return;
+        drawStringWithAtlas(graphics, atlas, text, x, y, color);
+    }
 
-        SdfGlyphAtlas atlas = SdfGlyphAtlas.getOrCreate(font);
+    private void drawStringWithAtlas(GuiGraphicsExtractor graphics, SdfGlyphAtlas atlas,
+                                      String text, int x, int y, int color) {
         float scale = scaleFor(atlas);
         int quadY = y - 2;
         SdfTextLayout layout = SdfTextLayout.fromAtlas(atlas, text, x, quadY, scale);
         if (layout.pages().isEmpty()) return;
-
         SdfAtlasTexture.ensureUploaded(atlas);
         for (SdfTextLayout.PageQuads pq : layout.pages()) {
             drawAtlasPipeline(graphics, pq, this.diffuseSampler, color);
@@ -99,10 +103,7 @@ public final class SdfTextRenderer {
         int color,
         boolean dropShadow
     ) {
-        int[] pen = {
-            x,
-            x
-        }; // pen[0] = current x, pen[1] = segment start x
+        int[] pen = {x, x};
         StringBuilder buf = new StringBuilder();
         int[] segColor = {color};
         boolean[] segBold = {false};
@@ -144,7 +145,8 @@ public final class SdfTextRenderer {
     }
 
     private int flushFormattedSegment(GuiGraphicsExtractor graphics, @Nullable Font font, String text, int x, int y, int color) {
-        SdfGlyphAtlas atlas = SdfGlyphAtlas.getOrCreate(font);
+        SdfGlyphAtlas atlas = SdfGlyphAtlas.getIfReady(font);
+        if (atlas == null) return x;
         float scale = scaleFor(atlas);
         int quadY = y - 2;
         SdfTextLayout layout = SdfTextLayout.fromAtlas(atlas, text, x, quadY, scale);
@@ -191,12 +193,13 @@ public final class SdfTextRenderer {
         int color,
         boolean dropShadow
     ) {
-        SdfGlyphAtlas atlas = SdfGlyphAtlas.getOrCreate(font);
+        SdfGlyphAtlas atlas = SdfGlyphAtlas.getIfReady(font);
+        if (atlas == null) return;
         float scale = scaleFor(atlas);
         List<String> lines = wrapLines(atlas, text.getString(), width, scale);
         int lineHeight = Minecraft.getInstance().font.lineHeight;
         for (int i = 0; i < lines.size(); i++) {
-            this.drawString(graphics, font, lines.get(i), x, y + i * lineHeight, color, dropShadow);
+            this.drawStringWithAtlas(graphics, atlas, lines.get(i), x, y + i * lineHeight, color);
         }
     }
 
@@ -206,7 +209,8 @@ public final class SdfTextRenderer {
 
     public void drawCentered(GuiGraphicsExtractor graphics, @Nullable Font font, FormattedCharSequence text, int x, int y, int color) {
         String value = flattenToString(text);
-        SdfGlyphAtlas atlas = SdfGlyphAtlas.getOrCreate(font);
+        SdfGlyphAtlas atlas = SdfGlyphAtlas.getIfReady(font);
+        if (atlas == null) return;
         float scale = scaleFor(atlas);
         int drawX = x - Math.round(atlas.measureText(value) * scale) / 2;
         this.drawFormatted(graphics, font, text, drawX, y, color, false);
