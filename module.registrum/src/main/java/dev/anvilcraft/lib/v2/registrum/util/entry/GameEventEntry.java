@@ -25,16 +25,17 @@
 package dev.anvilcraft.lib.v2.registrum.util.entry;
 
 import dev.anvilcraft.lib.v2.registrum.AbstractRegistrum;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
-public class SoundEventEntry extends SelfEntry<SoundEvent> {
-    public SoundEventEntry(AbstractRegistrum<?> owner, DeferredHolder<SoundEvent, SoundEvent> key) {
+public class GameEventEntry extends RegistryEntry<GameEvent, GameEvent> {
+    public GameEventEntry(AbstractRegistrum<?> owner, DeferredHolder<GameEvent, GameEvent> key) {
         super(owner, key);
     }
 
-    public static SoundEventEntry cast(SelfEntry<SoundEvent> entry) {
-        return RegistryEntry.cast(SoundEventEntry.class, entry);
+    public static GameEventEntry cast(RegistryEntry<GameEvent, GameEvent> key) {
+        return RegistryEntry.cast(GameEventEntry.class, key);
     }
+
+
 }
