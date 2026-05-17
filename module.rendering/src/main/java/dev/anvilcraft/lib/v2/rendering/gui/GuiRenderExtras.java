@@ -24,10 +24,10 @@ public class GuiRenderExtras {
         BlockState blockState,
         @Nullable BlockAndTintGetter level,
         @Nullable BlockPos blockPos,
-        int x0,
-        int y0,
-        int x1,
-        int y1,
+        float x0,
+        float y0,
+        float x1,
+        float y1,
         int color,
         boolean ambientOcclusion,
         PoseStack.Pose pose3D
@@ -55,10 +55,10 @@ public class GuiRenderExtras {
         BlockState blockState,
         @Nullable BlockAndTintGetter level,
         @Nullable BlockPos blockPos,
-        int x0,
-        int y0,
-        int x1,
-        int y1,
+        float x0,
+        float y0,
+        float x1,
+        float y1,
         int color,
         boolean ambientOcclusion,
         PoseStack poseStack3D
@@ -71,10 +71,10 @@ public class GuiRenderExtras {
         BlockState blockState,
         @Nullable BlockAndTintGetter level,
         @Nullable BlockPos blockPos,
-        int x0,
-        int y0,
-        int x1,
-        int y1,
+        float x0,
+        float y0,
+        float x1,
+        float y1,
         boolean ambientOcclusion,
         PoseStack poseStack3D
     ) {
@@ -86,9 +86,9 @@ public class GuiRenderExtras {
         BlockState blockState,
         @Nullable BlockAndTintGetter level,
         @Nullable BlockPos blockPos,
-        int x0,
-        int y0,
-        int width,
+        float x0,
+        float y0,
+        float width,
         boolean ambientOcclusion,
         PoseStack poseStack3D
     ) {
@@ -100,42 +100,42 @@ public class GuiRenderExtras {
         BlockState blockState,
         @Nullable BlockAndTintGetter level,
         @Nullable BlockPos blockPos,
-        int x0,
-        int y0,
+        float x0,
+        float y0,
         boolean ambientOcclusion,
         PoseStack poseStack3D
     ) {
-        tessellateBlock(guiGraphicsExtractor, blockState, level, blockPos, x0, y0, x0 + 32, y0 + 32, -1, ambientOcclusion, poseStack3D);
+        tessellateBlock(guiGraphicsExtractor, blockState, level, blockPos, x0, y0, x0 + 32f, y0 + 32f, -1, ambientOcclusion, poseStack3D);
     }
 
     public static void tessellateBlock(
         GuiGraphicsExtractor guiGraphicsExtractor,
         BlockState blockState,
-        int x0,
-        int y0,
+        float x0,
+        float y0,
         PoseStack poseStack3D
     ) {
-        tessellateBlock(guiGraphicsExtractor, blockState, null, null, x0, y0, x0 + 32, y0 + 32, -1, false, poseStack3D);
+        tessellateBlock(guiGraphicsExtractor, blockState, null, null, x0, y0, x0 + 32f, y0 + 32f, -1, false, poseStack3D);
     }
 
     public static void tessellateBlock(
         GuiGraphicsExtractor guiGraphicsExtractor,
         BlockState blockState,
-        int x0,
-        int y0,
+        float x0,
+        float y0,
         boolean ambientOcclusion,
         PoseStack poseStack3D
     ) {
-        tessellateBlock(guiGraphicsExtractor, blockState, null, null, x0, y0, x0 + 32, y0 + 32, -1, ambientOcclusion, poseStack3D);
+        tessellateBlock(guiGraphicsExtractor, blockState, null, null, x0, y0, x0 + 32f, y0 + 32f, -1, ambientOcclusion, poseStack3D);
     }
 
     public static void tessellateBlock(
         GuiGraphicsExtractor guiGraphicsExtractor,
         BlockState blockState,
-        int x0,
-        int y0
+        float x0,
+        float y0
     ) {
-        tessellateBlock(guiGraphicsExtractor, blockState, null, null, x0, y0, x0 + 32, y0 + 32, -1, false, ALRSharedMath.IDENTITY_POSE_3D);
+        tessellateBlock(guiGraphicsExtractor, blockState, null, null, x0, y0, x0 + 32f, y0 + 32f, -1, false, ALRSharedMath.IDENTITY_POSE_3D);
     }
 
     public static void submitStructure(
@@ -143,10 +143,10 @@ public class GuiRenderExtras {
         BlockAndTintGetter structureAccess,
         BlockPos startPos,
         BlockPos endPos,
-        int x0,
-        int y0,
-        int x1,
-        int y1,
+        float x0,
+        float y0,
+        float x1,
+        float y1,
         float scale,
         boolean ambientOcclusion,
         PoseStack poseStack
@@ -174,10 +174,10 @@ public class GuiRenderExtras {
         BlockAndTintGetter structureAccess,
         BlockPos startPos,
         BlockPos endPos,
-        int x0,
-        int y0,
-        int x1,
-        int y1,
+        float x0,
+        float y0,
+        float x1,
+        float y1,
         float scale,
         boolean ambientOcclusion,
         PoseStack.Pose pose3D
@@ -205,10 +205,10 @@ public class GuiRenderExtras {
         BlockAndTintGetter structureAccess,
         BlockPos startPos,
         BlockPos endPos,
-        int x0,
-        int y0,
-        int x1,
-        int y1,
+        float x0,
+        float y0,
+        float x1,
+        float y1,
         PoseStack.Pose pose3D
     ) {
         submitStructure(guiGraphicsExtractor, structureAccess, startPos, endPos, x0, y0, x1, y1, 32.0f, false, pose3D);

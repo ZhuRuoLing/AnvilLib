@@ -26,7 +26,9 @@ public class AnvilLibTestClient {
 
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
-        CachedBlockEntityRenderDispatcher.INSTANCE.registerRenderer(TestTiles.TEST_CACHED_RENDERING, new TestCachedRenderer());
+        event.enqueueWork(() ->
+            CachedBlockEntityRenderDispatcher.INSTANCE.registerRenderer(TestTiles.TEST_CACHED_RENDERING, new TestCachedRenderer())
+        );
     }
 
     @SubscribeEvent

@@ -5,6 +5,7 @@ import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import org.joml.Matrix3x2f;
 import org.jspecify.annotations.Nullable;
 
@@ -12,10 +13,10 @@ public record StructurePipRenderingState (
     BlockAndTintGetter structureAccess,
     BlockPos startPos,
     BlockPos endPos,
-    int x0,
-    int y0,
-    int x1,
-    int y1,
+    float fx0,
+    float fy0,
+    float fx1,
+    float fy1,
     float scale,
     boolean ambientOcclusion,
     PoseStack.Pose pose3D,
@@ -28,10 +29,10 @@ public record StructurePipRenderingState (
         BlockAndTintGetter structureAccess,
         BlockPos startPos,
         BlockPos endPos,
-        int x0,
-        int y0,
-        int x1,
-        int y1,
+        float x0,
+        float y0,
+        float x1,
+        float y1,
         float scale,
         boolean ambientOcclusion,
         PoseStack.Pose pose3D,
@@ -51,7 +52,27 @@ public record StructurePipRenderingState (
             pose3D,
             pose,
             scissorArea,
-            PictureInPictureRenderState.getBounds(x0, y0, x1, y1, scissorArea)
+            PictureInPictureRenderState.getBounds(Mth.floor(x0), Mth.floor(y0), Mth.floor(x1), Mth.floor(y1), scissorArea)
         );
+    }
+
+    @Override
+    public int x0() {
+        return Mth.floor(fx0);
+    }
+
+    @Override
+    public int y0() {
+        return Mth.floor(fy0);
+    }
+
+    @Override
+    public int x1() {
+        return Mth.floor(fx1);
+    }
+
+    @Override
+    public int y1() {
+        return Mth.floor(fy1);
     }
 }
