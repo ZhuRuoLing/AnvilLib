@@ -1,22 +1,19 @@
 package dev.anvilcraft.lib.v2.rendering;
 
-import dev.anvilcraft.lib.v2.rendering.bloom.BloomPostEffect;
 import dev.anvilcraft.lib.v2.rendering.cachedber.pipeline.CachedBlockEntityRenderingPipeline;
-import lombok.Getter;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderBuffers;
-import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
+import dev.anvilcraft.lib.v2.rendering.gui.renderer.BlockStatePipRenderer;
+import dev.anvilcraft.lib.v2.rendering.gui.renderer.StructurePipRenderer;
+import dev.anvilcraft.lib.v2.rendering.gui.state.BlockStatePipRenderingState;
+import dev.anvilcraft.lib.v2.rendering.gui.state.StructurePipRenderingState;
 import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.RegisterPictureInPictureRenderersEvent;
 import net.neoforged.neoforge.client.event.RenderFrameEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.client.pipeline.RegisterPipelineModifiersEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Mod(value = AnvilLibRendering.MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(Dist.CLIENT)
@@ -40,7 +37,7 @@ public class AnvilLibRendering {
     }
 
     @SubscribeEvent
-    public static void on(RenderLevelStageEvent.AfterTranslucentFeatures event) {
+    public static void on(RenderLevelStageEvent.AfterTranslucentParticles event) {
         if (CachedBlockEntityRenderingPipeline.getInstance() != null) {
             CachedBlockEntityRenderingPipeline.getInstance().render(event.getLevelRenderState().cameraRenderState.cullFrustum);
         }
@@ -50,5 +47,11 @@ public class AnvilLibRendering {
     @SubscribeEvent
     public static void on(RenderLevelStageEvent.AfterLevel event) {
         ALRPostEffects.getBloomPostEffect().process();
+    }
+
+    @SubscribeEvent
+    public static void on(RegisterPictureInPictureRenderersEvent event) {
+        event.register(BlockStatePipRenderingState.class, BlockStatePipRenderer::new);
+        event.register(StructurePipRenderingState.class, StructurePipRenderer::new);
     }
 }
