@@ -57,8 +57,8 @@ public class BlockStatePipRenderer extends PictureInPictureRenderer<BlockStatePi
         }
 
         int guiScale = minecraft.gameRenderer.getGameRenderState().windowRenderState.guiScale;
-        int width = (renderState.x1() - renderState.x0()) * guiScale;
-        int height = (renderState.y1() - renderState.y0()) * guiScale;
+        float width = (renderState.fx1() - renderState.fx0()) * guiScale;
+        float height = (renderState.fy1() - renderState.fy0()) * guiScale;
         float scale = guiScale * renderState.scale();
 
         poseStack.setIdentity();

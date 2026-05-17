@@ -49,8 +49,8 @@ public class StructurePipRenderer extends PictureInPictureRenderer<StructurePipR
     protected void renderToTexture(StructurePipRenderingState renderState, PoseStack poseStack) {
         Minecraft minecraft = Minecraft.getInstance();
         int guiScale = minecraft.gameRenderer.getGameRenderState().windowRenderState.guiScale;
-        int width = (renderState.x1() - renderState.x0()) * guiScale;
-        int height = (renderState.y1() - renderState.y0()) * guiScale;
+        float width = (renderState.fx1() - renderState.fx0()) * guiScale;
+        float height = (renderState.fy1() - renderState.fy0()) * guiScale;
         float scale = guiScale * renderState.scale();
         BlockAndTintGetter level = renderState.structureAccess();
 
