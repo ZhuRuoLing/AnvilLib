@@ -79,6 +79,10 @@ public record ItemIngredientPredicate(
         return new Builder().of(tag);
     }
 
+    public ItemIngredientPredicate withCount(int count) {
+        return new ItemIngredientPredicate(this.items, count, this.components);
+    }
+
     @Override
     public boolean test(ItemStack itemStack) {
         return this.testIgnoreCount(itemStack) && this.testCount(itemStack.count());
