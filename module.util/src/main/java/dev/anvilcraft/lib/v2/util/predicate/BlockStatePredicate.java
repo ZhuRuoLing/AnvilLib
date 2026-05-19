@@ -7,9 +7,9 @@ import dev.anvilcraft.lib.v2.util.AnvilLibUtil;
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.RegistryCodecs;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -26,7 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.StateHolder;
 import net.minecraft.world.level.block.state.properties.Property;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -198,7 +198,7 @@ public class BlockStatePredicate {
         return !this.nbts.isEmpty();
     }
 
-    private List<BlockState> statesCache;
+    private @Nullable List<BlockState> statesCache;
 
     public List<BlockState> getStatesCache() {
         if (this.statesCache != null) return this.statesCache;
@@ -321,10 +321,8 @@ public class BlockStatePredicate {
          * @param tag 方块标签
          * @return 构建器实例
          */
-        public Builder of(TagKey<Block> tag) {
-            List<Holder<Block>> blocks = new ArrayList<>();
-            BuiltInRegistries.BLOCK.getTagOrEmpty(tag).forEach(blocks::add);
-            this.blocks = HolderSet.direct(v -> v, blocks);
+        public Builder of(HolderGetter<Block> blocks, TagKey<Block> tag) {
+            this.blocks = blocks.getOrThrow(tag);
             return this;
         }
 

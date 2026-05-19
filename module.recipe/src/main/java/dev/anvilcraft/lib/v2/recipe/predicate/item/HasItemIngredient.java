@@ -11,6 +11,7 @@ import dev.anvilcraft.lib.v2.recipe.predicate.function.SaveComponentToTag;
 import dev.anvilcraft.lib.v2.recipe.util.InWorldRecipeContext;
 import lombok.Getter;
 import net.minecraft.advancements.criterion.DataComponentMatchers;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
@@ -182,8 +183,8 @@ public class HasItemIngredient extends HasItemBase<HasItemIngredient, ItemIngred
          * @param tag 物品标签
          * @return 构建器实例
          */
-        public Builder of(TagKey<Item> tag) {
-            this.item.of(tag);
+        public Builder of(HolderGetter<Item> items, TagKey<Item> tag) {
+            this.item.of(items, tag);
             return this;
         }
 

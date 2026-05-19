@@ -5,10 +5,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.advancements.criterion.DataComponentMatchers;
 import net.minecraft.advancements.criterion.MinMaxBounds;
 import dev.anvilcraft.lib.v2.codec.StreamCodecUtil;
-import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.RegistryCodecs;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -17,9 +16,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * 物品谓词
@@ -32,15 +30,23 @@ import java.util.Optional;
  * @param components 数据组件谓词
  */
 public record ItemPredicate(
-    Optional<HolderSet<Item>> items, MinMaxBounds.Ints count, DataComponentMatchers components
+    Optional<HolderSet<Item>> items,
+    MinMaxBounds.Ints count,
+    DataComponentMatchers components
 ) implements IItemStackPredicate {
     /**
      * ItemPredicate编解码器
      */
     public static final Codec<ItemPredicate> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-        RegistryCodecs.homogeneousList(Registries.ITEM).optionalFieldOf("items").forGetter(ItemPredicate::items),
-        MinMaxBounds.Ints.CODEC.optionalFieldOf("count", MinMaxBounds.Ints.ANY).forGetter(ItemPredicate::count),
-        DataComponentMatchers.CODEC.codec().optionalFieldOf("components", DataComponentMatchers.ANY).forGetter(ItemPredicate::components)
+        RegistryCodecs.homogeneousList(Registries.ITEM)
+            .optionalFieldOf("items")
+            .forGetter(ItemPredicate::items),
+        MinMaxBounds.Ints.CODEC
+            .optionalFieldOf("count", MinMaxBounds.Ints.ANY)
+            .forGetter(ItemPredicate::count),
+        DataComponentMatchers.CODEC.codec()
+            .optionalFieldOf("components", DataComponentMatchers.ANY)
+            .forGetter(ItemPredicate::components)
     ).apply(instance, ItemPredicate::new));
 
     /**
@@ -103,11 +109,8 @@ public record ItemPredicate(
          * @param tag 物品标签
          * @return 构建器实例
          */
-        public Builder of(TagKey<Item> tag) {
-            List<Holder<Item>> holders = new ArrayList<>();
-            BuiltInRegistries.ITEM.getTagOrEmpty(tag).forEach(holders::add);
-            //noinspection deprecation
-            this.items = Optional.of(HolderSet.direct((item) -> item.value().builtInRegistryHolder(), holders));
+        public Builder of(HolderGetter<Item> items, TagKey<Item> tag) {
+            this.items = items.get(tag).map(Function.identity());
             return this;
         }
 

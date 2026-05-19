@@ -6,13 +6,12 @@ import dev.anvilcraft.lib.v2.codec.StreamCodecUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.advancements.criterion.DataComponentMatchers;
-import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.RegistryCodecs;
 import net.minecraft.core.component.DataComponentExactPredicate;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.TypedDataComponent;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -23,9 +22,8 @@ import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * 物品原料谓词
@@ -75,8 +73,8 @@ public record ItemIngredientPredicate(
      * @param tag 物品标签
      * @return 构建器实例
      */
-    public static Builder of(TagKey<Item> tag) {
-        return new Builder().of(tag);
+    public static Builder of(HolderGetter<Item> items, TagKey<Item> tag) {
+        return new Builder().of(items, tag);
     }
 
     public ItemIngredientPredicate withCount(int count) {
@@ -167,11 +165,8 @@ public record ItemIngredientPredicate(
          * @param tag 物品标签
          * @return 构建器实例
          */
-        public Builder of(TagKey<Item> tag) {
-            List<Holder<Item>> holders = new ArrayList<>();
-            BuiltInRegistries.ITEM.getTagOrEmpty(tag).forEach(holders::add);
-            //noinspection deprecation
-            this.items = Optional.of(HolderSet.direct((item) -> item.value().builtInRegistryHolder(), holders));
+        public Builder of(HolderGetter<Item> items, TagKey<Item> tag) {
+            this.items = items.get(tag).map(Function.identity());
             return this;
         }
 
