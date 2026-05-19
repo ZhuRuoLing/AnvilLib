@@ -48,7 +48,7 @@ public class RegistrumModelProvider extends ModelProvider implements RegistrumPr
 
     @Override
     public Stream<? extends Holder<Item>> getKnownItems() {
-        return Stream.empty(); // make mojang happy
+        return super.getKnownItems();
     }
 
     @Override
