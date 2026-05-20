@@ -39,3 +39,25 @@ dependencies {
         jarJar(implementation project(":anvillib-wheel-neoforge-26.1"))
     }
 }
+
+publishMods {
+    file = jar.archiveFile
+    changelog = "Update"
+    type = BETA
+    modLoaders.add("neoforge")
+
+    additionalFiles.from(sourcesJar.archiveFile)
+    additionalFiles.from(javadocJar.archiveFile)
+
+    curseforge {
+        accessToken = System.getenv("CURSEFORGE_TOKEN")
+        projectId = "1484302"
+        minecraftVersions.add(libs.versions.minecraft.get())
+    }
+
+    modrinth {
+        accessToken = System.getenv("MODRINTH_TOKEN")
+        projectId = "nKAcAL9b"
+        minecraftVersions.add(libs.versions.minecraft.get())
+    }
+}
