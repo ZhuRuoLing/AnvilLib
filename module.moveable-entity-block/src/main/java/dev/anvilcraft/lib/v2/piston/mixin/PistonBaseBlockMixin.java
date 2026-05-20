@@ -3,17 +3,14 @@ package dev.anvilcraft.lib.v2.piston.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import dev.anvilcraft.lib.v2.piston.AnvilLibMoveableEntityBlock;
 import dev.anvilcraft.lib.v2.piston.IMoveableEntityBlock;
 import dev.anvilcraft.lib.v2.piston.injection.IPistonMovingBlockEntityExtension;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.piston.PistonBaseBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.TagValueOutput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,7 +22,7 @@ import java.util.List;
 @Mixin(value = PistonBaseBlock.class, priority = 943)
 abstract class PistonBaseBlockMixin {
     @Unique
-    private TagValueOutput anvillib$nbt;
+    private BlockEntity anvillib$blockEntity;
 
     @WrapOperation(
         method = "isPushable",
@@ -55,9 +52,13 @@ abstract class PistonBaseBlockMixin {
         @Local(name = "i") int i
     ) {
         if (level.isClientSide()) return;
-        this.anvillib$nbt = TagValueOutput.createWithContext(new ProblemReporter.ScopedCollector(AnvilLibMoveableEntityBlock.LOGGER), level.registryAccess());
-        if (toPushShapes.get(i).getBlock() instanceof IMoveableEntityBlock block) {
-            block.storeData(level, pos.relative(pushDirection.getOpposite()), this.anvillib$nbt);
+        BlockPos relative = pos.relative(pushDirection.getOpposite());
+        if (
+            toPushShapes.get(i).getBlock() instanceof IMoveableEntityBlock
+            && level.getBlockEntity(relative) instanceof BlockEntity blockEntity
+        ) {
+            this.anvillib$blockEntity = blockEntity;
+            level.removeBlockEntity(relative);
         }
     }
 
@@ -84,7 +85,7 @@ abstract class PistonBaseBlockMixin {
     ) {
         BlockEntity blockEntity = original.call(position, blockState, movedState, direction, extending, isSourcePiston);
         if (blockEntity instanceof IPistonMovingBlockEntityExtension entity) {
-            entity.anvillib$setData(this.anvillib$nbt.buildResult());
+            entity.anvillib$setBlockEntity(this.anvillib$blockEntity);
         }
         return blockEntity;
     }
