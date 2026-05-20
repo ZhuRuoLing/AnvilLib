@@ -6,10 +6,15 @@ on:
       - dev/**
       # - releases/**
     paths:
+      - .github/workflows/build_and_test.yml
+      - .github/workflows/publish_maven_central.yml
+      - .github/workflows/ci.yml
+      - gradle/**
       - module.*/src/**
       - module.*/build.gradle
       - module.*/gradle.properties
       - build.gradle
+      - module.gradle
       - gradle.properties
       - settings.gradle
 

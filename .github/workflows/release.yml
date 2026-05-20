@@ -1,17 +1,11 @@
 name: Release for Mod
 on:
-  workflow_dispatch:
   release:
+    types:
+      - published
     branches:
       - dev/**
       # - releases/**
-    paths:
-      - module.*/src/**
-      - module.*/build.gradle
-      - module.*/gradle.properties
-      - build.gradle
-      - gradle.properties
-      - settings.gradle
 
 jobs:
   codec:
