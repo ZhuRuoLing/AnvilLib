@@ -5,7 +5,9 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * CPU-side glyph layout output for SDF text rendering, grouped by atlas page.
@@ -28,11 +30,12 @@ public final class SdfTextLayout {
         int penX = x, maxHeight = 0, totalWidth = 0;
         java.util.Map<Integer, List<GlyphQuad>> buckets = new java.util.LinkedHashMap<>();
 
+        Set<SdfGlyphPage> glyphPages = new HashSet<>();
         for (int ci = 0; ci < text.length(); ) {
             int cp = text.codePointAt(ci);
             ci += Character.charCount(cp);
 
-            SdfGlyphAtlas.GlyphEntry glyph = atlas.glyph(cp);
+            SdfGlyphAtlas.GlyphEntry glyph = atlas.glyph(cp, glyphPages::add);
             if (glyph == null) {
                 penX += Math.round(Math.max(6, atlas.font().getSize() / 2) * scale);
                 continue;
@@ -56,6 +59,7 @@ public final class SdfTextLayout {
             penX += Math.max(1, Math.round(glyph.advance() * scale));
             maxHeight = Math.max(maxHeight, h);
         }
+        glyphPages.forEach(SdfGlyphPage::updateHash);
 
         List<PageQuads> pages = new ArrayList<>();
         for (var entry : buckets.entrySet()) {
