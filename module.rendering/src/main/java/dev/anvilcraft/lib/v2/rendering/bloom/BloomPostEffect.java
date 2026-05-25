@@ -206,6 +206,7 @@ public class BloomPostEffect implements DirtyTracked {
 
     @SuppressWarnings("DataFlowIssue")
     public void process() {
+        if (!dirty) return;
         CommandEncoder commandEncoder = device.createCommandEncoder();
 
         transformsUbo.upload(commandEncoder, transformUBO.slice());
