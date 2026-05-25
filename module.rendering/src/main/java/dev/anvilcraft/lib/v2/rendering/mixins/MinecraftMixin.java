@@ -30,19 +30,19 @@ public class MinecraftMixin {
         ALRPostEffects.createPostEffects();
     }
 
-    @Inject(
-        method = "resizeGui",
-        at = @At("RETURN")
-    )
-    private void onResizeGui(CallbackInfo ci) {
-        BloomPostEffect bloomPostEffect = ALRPostEffects.getBloomPostEffect();
-        if (bloomPostEffect != null) {
-            bloomPostEffect.resize(
-                this.window.getWidth(),
-                this.window.getHeight()
-            );
-        }
-    }
+//    @Inject(
+//        method = "resizeGui",
+//        at = @At("RETURN")
+//    )
+//    private void onResizeGui(CallbackInfo ci) {
+//        BloomPostEffect bloomPostEffect = ALRPostEffects.getBloomPostEffect();
+//        if (bloomPostEffect != null) {
+//            bloomPostEffect.resize(
+//                this.window.getWidth(),
+//                this.window.getHeight()
+//            );
+//        }
+//    }
 
     @Inject(
         method = "updateLevelInEngines(Lnet/minecraft/client/multiplayer/ClientLevel;Z)V",

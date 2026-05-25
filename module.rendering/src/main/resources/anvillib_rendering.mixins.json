@@ -7,9 +7,10 @@
   "mixins": [
   ],
   "client": [
+    "GameRendererMixin",
     "GuiGraphicsExtractorMixin",
-    "ItemStackRenderStateMixin",
     "GuiRendererMixin",
+    "ItemStackRenderStateMixin",
     "MinecraftMixin",
     "RenderTypeMixin"
   ],
