@@ -18,7 +18,7 @@ import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 
 import static net.minecraft.commands.Commands.literal;
 
-@EventBusSubscriber(modid = AnvilLibTest.MOD_ID)
+@EventBusSubscriber(modid = AnvilLibTest.MOD_ID, value = Dist.CLIENT)
 @Mod(value = AnvilLibTest.MOD_ID, dist = Dist.CLIENT)
 public class AnvilLibTestClient {
     public AnvilLibTestClient() {
