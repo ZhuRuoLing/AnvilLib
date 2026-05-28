@@ -53,8 +53,8 @@ public class ALRPipelines {
     public static final VertexFormat   SDF_GRAPHICS_FORMAT  = VertexFormat.builder()
             .add("Position", VertexFormatElement.POSITION)
             .add("Color", VertexFormatElement.COLOR)
-            .add("UV", VertexFormatElement.UV)
-            .add("Group", VertexFormatElement.UV1)
+            .add("UV0", VertexFormatElement.UV)
+            .add("UV1", VertexFormatElement.UV1)
             .build();
 
     public static final RenderPipeline SDF_GRAPHICS = RenderPipeline.builder()
