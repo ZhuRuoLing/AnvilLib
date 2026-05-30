@@ -20,6 +20,13 @@ public class Sdf2d {
 
         var width       = rect.z + ex;
         var height      = rect.w + ex;
+        final var hw    = width * 0.5f;
+        final var hh    = height * 0.5f;
+
+        var rotation    = params.getRotation();
+        var radian      = rotation * Mth.DEG_TO_RAD;
+        var cos         = Mth.cos(radian);
+        var sin         = Mth.sin(radian);
 
         float cx;
         float cy;
@@ -31,23 +38,17 @@ public class Sdf2d {
 
         } else {
 
-            cx          = rect.x + width * 0.5f;
-            cy          = rect.y + height * 0.5f;
+            cx          = rect.x + hw - hw * cos + hh * sin;
+            cy          = rect.y + hh - hw * sin - hh * cos;
         }
 
         var px          = x - cx;
         var py          = y - cy;
 
-        var rotation    = params.getRotation();
         if (rotation    != 0f) {
 
-            var r       = -rotation * Mth.DEG_TO_RAD;
-
-            var s       = (float)Math.sin(r);
-            var c       = (float)Math.cos(r);
-
-            var tx      = px * c - py * s;
-            var ty      = px * s + py * c;
+            var tx      = px * cos + py * sin;
+            var ty      = py * cos - px * sin;
 
             px          = tx;
             py          = ty;
@@ -85,6 +86,12 @@ public class Sdf2d {
                     px, py,
                     shape.x, shape.y,
                     shape.z
+            );
+
+            case SEGMENT -> sdSegment(
+                    px, py,
+                    shape.x, shape.y,
+                    shape.z, shape.w
             ) - round;
 
             case CAPSULE -> sdUnevenCapsule(
@@ -98,6 +105,20 @@ public class Sdf2d {
                     shape.x, shape.y,
                     shape.z
             );
+
+            case TRIANGLE_EQUILATERAL -> sdEquilateralTriangle(
+                    px, py,
+                    shape.x - round * 2.0f
+            ) - round;
+
+            case TRIANGLE_ISOSCELES -> sdIsoscelesTriangle(
+                    px,
+                    py - (shape.y * 0.5f - round * 2.0f),
+                    shape.x - round,
+                    round * 2.0f - shape.y
+            ) - round;
+
+            default -> Float.POSITIVE_INFINITY;
         };
 
         if (params.isOnion()) {
@@ -257,6 +278,87 @@ public class Sdf2d {
                             px + ce,
                             py
                         ) - (ce + ra);
+    }
+
+    public static float sdSegment(
+            float px, float py,
+            float ax, float ay,
+            float bx, float by
+    ) {
+        float bax       = bx - ax;
+        float bay       = by - ay;
+        float pax       = px - ax;
+        float pay       = py - ay;
+        float dot       = pax * bax + pay * bay;
+        float h         = Mth.clamp(
+                            dot / (bax * bax + bay * bay),
+                            0.0f,
+                            1.0f
+        );
+
+        return          Mth.length(
+                            pax - h * bax,
+                            pay - h * bay
+                        );
+    }
+
+    public static float sdEquilateralTriangle(
+            float px, float py,
+            float r
+    ) {
+        final float k   = (float) Math.sqrt(3.0);
+
+        px              = Math.abs(px) - r;
+        py              = py + r / k;
+
+        if (px + k * py > 0.0f) {
+            var tx      = (px - k * py) * 0.5f;
+            var ty      = (-k * px - py) * 0.5f;
+            px          = tx;
+            py          = ty;
+        }
+
+        px              -= Mth.clamp(px, -2.0f * r, 0.0f);
+
+        return          -Mth.length(px, py) * Mth.sign(py);
+    }
+
+    public static float sdIsoscelesTriangle(
+            float px, float py,
+            float qx, float qy
+    ) {
+        px              = Math.abs(px);
+
+        float dotQ      = qx * qx + qy * qy;
+        float h1        = Mth.clamp(
+                            (px * qx + py * qy) / dotQ,
+                            0.0f, 1.0f
+        );
+        float ax        = px - qx * h1;
+        float ay        = py - qy * h1;
+
+        float h2;
+        if (qx != 0.0f) {
+            h2          = Mth.clamp(px / qx, 0.0f, 1.0f);
+        } else {
+            h2          = px > 0.0f ? 1.0f : 0.0f;
+        }
+        float bx        = px - qx * h2;
+        float by        = py - qy;
+
+        float s         = -Mth.sign(qy);
+
+        float da        = ax * ax + ay * ay;
+        float sa        = s * (px * qy - py * qx);
+
+        float db        = bx * bx + by * by;
+        float sb        = s * (py - qy);
+
+        float dDist     = Math.min(da, db);
+        float dSign     = Math.min(sa, sb);
+
+        return          -(float) Math.sqrt(dDist)
+                        * Mth.sign(dSign);
     }
 
 }

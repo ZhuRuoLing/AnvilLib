@@ -24,6 +24,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ConfigureMainRenderTargetEvent;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3x2f;
+import org.joml.Vector3f;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -36,6 +37,8 @@ public final class SdfGraphics {
     private static final long           SDF_PARAMETER_SIZE      = SdfParameters.DEFINITION.size();
     @Getter
     public static final SdfGraphics     instance                = new SdfGraphics(new SdfParameters());
+
+    private static boolean              debug                   = false;
 
     private final SdfParameters parameters;
 
@@ -105,6 +108,44 @@ public final class SdfGraphics {
         this.parameters .getRect()
                         .set(x, y, width, height + (topRadius + bottomRadius) * 2);
         this.parameters .egg(topRadius, bottomRadius, height);
+
+        return          this;
+    }
+
+    public SdfGraphics segment(
+            float x0, float y0,
+            float x1, float y1
+    ) {
+        var left        = Math.min(x0, x1);
+        var top         = Math.min(y0, y1);
+        var width       = Math.abs(x1 - x0);
+        var height      = Math.abs(y1 - y0);
+
+        var halfWidth   = width * 0.5f;
+        var halfHeight  = height * 0.5f;
+
+        this.parameters .getRect()
+                        .set(left, top, width, height);
+        this.parameters .segment( -halfWidth, -halfHeight, +halfWidth, +halfHeight);
+
+        return          this;
+    }
+
+    public SdfGraphics triangleEquilateral(float x, float y, float radius) {
+        var actual      = radius * (1.0f / 1.2f);
+
+        this.parameters .getRect()
+                        .set(x, y, radius * 2, radius * 2);
+        this.parameters .triangleEquilateral(actual);
+
+        return          this;
+    }
+
+    public SdfGraphics triangleIsosceles(float x, float y, float width, float height) {
+        final var factor = 1.0f / 1.2f;
+        this.parameters .getRect()
+                        .set(x, y, width * 2.0f, height);
+        this.parameters .triangleIsosceles(width * factor, height * factor);
 
         return          this;
     }
@@ -207,6 +248,10 @@ public final class SdfGraphics {
         );
     }
 
+    public static void debug(boolean enable) {
+        SdfGraphics.debug = enable;
+    }
+
     private static void _draw(
             @NotNull GuiGraphicsExtractor graphics,
             @NotNull SdfParameters parameters
@@ -223,26 +268,51 @@ public final class SdfGraphics {
         var ex          = (round + smooth + stroke) * 2.0f;
         var width       = rect.z + ex;
         var height      = rect.w + ex;
+        final var hw    = width * 0.5f;
+        final var hh    = height * 0.5f;
 
+        final var rotation  = parameters.getRotation();
+        final var radian    = rotation * Mth.DEG_TO_RAD;
+        final var cos       = Mth.cos(radian);
+        final var sin       = Mth.sin(radian);
+
+        float cx;
+        float cy;
         if (parameters.isCenter()) {
             pose        .translate(rect.x, rect.y);
+
+            cx          = rect.x;
+            cy          = rect.y;
         } else {
             pose        .translate(
-                        rect.x + width * 0.5f,
-                        rect.y + height * 0.5f
+                        rect.x + hw,
+                        rect.y + hh
             );
+
+            cx          = rect.x + hw - hw * cos + hh * sin;
+            cy          = rect.y + hh - hw * sin - hh * cos;
         }
 
-        var x0          = -0.5f;
-        var y0          = -0.5f;
-        var x1          = +0.5f;
-        var y1          = +0.5f;
+        if (rotation != 0.0f) {
+            pose.rotate(Mth.DEG_TO_RAD * rotation);
+        }
 
-        pose            .rotate(Mth.DEG_TO_RAD * parameters.getRotation())
-                        .scale(width, height);
+        if (!parameters.isCenter()) {
+            pose        .translate(-hw, -hh);
+        }
+
+        pose            .scale(width, height);
 
         rect.z          = width;
         rect.w          = height;
+
+        var extX        = Mth.abs(hw * cos) + Mth.abs(hh * sin) + 1.0f;
+        var extY        = Mth.abs(hw * sin) + Mth.abs(hh * cos) + 1.0f;
+
+        var x0          = cx - extX;
+        var x1          = cx + extX;
+        var y0          = cy - extY;
+        var y1          = cy + extY;
 
         var offset      = index * SDF_PARAMETER_SIZE;
         var slice       = ubo.slice(offset, SDF_PARAMETER_SIZE);
@@ -256,10 +326,17 @@ public final class SdfGraphics {
                         null
         );
 
+        if (debug) {
+            graphics.outline(
+                    (int) x0, (int) y0,
+                    (int) (x1 - x0), (int) (y1 - y0),
+                    0xFF0000FF
+            );
+        }
+
         parameters      .upload(encoder, slice);
 
         graphics        .submitGuiElementRenderState(state);
-
         rect.z          = z;
         rect.w          = w;
 
@@ -313,10 +390,10 @@ public final class SdfGraphics {
 
         @Override
         public void buildVertices(VertexConsumer consumer) {
-            consumer.addVertexWith2DPose(this.pose(), this.x0(), this.y0()).setUv(0, 0).setUv1(this.index(), 0).setColor(this.color());
-            consumer.addVertexWith2DPose(this.pose(), this.x0(), this.y1()).setUv(0, 1).setUv1(this.index(), 0).setColor(this.color());
-            consumer.addVertexWith2DPose(this.pose(), this.x1(), this.y1()).setUv(1, 1).setUv1(this.index(), 0).setColor(this.color());
-            consumer.addVertexWith2DPose(this.pose(), this.x1(), this.y0()).setUv(1, 0).setUv1(this.index(), 0).setColor(this.color());
+            consumer.addVertexWith2DPose(this.pose(), -0.5f, -0.5f).setUv(0, 0).setUv1(this.index(), 0).setColor(this.color());
+            consumer.addVertexWith2DPose(this.pose(), -0.5f, +0.5f).setUv(0, 1).setUv1(this.index(), 0).setColor(this.color());
+            consumer.addVertexWith2DPose(this.pose(), +0.5f, +0.5f).setUv(1, 1).setUv1(this.index(), 0).setColor(this.color());
+            consumer.addVertexWith2DPose(this.pose(), +0.5f, -0.5f).setUv(1, 0).setUv1(this.index(), 0).setColor(this.color());
         }
 
         @Override

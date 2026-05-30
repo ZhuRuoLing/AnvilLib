@@ -74,6 +74,21 @@ public class SdfParameters extends UboObject<SdfParameters> {
         this.shapeParams    .set(height, bottomRadius, topRadius, 0.0f);
     }
 
+    public void segment(float x0, float y0, float x1, float y1) {
+        this                ._renderType(SdfRenderType.SEGMENT);
+        this.shapeParams    .set(x0, y0, x1, y1);
+    }
+
+    public void triangleEquilateral(float radius) {
+        this                ._renderType(SdfRenderType.TRIANGLE_EQUILATERAL);
+        this.shapeParams    .set(radius, 0.0f, 0.0f, 0.0f);
+    }
+
+    public void triangleIsosceles(float base, float height) {
+        this                ._renderType(SdfRenderType.TRIANGLE_ISOSCELES);
+        this.shapeParams    .set(base, height, 0.0f, 0.0f);
+    }
+
     public void smooth(float smooth) {
         this                ._smooth(smooth);
     }
