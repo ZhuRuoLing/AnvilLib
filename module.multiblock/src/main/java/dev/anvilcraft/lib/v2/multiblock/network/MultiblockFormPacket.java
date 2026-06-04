@@ -38,7 +38,7 @@ public record MultiblockFormPacket(MultiblockState state) implements IClientboun
         manager.updateFormed(level, this.state, true);
         BlockPos pos = this.state.getControllerPos();
         BlockState state = level.getBlockState(pos);
-        if (!this.state.getDefinition().value().isController(level, state, level.getBlockEntity(pos))) return;
+        if (!this.state.getDefinition(level.registryAccess()).value().isController(level, state, level.getBlockEntity(pos))) return;
         try {
             ControllerRecord.get(state.getBlock(), this.state.getDefinitionKey().identifier()).onFormed(level, this.state);
         } catch (IllegalArgumentException e) {
