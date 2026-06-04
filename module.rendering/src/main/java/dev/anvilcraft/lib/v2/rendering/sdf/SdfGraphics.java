@@ -121,11 +121,11 @@ public final class SdfGraphics {
         var width       = Math.abs(x1 - x0);
         var height      = Math.abs(y1 - y0);
 
-        var halfWidth   = width * 0.5f;
-        var halfHeight  = height * 0.5f;
+        var halfWidth   = (x1 - x0) * 0.5f;
+        var halfHeight  = (y1 - y0) * 0.5f;
 
         this.parameters .getRect()
-                        .set(left, top, width, height);
+                        .set(left + width / 2, top + height / 2, width, height);
         this.parameters .segment( -halfWidth, -halfHeight, +halfWidth, +halfHeight);
 
         return          this;
@@ -318,12 +318,16 @@ public final class SdfGraphics {
         var slice       = ubo.slice(offset, SDF_PARAMETER_SIZE);
         var state       = new RenderState(
                         pose,
-                        x0, y0,
-                        x1, y1,
                         parameters.getColor(),
                         index,
                         ubo.slice(),
-                        null
+                        graphics.peekScissorStack(),
+                        LibGuiElementRenderState.getBounds(
+                                new Matrix3x2f(graphics.pose()),
+                                x0, y0,
+                                x1, y1,
+                                graphics.peekScissorStack()
+                        )
         );
 
         if (debug) {
@@ -353,40 +357,12 @@ public final class SdfGraphics {
 
     private record RenderState(
             Matrix3x2f pose,
-            float x0,
-            float y0,
-            float x1,
-            float y1,
             int color,
             int index,
             GpuBufferSlice sdfParametersUbo,
             @Nullable ScreenRectangle scissorArea,
             @Nullable ScreenRectangle bounds
     ) implements LibGuiElementRenderState {
-
-        private RenderState(
-                Matrix3x2f pose,
-                float x0,
-                float y0,
-                float x1,
-                float y1,
-                int color,
-                int index,
-                GpuBufferSlice sdfParametersUbo,
-                @Nullable ScreenRectangle scissorArea
-        ) {
-            this(
-                    pose,
-                    x0,
-                    y0,
-                    x1,
-                    y1,
-                    color,
-                    index,
-                    sdfParametersUbo, scissorArea,
-                    LibGuiElementRenderState.getBounds(pose, x0, y0, x1, y1, scissorArea)
-            );
-        }
 
         @Override
         public void buildVertices(VertexConsumer consumer) {
