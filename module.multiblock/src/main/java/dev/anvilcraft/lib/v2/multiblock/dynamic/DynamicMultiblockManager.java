@@ -67,7 +67,7 @@ public class DynamicMultiblockManager extends SavedData {
         null
     );
 
-    private final Map<Long, MultiblockState> multiblocks = new HashMap<>();
+    private final Map<BlockPos, MultiblockState> multiblocks = new HashMap<>();
     private int tickCounterUnformed = 0;
     private int tickCounterFormed = 0;
 
@@ -75,14 +75,14 @@ public class DynamicMultiblockManager extends SavedData {
     private static volatile @UnknownNullability ExecutorService asyncExecutor;
 
     /** 当前正在异步检测中的控制器位置集合，用于去重。 */
-    private final Set<Long> pendingChecks = ConcurrentHashMap.newKeySet();
+    private final Set<BlockPos> pendingChecks = ConcurrentHashMap.newKeySet();
 
     private DynamicMultiblockManager() {
     }
 
     private DynamicMultiblockManager(List<MultiblockState> states) {
         for (MultiblockState state : states) {
-            this.multiblocks.put(state.getControllerPos().asLong(), state);
+            this.multiblocks.put(state.getControllerPos().immutable(), state);
         }
     }
 
@@ -95,7 +95,7 @@ public class DynamicMultiblockManager extends SavedData {
      * @return 对应世界的管理器
      */
     public static DynamicMultiblockManager get(Level level) {
-        if (!(level instanceof ServerLevel serverside)) return CLIENT_SIDE.computeIfAbsent(level, a -> new DynamicMultiblockManager());
+        if (!(level instanceof ServerLevel serverside)) return CLIENT_SIDE.computeIfAbsent(level, _ -> new DynamicMultiblockManager());
         return serverside.getDataStorage().computeIfAbsent(DynamicMultiblockManager.TYPE);
     }
 
@@ -106,7 +106,7 @@ public class DynamicMultiblockManager extends SavedData {
      * @return 对应的 {@link MultiblockState}，若不存在则返回 {@code null}
      */
     public @Nullable MultiblockState getAt(BlockPos pos) {
-        return this.multiblocks.get(pos.asLong());
+        return this.multiblocks.get(pos.immutable());
     }
 
     /**
@@ -115,7 +115,7 @@ public class DynamicMultiblockManager extends SavedData {
      * @param state 待注册的多方块状态，控制器位置由 {@link MultiblockState#getControllerPos()} 提供
      */
     public void add(MultiblockState state) {
-        this.multiblocks.put(state.getControllerPos().asLong(), state);
+        this.multiblocks.put(state.getControllerPos().immutable(), state);
         this.setDirty();
     }
 
@@ -126,7 +126,7 @@ public class DynamicMultiblockManager extends SavedData {
      * @return 被移除的 {@link MultiblockState}；若未注册则返回 {@code null}
      */
     public @Nullable MultiblockState removeAt(BlockPos pos) {
-        MultiblockState removed = this.multiblocks.remove(pos.asLong());
+        MultiblockState removed = this.multiblocks.remove(pos.immutable());
         if (removed != null) this.setDirty();
         return removed;
     }
@@ -138,7 +138,7 @@ public class DynamicMultiblockManager extends SavedData {
      * @return 若存在注册则返回 {@code true}
      */
     public boolean containsAt(BlockPos pos) {
-        return this.multiblocks.containsKey(pos.asLong());
+        return this.multiblocks.containsKey(pos.immutable());
     }
 
     /**
@@ -242,7 +242,7 @@ public class DynamicMultiblockManager extends SavedData {
             if (controllerState.isFormed()) {
                 manager.updateFormed(level, controllerState, false);
             }
-            manager.multiblocks.remove(pos.asLong());
+            manager.multiblocks.remove(pos.immutable());
             manager.setDirty();
             return;
         }
@@ -291,6 +291,7 @@ public class DynamicMultiblockManager extends SavedData {
             if (asyncExecutor != null) {
                 asyncExecutor.shutdownNow();
                 try {
+                    // noinspection ResultOfMethodCallIgnored - 为剩余任务等待5秒，无需判断是否完成
                     asyncExecutor.awaitTermination(5, TimeUnit.SECONDS);
                 } catch (InterruptedException ignored) {
                     Thread.currentThread().interrupt();
@@ -326,14 +327,14 @@ public class DynamicMultiblockManager extends SavedData {
         if (checkUnformed) {
             for (MultiblockState state : manager.multiblocks.values()) {
                 if (!checkFormed && state.isFormed()) continue;
-                if (manager.pendingChecks.contains(state.getControllerPos().asLong())) continue;
+                if (manager.pendingChecks.contains(state.getControllerPos())) continue;
                 candidates.add(state);
                 if (candidates.size() >= maxChecks) break;
             }
         } else {
             for (MultiblockState state : manager.multiblocks.values()) {
                 if (!state.isFormed()) continue;
-                if (manager.pendingChecks.contains(state.getControllerPos().asLong())) continue;
+                if (manager.pendingChecks.contains(state.getControllerPos())) continue;
                 candidates.add(state);
                 if (candidates.size() >= maxChecks) break;
             }
@@ -346,23 +347,23 @@ public class DynamicMultiblockManager extends SavedData {
         for (MultiblockState mstate : candidates) {
             MultiblockCheckSnapshot snapshot = buildSnapshot(level, mstate);
 
-            long posLong = mstate.getControllerPos().asLong();
-            manager.pendingChecks.add(posLong);
+            BlockPos pos = mstate.getControllerPos().immutable();
+            manager.pendingChecks.add(pos);
 
             executor.submit(() -> {
                 try {
                     boolean formed = snapshot.test();
                     // 将结果回调到主线程
                     level.getServer().execute(() -> {
-                        manager.pendingChecks.remove(posLong);
+                        manager.pendingChecks.remove(pos);
                         // 最终一致性验证：确认该 multiblock 仍然注册
-                        MultiblockState current = manager.multiblocks.get(posLong);
+                        MultiblockState current = manager.multiblocks.get(pos.immutable());
                         if (current == null) return;
                         manager.updateFormed(level, current, formed);
                     });
                 } catch (Throwable t) {
-                    LOGGER.error("Async multiblock check failed for pos {}", posLong, t);
-                    level.getServer().execute(() -> manager.pendingChecks.remove(posLong));
+                    LOGGER.error("Async multiblock check failed for pos {}", pos, t);
+                    level.getServer().execute(() -> manager.pendingChecks.remove(pos.immutable()));
                 }
             });
         }

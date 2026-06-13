@@ -276,11 +276,15 @@ public abstract class CodecUtil {
      * @return 带显式存在标记的 Optional 编解码器
      */
     public static <T> Codec<Optional<T>> createOptionalCodec(Codec<T> elementCodec) {
-        return RecordCodecBuilder.create(ins -> ins.group(
-                Codec.BOOL.fieldOf("isPresent").forGetter(Optional::isPresent),
-                elementCodec.optionalFieldOf("content").forGetter(o -> o)
-            )
-            .apply(ins, (isPresent, content) -> isPresent && content.isPresent() ? content : Optional.empty()));
+        return CodecUtil.create(
+            Codec.BOOL
+                .fieldOf("isPresent")
+                .forGetter(Optional::isPresent),
+            elementCodec
+                .optionalFieldOf("content")
+                .forGetter(Function.identity()),
+            (isPresent, content) -> isPresent && content.isPresent() ? content : Optional.empty()
+        );
     }
 
     /**
