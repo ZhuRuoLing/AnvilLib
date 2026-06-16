@@ -62,25 +62,25 @@ public class BloomPostEffect implements DirtyTracked {
     private final GpuDevice device = RenderSystem.getDevice();
 
     private final GpuBuffer transformUBO = device.createBuffer(
-        () -> "BloomPostEffect->TransformUBO",
+        () -> "BloomPostEffect TransformUBO",
         GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_UNIFORM,
         UNIFORM_TRANSFORM_SIZE
     );
 
     private final GpuBuffer bloomUBO = device.createBuffer(
-        () -> "BloomPostEffect->BloomApplyUBO",
+        () -> "BloomPostEffect BloomApplyUBO",
         GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_UNIFORM,
         UNIFORM_BLOOM_SIZE
     );
 
     private final GpuBuffer enhancedBloomParametersUBO = device.createBuffer(
-        () -> "BloomPostEffect->BloomParametersUBO",
+        () -> "BloomPostEffect BloomParametersUBO",
         GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_UNIFORM,
         UNIFORM_ENHANCED_BLOOM_SIZE
     );
 
     private final GpuBuffer vertexBuffer = device.createBuffer(
-        () -> "BloomPostEffect->VertexBuffer",
+        () -> "BloomPostEffect VertexBuffer",
         GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_VERTEX,
         1024
     );

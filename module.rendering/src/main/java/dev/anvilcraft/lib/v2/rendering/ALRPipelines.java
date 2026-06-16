@@ -22,6 +22,12 @@ public class ALRPipelines {
         .withCull(false)
         .buildSnippet();
 
+    public static final RenderPipeline GLITCH = RenderPipeline.builder(POST_PASS)
+        .withLocation(AnvilLibRendering.location("glitch"))
+        .withFragmentShader(AnvilLibRendering.location("core/glitch"))
+        .withUniform("GlitchParameters", UniformType.UNIFORM_BUFFER)
+        .build();
+
     public static final RenderPipeline BLUR = RenderPipeline.builder(POST_PASS)
         .withLocation(AnvilLibRendering.location("blur"))
         .withFragmentShader(AnvilLibRendering.location("core/blur"))

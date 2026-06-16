@@ -199,6 +199,7 @@ public class GuiTestScreen extends Screen {
             startY + 16 * 4 + 144,
             18,
             true,
+            true,
             poseStack
         );
         graphics.pose().popMatrix();
