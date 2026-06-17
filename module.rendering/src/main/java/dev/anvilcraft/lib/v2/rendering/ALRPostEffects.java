@@ -2,6 +2,7 @@ package dev.anvilcraft.lib.v2.rendering;
 
 import dev.anvilcraft.lib.v2.rendering.bloom.BloomPostEffect;
 import dev.anvilcraft.lib.v2.rendering.event.MainTargetResizeEvent;
+import dev.anvilcraft.lib.v2.rendering.glitch.GlitchPostEffect;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBuffers;
@@ -14,9 +15,12 @@ import org.joml.Matrix4fc;
 public class ALRPostEffects {
     @Getter
     private static BloomPostEffect bloomPostEffect;
+    @Getter
+    private static GlitchPostEffect glitchPostEffect;
 
     public static void createPostEffects() {
         bloomPostEffect = new BloomPostEffect();
+        glitchPostEffect = new GlitchPostEffect();
     }
 
     public static void runBloomDraws(Matrix4fc mvMat) {

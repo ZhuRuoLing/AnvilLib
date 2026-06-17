@@ -279,6 +279,7 @@ public class GuiRenderExtras {
         float y1,
         float scale,
         boolean ambientOcclusion,
+        boolean glitched,
         PoseStack poseStack
     ) {
         guiGraphicsExtractor.submitPictureInPictureRenderState(
@@ -286,12 +287,13 @@ public class GuiRenderExtras {
                 structureAccess,
                 startPos,
                 endPos,
-                x0,
-                y0,
-                x1,
-                y1,
+                (int) x0,
+                (int) y0,
+                (int) x1,
+                (int) y1,
                 scale,
                 ambientOcclusion,
+                glitched,
                 poseStack.last().copy(),
                 guiGraphicsExtractor.pose().get(new Matrix3x2f()),
                 guiGraphicsExtractor.peekScissorStack()
@@ -310,6 +312,7 @@ public class GuiRenderExtras {
         float y1,
         float scale,
         boolean ambientOcclusion,
+        boolean glitched,
         PoseStack.Pose pose3D
     ) {
         guiGraphicsExtractor.submitPictureInPictureRenderState(
@@ -317,12 +320,13 @@ public class GuiRenderExtras {
                 structureAccess,
                 startPos,
                 endPos,
-                x0,
-                y0,
-                x1,
-                y1,
+                (int) x0,
+                (int) y0,
+                (int) x1,
+                (int) y1,
                 scale,
                 ambientOcclusion,
+                glitched,
                 pose3D,
                 guiGraphicsExtractor.pose().get(new Matrix3x2f()),
                 guiGraphicsExtractor.peekScissorStack()
@@ -341,6 +345,19 @@ public class GuiRenderExtras {
         float y1,
         PoseStack.Pose pose3D
     ) {
-        submitStructure(guiGraphicsExtractor, structureAccess, startPos, endPos, x0, y0, x1, y1, 32.0f, false, pose3D);
+        submitStructure(
+            guiGraphicsExtractor,
+            structureAccess,
+            startPos,
+            endPos,
+            x0,
+            y0,
+            x1,
+            y1,
+            32.0f,
+            false,
+            false,
+            pose3D
+        );
     }
 }

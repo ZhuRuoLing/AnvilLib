@@ -13,12 +13,13 @@ public record StructurePipRenderingState (
     BlockAndTintGetter structureAccess,
     BlockPos startPos,
     BlockPos endPos,
-    float fx0,
-    float fy0,
-    float fx1,
-    float fy1,
+    int x0,
+    int y0,
+    int x1,
+    int y1,
     float scale,
     boolean ambientOcclusion,
+    boolean glitched,
     PoseStack.Pose pose3D,
     Matrix3x2f pose,
     @Nullable ScreenRectangle scissorArea,
@@ -29,12 +30,13 @@ public record StructurePipRenderingState (
         BlockAndTintGetter structureAccess,
         BlockPos startPos,
         BlockPos endPos,
-        float x0,
-        float y0,
-        float x1,
-        float y1,
+        int x0,
+        int y0,
+        int x1,
+        int y1,
         float scale,
         boolean ambientOcclusion,
+        boolean glitched,
         PoseStack.Pose pose3D,
         Matrix3x2f pose,
         @Nullable ScreenRectangle scissorArea
@@ -49,30 +51,11 @@ public record StructurePipRenderingState (
             y1,
             scale,
             ambientOcclusion,
+            glitched,
             pose3D,
             pose,
             scissorArea,
             PictureInPictureRenderState.getBounds(Mth.floor(x0), Mth.floor(y0), Mth.floor(x1), Mth.floor(y1), scissorArea)
         );
-    }
-
-    @Override
-    public int x0() {
-        return Mth.floor(fx0);
-    }
-
-    @Override
-    public int y0() {
-        return Mth.floor(fy0);
-    }
-
-    @Override
-    public int x1() {
-        return Mth.floor(fx1);
-    }
-
-    @Override
-    public int y1() {
-        return Mth.floor(fy1);
     }
 }
