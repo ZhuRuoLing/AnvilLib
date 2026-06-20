@@ -1,20 +1,23 @@
 package dev.anvilcraft.lib.v2.font.sdf;
 
 import net.minecraft.resources.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.awt.image.BufferedImage;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A single 1024×1024 atlas page holding packed glyphs.
  */
+@ApiStatus.Internal
 public final class SdfGlyphPage {
     private static final int SIZE = SdfGlyphAtlas.PAGE_SIZE;
     final BufferedImage image;
-    int hash = 1;
+    final AtomicInteger version = new AtomicInteger();
     final int cols, rows;
     int nextCol, nextRow;
     Identifier textureId;
-    boolean dirty = true;
+    volatile boolean dirty = true;
 
     SdfGlyphPage(int paddedCellSize) {
         this.cols = SIZE / paddedCellSize;
@@ -26,7 +29,7 @@ public final class SdfGlyphPage {
         return nextRow < rows;
     }
 
-    SdfGlyphAtlas.GlyphEntry placeGlyph(SdfGlyphAtlas atlas, BufferedImage mask) {
+    synchronized SdfGlyphAtlas.GlyphEntry placeGlyph(SdfGlyphAtlas atlas, BufferedImage mask) {
         int col = nextCol, row = nextRow;
         int padX = col * atlas.paddedCellSize;
         int padY = row * atlas.paddedCellSize;
@@ -42,7 +45,7 @@ public final class SdfGlyphPage {
         return new SdfGlyphAtlas.GlyphEntry(0, innerX, innerY, atlas.cellSize, atlas.cellSize, 0);
     }
 
-    void fillPaddingForCell(SdfGlyphAtlas atlas, SdfGlyphAtlas.GlyphEntry e) {
+    synchronized void fillPaddingForCell(SdfGlyphAtlas atlas, SdfGlyphAtlas.GlyphEntry e) {
         int col = (e.atlasX() - atlas.padding) / atlas.paddedCellSize;
         int row = (e.atlasY() - atlas.padding) / atlas.paddedCellSize;
         SdfGlyphAtlas.fillPadding(
@@ -56,6 +59,6 @@ public final class SdfGlyphPage {
     }
 
     public void updateHash() {
-        this.hash = SdfAtlasTexture.hashImage(this.image);
+        this.version.incrementAndGet();
     }
 }

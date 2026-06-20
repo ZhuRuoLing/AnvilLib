@@ -8,6 +8,7 @@ import com.mojang.blaze3d.textures.TextureFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.resources.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.awt.image.BufferedImage;
 import java.util.Map;
@@ -16,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Uploads SDF glyph atlas pages to GPU textures with LINEAR filtering.
  */
+@ApiStatus.Internal
 public final class SdfAtlasTexture {
     private static final Map<String, PageEntry> CACHE = new ConcurrentHashMap<>();
 
@@ -28,19 +30,27 @@ public final class SdfAtlasTexture {
     public static Identifier uploadPage(SdfGlyphAtlas atlas, int pageIndex) {
         SdfGlyphPage page = atlas.page(pageIndex);
         String key = atlas.key() + ".p" + pageIndex;
-        int hash = page.hash;
+        Identifier id = Identifier.fromNamespaceAndPath("anvillib_font", "dynamic/sdf_atlas/" + sanitize(key));
+        // Synchronize on page to read the version and image data atomically
+        // with respect to the glyph creation thread, which also synchronizes
+        // on page for placeGlyph / fillPaddingForCell.
+        NativeImage nativeImage;
+        int version;
+        synchronized (page) {
+            version = page.version.get();
+            nativeImage = toNativeImage(page.image);
+            page.dirty = false;
+        }
 
         PageEntry entry = CACHE.get(key);
-        if (entry != null && entry.hash == hash) return entry.id;
+        if (entry != null && entry.version == version) return entry.id;
 
-        Identifier id = Identifier.fromNamespaceAndPath("anvillib_font", "dynamic/sdf_atlas/" + sanitize(key));
-        SdfTexture texture = new SdfTexture(toNativeImage(page.image));
+        SdfTexture texture = new SdfTexture(nativeImage);
         Minecraft.getInstance().getTextureManager().register(id, texture);
 
         if (entry != null) entry.texture.close();
-        CACHE.put(key, new PageEntry(id, texture, hash));
+        CACHE.put(key, new PageEntry(id, texture, version));
         page.textureId = id;
-        page.dirty = false;
         return id;
     }
 
@@ -50,7 +60,12 @@ public final class SdfAtlasTexture {
     public static void ensureUploaded(SdfGlyphAtlas atlas) {
         for (int i = 0; i < atlas.pageCount(); i++) {
             SdfGlyphPage page = atlas.page(i);
-            if (page.dirty || page.textureId == null) {
+            String key = atlas.key() + ".p" + i;
+            PageEntry entry = CACHE.get(key);
+            if (page.textureId == null
+                || entry == null
+                || entry.version != page.version.get()
+                || page.dirty) {
                 uploadPage(atlas, i);
             }
         }
@@ -100,25 +115,15 @@ public final class SdfAtlasTexture {
         return sb.toString();
     }
 
-    public static int hashImage(BufferedImage image) {
-        int hash = 1;
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                hash = 31 * hash + image.getRGB(x, y);
-            }
-        }
-        return hash;
-    }
-
     private static final class PageEntry {
         final Identifier id;
         final SdfTexture texture;
-        final int hash;
+        final int version;
 
-        PageEntry(Identifier id, SdfTexture texture, int hash) {
+        PageEntry(Identifier id, SdfTexture texture, int version) {
             this.id = id;
             this.texture = texture;
-            this.hash = hash;
+            this.version = version;
         }
     }
 }
