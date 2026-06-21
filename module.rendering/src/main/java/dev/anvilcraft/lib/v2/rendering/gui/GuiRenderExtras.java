@@ -13,7 +13,6 @@ import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
-import net.minecraft.client.renderer.state.gui.BlitRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
@@ -299,7 +298,7 @@ public class GuiRenderExtras {
                 poseStack.last().copy(),
                 guiGraphicsExtractor.pose().get(new Matrix3x2f()),
                 guiGraphicsExtractor.peekScissorStack(),
-                null
+                (BiConsumer<SubmitNodeCollector, PoseStack>) null
             )
         );
     }
@@ -333,7 +332,7 @@ public class GuiRenderExtras {
                 pose3D,
                 guiGraphicsExtractor.pose().get(new Matrix3x2f()),
                 guiGraphicsExtractor.peekScissorStack(),
-                null
+                (BiConsumer<SubmitNodeCollector, PoseStack>)null
             )
         );
     }
