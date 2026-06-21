@@ -147,25 +147,25 @@ public class StructurePipRenderer extends PictureInPictureRenderer<StructurePipR
         }
 
         bufferSource.endBatch();
+
+        RenderBuffers renderBuffers = minecraft.renderBuffers();
+        SubmitNodeStorage submitNodeStorage = new SubmitNodeStorage();
+        GameRenderer gameRenderer = minecraft.gameRenderer;
+        FeatureRenderDispatcher frd = new FeatureRenderDispatcher(
+            submitNodeStorage,
+            minecraft.getModelManager(),
+            renderBuffers.bufferSource(),
+            minecraft.getAtlasManager(),
+            renderBuffers.outlineBufferSource(),
+            renderBuffers.crumblingBufferSource(),
+            minecraft.font,
+            gameRenderer.getGameRenderState()
+        );
         for (BlockPos blockPos : BlockPos.betweenClosed(renderState.startPos(), renderState.endPos())) {
             BlockEntity blockEntity = level.getBlockEntity(blockPos);
             if (blockEntity == null) continue;
             BlockEntityRenderer blockEntityRenderer = minecraft.getBlockEntityRenderDispatcher().getRenderer(blockEntity);
             if (blockEntityRenderer == null) continue;
-
-            RenderBuffers renderBuffers = minecraft.renderBuffers();
-            SubmitNodeStorage submitNodeStorage = new SubmitNodeStorage();
-            GameRenderer gameRenderer = minecraft.gameRenderer;
-            FeatureRenderDispatcher frd = new FeatureRenderDispatcher(
-                submitNodeStorage,
-                minecraft.getModelManager(),
-                renderBuffers.bufferSource(),
-                minecraft.getAtlasManager(),
-                renderBuffers.outlineBufferSource(),
-                renderBuffers.crumblingBufferSource(),
-                minecraft.font,
-                gameRenderer.getGameRenderState()
-            );
             poseStack.pushPose();
             poseStack.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
             BlockEntityRenderState blockEntityRenderState = blockEntityRenderer.createRenderState();
@@ -182,12 +182,19 @@ public class StructurePipRenderer extends PictureInPictureRenderer<StructurePipR
                 submitNodeStorage,
                 gameRenderer.getGameRenderState().levelRenderState.cameraRenderState
             );
-            frd.renderAllFeatures();
             poseStack.popPose();
         }
+        if (renderState.drawAdditionalCallback() != null) {
+            renderState.drawAdditionalCallback().accept(submitNodeStorage, poseStack);
+        }
+        frd.renderAllFeatures();
+        bufferSource.endBatch();
 
         poseStack.popPose();
         poseStack.popPose();
+        if (!poseStack.isEmpty()) {
+            throw new IllegalStateException("Pose stack not empty");
+        }
         if (renderState.glitched()) {
             applyGlitchEffect(width, height);
         }

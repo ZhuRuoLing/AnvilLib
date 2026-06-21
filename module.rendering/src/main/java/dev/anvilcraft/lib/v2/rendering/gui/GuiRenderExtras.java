@@ -11,14 +11,15 @@ import dev.anvilcraft.lib.v2.rendering.gui.state.StructurePipRenderingState;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
-import net.minecraft.client.renderer.state.gui.BlitRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Matrix3x2f;
 import org.jspecify.annotations.Nullable;
 
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 public class GuiRenderExtras {
@@ -296,7 +297,8 @@ public class GuiRenderExtras {
                 glitched,
                 poseStack.last().copy(),
                 guiGraphicsExtractor.pose().get(new Matrix3x2f()),
-                guiGraphicsExtractor.peekScissorStack()
+                guiGraphicsExtractor.peekScissorStack(),
+                (BiConsumer<SubmitNodeCollector, PoseStack>) null
             )
         );
     }
@@ -329,7 +331,8 @@ public class GuiRenderExtras {
                 glitched,
                 pose3D,
                 guiGraphicsExtractor.pose().get(new Matrix3x2f()),
-                guiGraphicsExtractor.peekScissorStack()
+                guiGraphicsExtractor.peekScissorStack(),
+                (BiConsumer<SubmitNodeCollector, PoseStack>)null
             )
         );
     }
@@ -358,6 +361,105 @@ public class GuiRenderExtras {
             false,
             false,
             pose3D
+        );
+    }
+
+    public static void submitStructure(
+        GuiGraphicsExtractor guiGraphicsExtractor,
+        BlockAndTintGetter structureAccess,
+        BlockPos startPos,
+        BlockPos endPos,
+        float x0,
+        float y0,
+        float x1,
+        float y1,
+        float scale,
+        boolean ambientOcclusion,
+        boolean glitched,
+        PoseStack poseStack,
+        BiConsumer<SubmitNodeCollector, PoseStack> drawAdditionalCallback
+    ) {
+        guiGraphicsExtractor.submitPictureInPictureRenderState(
+            new StructurePipRenderingState(
+                structureAccess,
+                startPos,
+                endPos,
+                (int) x0,
+                (int) y0,
+                (int) x1,
+                (int) y1,
+                scale,
+                ambientOcclusion,
+                glitched,
+                poseStack.last().copy(),
+                guiGraphicsExtractor.pose().get(new Matrix3x2f()),
+                guiGraphicsExtractor.peekScissorStack(),
+                drawAdditionalCallback
+            )
+        );
+    }
+
+    public static void submitStructure(
+        GuiGraphicsExtractor guiGraphicsExtractor,
+        BlockAndTintGetter structureAccess,
+        BlockPos startPos,
+        BlockPos endPos,
+        float x0,
+        float y0,
+        float x1,
+        float y1,
+        float scale,
+        boolean ambientOcclusion,
+        boolean glitched,
+        PoseStack.Pose pose3D,
+        BiConsumer<SubmitNodeCollector, PoseStack> drawAdditionalCallback
+    ) {
+        guiGraphicsExtractor.submitPictureInPictureRenderState(
+            new StructurePipRenderingState(
+                structureAccess,
+                startPos,
+                endPos,
+                (int) x0,
+                (int) y0,
+                (int) x1,
+                (int) y1,
+                scale,
+                ambientOcclusion,
+                glitched,
+                pose3D,
+                guiGraphicsExtractor.pose().get(new Matrix3x2f()),
+                guiGraphicsExtractor.peekScissorStack(),
+                drawAdditionalCallback
+            )
+        );
+    }
+
+    public static void submitStructure(
+        GuiGraphicsExtractor guiGraphicsExtractor,
+        BlockAndTintGetter structureAccess,
+        BlockPos startPos,
+        BlockPos endPos,
+        float x0,
+        float y0,
+        float x1,
+        float y1,
+        PoseStack.Pose pose3D,
+        BiConsumer<SubmitNodeCollector, PoseStack> drawAdditionalCallback
+    ) {
+        submitStructure(
+            guiGraphicsExtractor,
+            structureAccess,
+            startPos,
+            endPos,
+            x0,
+            y0,
+            x1,
+            y1,
+            32.0f,
+            false,
+            false,
+            pose3D,
+            drawAdditionalCallback
         );
     }
 }
