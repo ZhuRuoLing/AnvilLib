@@ -3,9 +3,12 @@ package dev.anvilcraft.lib.v2.sync.management;
 import dev.anvilcraft.lib.v2.sync.AnvilLibSync;
 import dev.anvilcraft.lib.v2.sync.network.payload.SyncConfigurationPayload;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import net.neoforged.fml.jarcontents.JarContents;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.moddiscovery.ModFileInfo;
 import net.neoforged.neoforgespi.language.ModFileScanData;
+import net.neoforged.neoforgespi.locating.IModFile;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
@@ -13,11 +16,13 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Opcodes;
 
+import java.io.InputStream;
 import java.lang.annotation.ElementType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+@Slf4j
 public class SyncConfigManager {
     public static final String SYNC_DESCRIPTOR = "Ldev/anvilcraft/lib/v2/sync/annotation/Sync;";
     private static final String SYNC_PROXY_DESC = "Ldev/anvilcraft/lib/v2/sync/management/SyncProxy;";
@@ -35,9 +40,19 @@ public class SyncConfigManager {
                 if (!annotation.annotationType().getDescriptor().equals(SyncConfigManager.SYNC_DESCRIPTOR)) continue;
                 if (annotation.targetType() != ElementType.TYPE) continue;
                 String className = annotation.clazz().getClassName();
-                ClassReader classReader = new ClassReader(className);
-                FieldListingVisitor fieldListingVisitor = new FieldListingVisitor(className, null);
-                classReader.accept(fieldListingVisitor, 0);
+                IModFile modFile = fileInfo.getFile();
+                String classPath = className.replace('.', '/') + ".class";
+                log.info("Loading SyncConfig: {}", className);
+                JarContents modFileContents = modFile.getContents();
+                if (modFileContents.containsFile(classPath)) {
+                    try (InputStream inputStream = modFileContents.openFile(classPath)) {
+                        if (inputStream != null) {
+                            ClassReader classReader = new ClassReader(inputStream);
+                            FieldListingVisitor fieldListingVisitor = new FieldListingVisitor(className, null);
+                            classReader.accept(fieldListingVisitor, 0);
+                        }
+                    }
+                }
             }
         }
     }

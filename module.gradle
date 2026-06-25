@@ -91,7 +91,7 @@ neoForge {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
-tasks.withType(ProcessResources).configureEach {
+tasks.named("processResources") {
     var replaceProperties = [minecraft_version      : libs.versions.minecraft.get(),
                              minecraft_version_range: minecraft_version_range,
                              neo_version            : libs.versions.neoForge.get(),
@@ -107,6 +107,10 @@ tasks.withType(ProcessResources).configureEach {
 
     filesMatching(['META-INF/neoforge.mods.toml']) {
         expand replaceProperties
+    }
+
+    if (project.name != "anvillib-test-neoforge-26.1") {
+        finalizedBy 'changeModsToml'
     }
 }
 
