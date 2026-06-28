@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'maven-publish'
     alias libs.plugins.lombok
+    alias libs.plugins.modDevGradle
     alias libs.plugins.jreleaser
 }
 
@@ -22,6 +23,10 @@ repositories {
     mavenCentral()
 }
 
+neoForge {
+    version = libs.versions.neoForge.get()
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(25)
@@ -30,27 +35,16 @@ java {
     targetCompatibility = JavaVersion.VERSION_25
 }
 
-jar {
-    manifest {
-        attributes(
-            'Premain-Class': 'dev.anvilcraft.lib.renderdoc.loader.RenderDocAgent',
-            'Agent-Class': 'dev.anvilcraft.lib.renderdoc.loader.RenderDocAgent',
-            'Can-Redefine-Classes': 'false',
-            'Can-Retransform-Classes': 'false',
-            'Can-Set-Native-Method-Prefix': 'false'
-        )
-    }
-}
-
 tasks.register('sourcesJar', Jar) {
-    from sourceSets.main.allSource
-    archiveClassifier = 'sources'
+    from delombok.outputs.files
+    dependsOn delombok
+    archiveClassifier = "sources"
 }
 
 tasks.register('javadocJar', Jar) {
     from javadoc.destinationDir
     dependsOn javadoc
-    archiveClassifier = 'javadoc'
+    archiveClassifier = "javadoc"
 }
 
 javadoc {
@@ -61,6 +55,16 @@ javadoc {
         addStringOption 'tag', 'apiNote:a:API Note:'
         addStringOption 'tag', 'implSpec:a:Implementation Requirement:'
         addStringOption 'tag', 'implNote:a:Implementation Note:'
+    }
+}
+
+jar {
+    manifest {
+        attributes(
+                'Can-Redefine-Classes': 'false',
+                'Can-Retransform-Classes': 'false',
+                'Can-Set-Native-Method-Prefix': 'false'
+        )
     }
 }
 
