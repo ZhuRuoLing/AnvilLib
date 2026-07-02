@@ -23,6 +23,7 @@ repositories {
         )
         filter {
             includeGroup "dev.anvilcraft.lib"
+            includeGroup "dev.dubhe"
         }
     }
     maven { url = "https://server.cjsah.net:1002/maven/" }
