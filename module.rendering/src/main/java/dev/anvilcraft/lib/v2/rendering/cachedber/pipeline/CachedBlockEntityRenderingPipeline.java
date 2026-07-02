@@ -12,6 +12,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderFrameEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.jspecify.annotations.Nullable;
 
@@ -137,6 +138,12 @@ public class CachedBlockEntityRenderingPipeline {
         return instance;
     }
 
+    public void forcedUpdate() {
+        for (CachedRenderingChunk value : chunks.values()) {
+            value.forcedUpdate();
+        }
+    }
+
     public void forcedUpdate(BlockPos pos) {
         getRenderRegion(ChunkPos.containing(pos)).forcedUpdate();
     }
@@ -150,5 +157,16 @@ public class CachedBlockEntityRenderingPipeline {
         }
         cameraOldPosition = new Vec3(pos.x, pos.y, pos.z);
         cameraMoved = true;
+    }
+
+    @SubscribeEvent
+    public static void on(RenderFrameEvent.Pre event) {
+        if (instance != null) {
+            instance.handleIntegration();
+        }
+    }
+
+    private void handleIntegration() {
+        // intentionally empty
     }
 }
