@@ -362,6 +362,7 @@ public class DynamicMultiblockManager extends SavedData {
         ExecutorService executor = getOrCreateExecutor();
         for (MultiblockState mstate : candidates) {
             MultiblockCheckSnapshot snapshot = buildSnapshot(level, mstate);
+            mstate.setSnapshot(snapshot);
 
             BlockPos pos = mstate.getControllerPos().immutable();
             manager.pendingChecks.add(pos);
@@ -396,12 +397,21 @@ public class DynamicMultiblockManager extends SavedData {
      * @return 快照；若定义不存在则返回 {@code null}
      */
     private static MultiblockCheckSnapshot buildSnapshot(ServerLevel level, MultiblockState state) {
+        MultiblockCheckSnapshot old = state.getSnapshot();
         MultiblockDefinition def = state.getDefinition(level.registryAccess()).value();
         Map<BlockPos, BlockStatePredicate> global = def.toGlobal(state.getControllerPos());
         Map<BlockPos, MultiblockCheckSnapshot.Entry> entries = new LinkedHashMap<>(global.size());
         for (Map.Entry<BlockPos, BlockStatePredicate> entry : global.entrySet()) {
             BlockPos pos = entry.getKey();
             BlockStatePredicate predicate = entry.getValue();
+            if (!level.isLoaded(pos)) {
+                MultiblockCheckSnapshot.Entry snapshotEntry = old.entries().get(pos);
+                if (snapshotEntry == null) {
+                    snapshotEntry = new MultiblockCheckSnapshot.Entry(null, null, predicate);
+                }
+                entries.put(pos, snapshotEntry);
+                continue;
+            }
             BlockState blockState = level.getBlockState(pos);
             CompoundTag entityNbt = null;
             if (predicate.requiresBlockEntity()) {
@@ -412,7 +422,7 @@ public class DynamicMultiblockManager extends SavedData {
             }
             entries.put(pos, new MultiblockCheckSnapshot.Entry(blockState, entityNbt, predicate));
         }
-        return new MultiblockCheckSnapshot(state.getControllerPos().asLong(), entries);
+        return new MultiblockCheckSnapshot(state.getControllerPos(), entries);
     }
 
     /**

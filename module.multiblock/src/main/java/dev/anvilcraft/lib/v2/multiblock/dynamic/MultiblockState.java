@@ -18,6 +18,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Map;
+
 @Getter
 @Setter
 public class MultiblockState {
@@ -47,6 +49,7 @@ public class MultiblockState {
     @Setter(AccessLevel.NONE)
     private Holder.@Nullable Reference<MultiblockDefinition> definition;
     private boolean formed;
+    private MultiblockCheckSnapshot snapshot;
 
     public MultiblockState(BlockPos controllerPos, ResourceKey<MultiblockDefinition> definitionKey) {
         this(controllerPos, definitionKey, false);
@@ -56,6 +59,7 @@ public class MultiblockState {
         this.controllerPos = controllerPos;
         this.definitionKey = definitionKey;
         this.formed = formed;
+        this.snapshot = new MultiblockCheckSnapshot(this.controllerPos, Map.of());
     }
 
     public Holder.Reference<MultiblockDefinition> getDefinition(HolderLookup.Provider registries) {
