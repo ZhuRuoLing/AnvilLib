@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.StringUtil;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
@@ -15,6 +16,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderFrameEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.jspecify.annotations.Nullable;
+import org.lwjgl.opengl.GL46;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
@@ -39,6 +41,12 @@ public class CachedBlockEntityRenderingPipeline {
     private static Vec3 cameraOldPosition = null;
     @Getter
     private static boolean cameraMoved = true;
+    private static int glMaxLabelLength = 0;
+
+    public static void create() {
+        glMaxLabelLength = GL46.glGetInteger(GL46.GL_MAX_LABEL_LENGTH);
+        glMaxLabelLength /= 2;
+    }
 
     public CachedRenderingChunk getRenderRegion(ChunkPos chunkPos) {
         if (chunks.containsKey(chunkPos)) {
@@ -125,6 +133,10 @@ public class CachedBlockEntityRenderingPipeline {
         for (CachedRenderingChunk value : chunks.values()) {
             value.render(frustum, translucent);
         }
+    }
+
+    public String truncateName(String s) {
+        return StringUtil.truncateStringIfNecessary(s, glMaxLabelLength, true);
     }
 
     /**

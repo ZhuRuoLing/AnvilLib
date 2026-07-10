@@ -2,10 +2,7 @@ package dev.anvilcraft.lib.v2.rendering.mixins;
 
 import com.mojang.blaze3d.platform.Window;
 import dev.anvilcraft.lib.v2.rendering.ALRPostEffects;
-import dev.anvilcraft.lib.v2.rendering.AnvilLibRendering;
-import dev.anvilcraft.lib.v2.rendering.bloom.BloomPostEffect;
 import dev.anvilcraft.lib.v2.rendering.cachedber.pipeline.CachedBlockEntityRenderingPipeline;
-import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.ALRComputeCapabilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.main.GameConfig;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -29,6 +26,7 @@ public class MinecraftMixin {
     )
     private void onCreateInstance(GameConfig gameConfig, CallbackInfo ci) {
         ALRPostEffects.createPostEffects();
+        CachedBlockEntityRenderingPipeline.create();
     }
 
 //    @Inject(
