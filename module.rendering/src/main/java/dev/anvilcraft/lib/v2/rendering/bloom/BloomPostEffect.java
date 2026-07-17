@@ -134,10 +134,10 @@ public class BloomPostEffect implements DirtyTracked {
         int passes,
         int step
     ) {
-        Window window = Minecraft.getInstance().getWindow();
+        RenderTarget mainRenderTarget = Minecraft.getInstance().getMainRenderTarget();
 
-        this.width = window.getWidth();
-        this.height = window.getHeight();
+        this.width = mainRenderTarget.width;
+        this.height = mainRenderTarget.height;
         this.bloomParameters = new BloomParametersUbo(bloomIntensity, bloomThreshold, bloomIntensityMultiplier);
         this.enhancedBloomParameters = new BloomPipelineParametersUbo();
         this.passes = passes;
