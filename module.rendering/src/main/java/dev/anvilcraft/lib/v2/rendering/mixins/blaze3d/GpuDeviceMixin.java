@@ -4,18 +4,18 @@ import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.GpuDeviceBackend;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceBackendExtension;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceExtension;
-import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.ALRComputePass;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstance;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstanceKey;
-import org.jetbrains.annotations.ApiStatus;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.GpuQueryObject;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
+import java.util.function.Supplier;
+
 @SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(GpuDevice.class)
-@ApiStatus.Internal
 public class GpuDeviceMixin implements ALRGpuDeviceExtension {
     @Shadow
     @Final
@@ -29,6 +29,21 @@ public class GpuDeviceMixin implements ALRGpuDeviceExtension {
     @Override
     public void alrDestroyComputeShader(ALRComputeProgramInstance instance) {
         alrBackend().alrDestroyComputeShader(instance);
+    }
+
+    @Override
+    public GpuQueryObject alrCreateSamplesQuery() {
+        return alrBackend().alrCreateSamplesQuery();
+    }
+
+    @Override
+    public void alrPushDebugGroup(Supplier<String> message) {
+        alrBackend().alrPushDebugGroup(message);
+    }
+
+    @Override
+    public void alrPopDebugGroup() {
+        alrBackend().alrPopDebugGroup();
     }
 
     @Unique

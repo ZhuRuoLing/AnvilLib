@@ -27,6 +27,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.ApiStatus;
 import org.joml.Matrix4fStack;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -44,6 +45,7 @@ import java.util.function.Consumer;
 /**
  * @author ZhuRuoLing
  */
+@ApiStatus.Internal
 public class CachedRenderingChunk implements VertexBufferHost {
     @Getter
     private final ChunkPos chunkPos;

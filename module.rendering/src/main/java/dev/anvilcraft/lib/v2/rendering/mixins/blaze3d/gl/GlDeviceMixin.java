@@ -6,7 +6,8 @@ import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.ALRDebugLabelEx
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstance;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstanceKey;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeShaderManager;
-import org.jetbrains.annotations.ApiStatus;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.GpuQueryObject;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.gl.GlSamplesQuery;
 import org.lwjgl.opengl.ARBComputeShader;
 import org.lwjgl.opengl.GL46;
 import org.slf4j.Logger;
@@ -14,8 +15,9 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
+import java.util.function.Supplier;
+
 @Mixin(targets = "com.mojang.blaze3d.opengl.GlDevice")
-@ApiStatus.Internal
 public abstract class GlDeviceMixin implements ALRGpuDeviceBackendExtension {
 
     @Shadow
@@ -56,12 +58,17 @@ public abstract class GlDeviceMixin implements ALRGpuDeviceBackendExtension {
     }
 
     @Override
-    public void alrPushDebugGroup(String name) {
-        this.debugLabels().pushDebugGroup(() -> name);
+    public void alrPushDebugGroup(Supplier<String> message) {
+        this.debugLabels().pushDebugGroup(message);
     }
 
     @Override
     public void alrPopDebugGroup() {
         this.debugLabels().popDebugGroup();
+    }
+
+    @Override
+    public GpuQueryObject alrCreateSamplesQuery() {
+        return new GlSamplesQuery();
     }
 }

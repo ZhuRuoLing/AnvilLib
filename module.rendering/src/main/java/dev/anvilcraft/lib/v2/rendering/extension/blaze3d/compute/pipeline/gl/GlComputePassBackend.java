@@ -26,6 +26,8 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL33;
 import org.lwjgl.opengl.GL46;
 
+import java.util.function.Supplier;
+
 @ApiStatus.Internal
 public class GlComputePassBackend implements ALRComputePassBackend {
     private final ALRGpuDeviceBackendExtension backendExtension;
@@ -51,8 +53,8 @@ public class GlComputePassBackend implements ALRComputePassBackend {
     }
 
     @Override
-    public void pushDebugGroup(String name) {
-        this.backendExtension.alrPushDebugGroup(name);
+    public void pushDebugGroup(Supplier<String> message) {
+        this.backendExtension.alrPushDebugGroup(message);
     }
 
     @Override
