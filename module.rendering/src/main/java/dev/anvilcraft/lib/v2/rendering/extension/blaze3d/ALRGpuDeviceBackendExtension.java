@@ -1,9 +1,12 @@
 package dev.anvilcraft.lib.v2.rendering.extension.blaze3d;
 
-import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.ALRComputePass;
+import org.jetbrains.annotations.ApiStatus;
+
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstance;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstanceKey;
-import org.jetbrains.annotations.ApiStatus;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.GpuQueryObject;
+
+import java.util.function.Supplier;
 
 @ApiStatus.Internal
 public interface ALRGpuDeviceBackendExtension {
@@ -11,7 +14,9 @@ public interface ALRGpuDeviceBackendExtension {
 
     void alrDestroyComputeShader(ALRComputeProgramInstance instance);
 
-    void alrPushDebugGroup(String name);
+    void alrPushDebugGroup(Supplier<String> name);
 
     void alrPopDebugGroup();
+
+    GpuQueryObject alrCreateSamplesQuery();
 }

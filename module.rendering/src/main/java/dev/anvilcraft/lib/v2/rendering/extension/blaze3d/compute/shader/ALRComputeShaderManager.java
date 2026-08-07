@@ -16,6 +16,7 @@ import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.neoforged.fml.ModLoader;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.UnknownNullability;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -26,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
+@ApiStatus.Internal
 public class ALRComputeShaderManager extends SimplePreparableReloadListener<ALRComputeShaderManager.ComputeShaderSource> {
     public static final ALRComputeShaderManager INSTANCE = new ALRComputeShaderManager();
 

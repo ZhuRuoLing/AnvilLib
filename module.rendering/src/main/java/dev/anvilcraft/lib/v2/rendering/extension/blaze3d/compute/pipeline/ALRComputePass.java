@@ -7,6 +7,7 @@ import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindin
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.TextureBinding;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public class ALRComputePass implements AutoCloseable {
     private ALRComputePipeline pipeline;
@@ -16,11 +17,11 @@ public class ALRComputePass implements AutoCloseable {
         this.backend = backend;
     }
 
-    public void pushDebugGroup(String name) {
+    public void pushDebugGroup(Supplier<String> name) {
         this.backend.pushDebugGroup(name);
     }
 
-    public void popDebugGroup(String name) {
+    public void popDebugGroup() {
         this.backend.popDebugGroup();
     }
 
@@ -33,7 +34,7 @@ public class ALRComputePass implements AutoCloseable {
         int groupCountY,
         int groupCountZ
     ) {
-        this.backend.pushDebugGroup("Compute " + pipeline.identifier());
+        this.backend.pushDebugGroup(() -> "ALRComputePass " + pipeline.identifier());
         this.backend.dispatchWorkgroups(groupCountX, groupCountY, groupCountZ);
         this.backend.popDebugGroup();
     }
