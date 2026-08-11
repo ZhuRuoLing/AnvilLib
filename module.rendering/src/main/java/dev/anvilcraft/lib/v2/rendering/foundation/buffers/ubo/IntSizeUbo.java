@@ -8,37 +8,34 @@ import dev.anvilcraft.lib.v2.rendering.foundation.buffers.object.ShaderBufferObj
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.ApiStatus;
-import org.joml.Matrix4f;
 
 /// ```glsl
-/// layout(std140) uniform Transforms {
-///     mat4 ProjMat;
-///     mat4 ModelViewMat;
+/// layout(std140, binding = 0) uniform SizeParam {
+///     int uWidth;
+///     int uHeight;
 /// };
 /// ```
-@Setter
 @Getter
+@Setter
 @ApiStatus.Internal
-public class FullTransformsUbo extends BufferObject<FullTransformsUbo> {
+public class IntSizeUbo extends BufferObject<IntSizeUbo> {
 
-    public static final BufferObjectLayoutDefinition<FullTransformsUbo> DEFINITION = BufferObjectLayoutDefinition.create(
-        BufferObjectLayoutEntry.<FullTransformsUbo>ofMat4f().forGetter(FullTransformsUbo::getProjMat).build(),
-        BufferObjectLayoutEntry.<FullTransformsUbo>ofMat4f().forGetter(FullTransformsUbo::getModelViewMat).build()
+    public static final BufferObjectLayoutDefinition<IntSizeUbo> DEFINITION = BufferObjectLayoutDefinition.create(
+        BufferObjectLayoutEntry.<IntSizeUbo>ofInt().forGetter(IntSizeUbo::getHeight).build(),
+        BufferObjectLayoutEntry.<IntSizeUbo>ofInt().forGetter(IntSizeUbo::getWidth).build()
     );
 
     public static final int SIZE = DEFINITION.size(BufferLayout.STD140);
 
-    private Matrix4f projMat;
-    private Matrix4f modelViewMat;
+    private int width;
+    private int height;
 
-    public FullTransformsUbo() {
+    protected IntSizeUbo() {
         super(BufferLayout.STD140, ShaderBufferObjectUsage.UBO);
-        this.projMat = new Matrix4f();
-        this.modelViewMat = new Matrix4f();
     }
 
     @Override
-    protected BufferObjectLayoutDefinition<FullTransformsUbo> getDefinition() {
+    protected BufferObjectLayoutDefinition<IntSizeUbo> getDefinition() {
         return DEFINITION;
     }
 }
