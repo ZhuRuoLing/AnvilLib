@@ -19,4 +19,6 @@ public interface ALRGpuDeviceBackendExtension {
     void alrPopDebugGroup();
 
     GpuQueryObject alrCreateSamplesQuery();
+
+    ALRHICapabilities alrhiCreateCapabilities();
 }

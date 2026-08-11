@@ -62,7 +62,6 @@ public class ALRComputeShaderManager extends SimplePreparableReloadListener<ALRC
 
     @Override
     protected void apply(ComputeShaderSource preparations, ResourceManager manager, ProfilerFiller profiler) {
-        ALRComputeCapabilities.init();
         if (!ALRComputeCapabilities.isComputeSupported()) {
             return;
         }

@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.OptionalDouble;
 
 public class ComputeSupport {
-    public static final ComputeSupport INSTANCE = new ComputeSupport();
+    public static final ComputeSupport INSTANCE = ALRComputeCapabilities.isComputeSupported() ? new ComputeSupport() : null;
     public static final float[] UNSUPPORTED = {};
     @Getter
     private final GpuDevice device = RenderSystem.getDevice();
@@ -144,7 +144,7 @@ public class ComputeSupport {
         ByteBuffer counterData = mappedCounterBuffer.data();
 
         int anInt = counterData.getInt();
-        if (anInt != input.length){
+        if (anInt != input.length) {
             System.out.printf("Compute counter does not match with input size: %d/%d%n", anInt, input.length);
         }
         return result;

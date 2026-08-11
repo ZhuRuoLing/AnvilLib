@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.GpuDeviceBackend;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceBackendExtension;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceExtension;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRHICapabilities;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstance;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstanceKey;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.GpuQueryObject;
@@ -44,6 +45,11 @@ public class GpuDeviceMixin implements ALRGpuDeviceExtension {
     @Override
     public void alrPopDebugGroup() {
         alrBackend().alrPopDebugGroup();
+    }
+
+    @Override
+    public ALRHICapabilities alrhiCreateCapabilities() {
+        return alrBackend().alrhiCreateCapabilities();
     }
 
     @Unique

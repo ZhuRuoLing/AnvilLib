@@ -16,4 +16,6 @@ public interface ALRGpuDeviceExtension {
     void alrPushDebugGroup(Supplier<String> message);
 
     void alrPopDebugGroup();
+
+    ALRHICapabilities alrhiCreateCapabilities();
 }
