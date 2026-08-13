@@ -1,8 +1,8 @@
 package dev.anvilcraft.lib.v2.rendering.foundation;
 
-public abstract class GpuReusableResourceRingBuffer<T extends GpuReusableResource, C> extends LoopResetPool<T, C> {
+public abstract class GpuReusableResourcePool<T extends GpuReusableResource, C> extends LoopResetPool<T, C> {
 
-    public GpuReusableResourceRingBuffer(int size, C context) {
+    public GpuReusableResourcePool(int size, C context) {
         super(size, context);
     }
 

@@ -1,6 +1,7 @@
 package dev.anvilcraft.lib.v2.rendering.optimization.occlusion.query;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.GpuDevice;
@@ -15,22 +16,21 @@ import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.OcclusionKey;
 import it.unimi.dsi.fastutil.objects.Reference2LongLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongMap;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.DynamicUniformStorage;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.world.phys.AABB;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
+import org.jetbrains.annotations.ApiStatus;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
-import java.util.Set;
 
-class FrameState implements AutoCloseable {
+@ApiStatus.Internal
+public class FrameState implements AutoCloseable {
     private final Map<OcclusionKey, GpuQueryObject> keySamplesMap = new IdentityHashMap<>();
     private final Reference2LongMap<OcclusionKey> results = new Reference2LongLinkedOpenHashMap<>();
-    private final Set<OcclusionKey> keys = new HashSet<>();
     private final GpuQueryOcclusionCuller owner;
 
     public FrameState(GpuQueryOcclusionCuller owner) {
@@ -45,7 +45,7 @@ class FrameState implements AutoCloseable {
     }
 
     public boolean shouldDraw(OcclusionKey key) {
-        return results.getOrDefault(key, 0) > 0;
+        return results.getOrDefault(key, 1) > 0;
     }
 
     public void fetchResults() {
@@ -56,11 +56,6 @@ class FrameState implements AutoCloseable {
 
     @SuppressWarnings("DataFlowIssue")
     public void runQueries(CameraRenderState camera) {
-        QueryBufferPack bufferPack = this.owner.acquireBuffer();
-        FullTransformsUbo transformsUbo = bufferPack.transformsUbo();
-
-        transformsUbo.getProjMat().set(camera.projectionMatrix);
-
         CommandEncoder commandEncoder = this.owner.getCommandEncoder();
         RenderTarget target = Minecraft.getInstance().getMainRenderTarget();
 
@@ -70,77 +65,57 @@ class FrameState implements AutoCloseable {
 
         GpuDevice device = RenderSystem.getDevice();
 
-        int instanceId = 0;
-
         ALRGpuDeviceExtension deviceExtension = (ALRGpuDeviceExtension) device;
 
         deviceExtension.alrPushDebugGroup(() -> "Gpu Occlusion Query Draw");
 
+        List<QueryInstance> queries = new ArrayList<>();
+
         for (Map.Entry<OcclusionKey, GpuQueryObject> entry : keySamplesMap.entrySet()) {
-            int finalInstanceId = instanceId;
+            QueryInstance query = this.owner.acquireInstance();
+            query.prepareTransform(entry.getKey(), entry.getValue(), camera);
+            queries.add(query);
+        }
 
-            OcclusionKey key = entry.getKey();
-            GpuQueryObject query = entry.getValue();
+        FullTransformsUbo[] transforms = new FullTransformsUbo[queries.size()];
+        for (int i = 0; i < queries.size(); i++) {
+            transforms[i] = queries.get(i).transformsUbo();
+        }
 
-            Matrix4f modelViewMat = transformsUbo.getModelViewMat();
-            modelViewMat.set(camera.viewRotationMatrix);
-            modelViewMat.translate(
-                (float) -camera.pos.x,
-                (float) -camera.pos.y,
-                (float) -camera.pos.z
-            );
+        DynamicUniformStorage<FullTransformsUbo> dynamicStorage = this.owner.getTransformsDynamicStorage();
 
-            AABB boundingBox = key.getBoundingBox();
+        GpuBufferSlice[] gpuBufferSlices = dynamicStorage.writeUniforms(transforms);
+        for (int i = 0; i < queries.size(); i++) {
+            queries.get(i).uniform(gpuBufferSlices[i]);
+        }
 
-            Vector3f min = new Vector3f(
-                (float) boundingBox.minX,
-                (float) boundingBox.minY,
-                (float) boundingBox.minZ
-            );
+        try (RenderPass renderPass = commandEncoder.createRenderPass(
+            () -> "Gpu Occlusion Query Draw Batch",
+            target.getColorTextureView(),
+            OptionalInt.empty(),
+            target.getDepthTextureView(),
+            OptionalDouble.empty()
+        )) {
+            renderPass.setPipeline(ALRPipelines.OCCLUSION_QUERY);
 
-            Vector3f max = new Vector3f(
-                (float) boundingBox.maxX,
-                (float) boundingBox.maxY,
-                (float) boundingBox.maxZ
-            );
-
-            // ChatGPT can make mistakes. Check important info.
-            Matrix4f transformation = new Matrix4f()
-                .translate(min)
-                .scale(
-                    max.x - min.x,
-                    max.y - min.y,
-                    max.z - min.z
-                );
-
-            modelViewMat.mul(transformation);
-
-            transformsUbo.upload(commandEncoder, bufferPack.transformsBuffer().slice());
-
-            try (RenderPass renderPass = commandEncoder.createRenderPass(
-                () -> "Gpu Occlusion Query Draw #" + finalInstanceId,
-                target.getColorTextureView(),
-                OptionalInt.empty(),
-                target.getDepthTextureView(),
-                OptionalDouble.empty()
-            )) {
-                renderPass.setPipeline(ALRPipelines.OCCLUSION_QUERY);
-
-                renderPass.setVertexBuffer(0, bufferPack.vertexBuffer());
+            for (QueryInstance query : queries) {
+                renderPass.setUniform("Transforms", query.uniform());
+                renderPass.setVertexBuffer(0, query.vertexBuffer());
                 renderPass.setIndexBuffer(buffer, type);
 
-                renderPass.setUniform("Transforms", bufferPack.transformsBuffer());
-
-
-                query.begin();
+                query.queryObject().begin();
                 renderPass.drawIndexed(0, 0, 6 * 6, 1);
-                query.end();
+                query.queryObject().end();
             }
         }
 
-        deviceExtension.alrPopDebugGroup();
+        for (QueryInstance query : queries) {
+            this.owner.releaseInstance(query);
+        }
 
-        this.owner.releaseBuffer(bufferPack);
+        dynamicStorage.endFrame();
+
+        deviceExtension.alrPopDebugGroup();
     }
 
     @Override

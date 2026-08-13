@@ -15,7 +15,7 @@ public class ALRComputePipelines {
         .withDefines(
             ShaderDefines.builder()
                 .define("FFX_SPD_OPTION_DOWNSAMPLE_FILTER", "2") // use max for HZB
-                .define("FFX_SPD_OPTION_WAVE_INTEROP_LDS", ALROptions.SPD_OPTION_WAVE_INTEROP_LDS ? 0 : 1) // weird reverted
+                .define("FFX_SPD_OPTION_WAVE_INTEROP_LDS", ALROptions.SPD_OPTION_WAVE_INTEROP_LDS ? 0 : 1) // weird inverted
                 .build()
         )
         .withTexture("r_input_downsample_src") // a sampler2DArray in shader, changes needed?

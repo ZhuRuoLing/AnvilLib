@@ -33,14 +33,21 @@ public abstract class BufferObject<T extends BufferObject<T>> implements Dynamic
     @Override
     @SuppressWarnings("unchecked")
     public void write(@NonNull ByteBuffer buffer) {
+        if (this.usage == ShaderBufferObjectUsage.SSBO) {
+            throw new IllegalStateException();
+        }
         getDefinition().write(buffer, (T) this, this.layout);
     }
 
+    @Deprecated(forRemoval = true)
     public DynamicUniformStorage<T> createDynamicStorage(String label) {
+        if (this.usage == ShaderBufferObjectUsage.SSBO) {
+            throw new IllegalStateException();
+        }
         return new DynamicUniformStorage<>(
             label,
             getDefinition().size(this.layout),
-            GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST
+            16
         );
     }
 }

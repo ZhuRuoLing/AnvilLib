@@ -26,7 +26,7 @@ public class GlSamplesQuery implements GpuQueryObject {
 
     @Override
     public void end() {
-        GL46.glEndQuery(id);
+        GL46.glEndQuery(GL46.GL_ANY_SAMPLES_PASSED);
     }
 
     @Override
@@ -39,7 +39,7 @@ public class GlSamplesQuery implements GpuQueryObject {
                 try (MemoryStack stack = MemoryStack.stackPush()) {
                     long buffer = stack.nmalloc(4);
                     GL46.glGetQueryObjectuiv(id, GL46.GL_QUERY_RESULT, buffer);
-                    this.result = MemoryAccess.getLong(buffer);
+                    this.result = MemoryAccess.getInt(buffer);
                 }
             }
         }
