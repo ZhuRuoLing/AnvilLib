@@ -1,6 +1,5 @@
 package dev.anvilcraft.lib.v2.rendering.foundation.buffers.object;
 
-import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import dev.anvilcraft.lib.v2.rendering.foundation.buffers.layout.BufferLayout;

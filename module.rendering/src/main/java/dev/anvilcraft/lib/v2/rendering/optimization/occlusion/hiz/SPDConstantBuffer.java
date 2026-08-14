@@ -20,11 +20,12 @@ public class SPDConstantBuffer extends BufferObject<SPDConstantBuffer> {
         BufferObjectLayoutEntry.<SPDConstantBuffer>ofVec2f().forGetter(SPDConstantBuffer::getInvInputSize).build()
     );
 
+    public static final int SIZE = DEFINITION.size(BufferLayout.STD140);
+
     /// The total number of mip levels SPD generates for each input texture slice.
     private int mips = 13;
 
-    /// The total number of dispatched work groups for one texture-array slice. SPD uses this to identify the last
-    /// work group, which downsamples the remaining mip levels.
+    /// number of thread groups per slice
     private int numWorkGroups;
 
     /// The offset of the first 64x64 input tile in work-group coordinates, normally `(left / 64, top / 64)` for a

@@ -59,6 +59,11 @@ public class GpuQueryOcclusionCuller implements OcclusionCuller {
     }
 
     @Override
+    public void onResize(int newWidth, int newHeight) {
+        // Query-based culling has no size-dependent resources.
+    }
+
+    @Override
     public void beginFrame() {
         if (this.currentFrameState == null) {
             this.currentFrameState = new FrameState(this);

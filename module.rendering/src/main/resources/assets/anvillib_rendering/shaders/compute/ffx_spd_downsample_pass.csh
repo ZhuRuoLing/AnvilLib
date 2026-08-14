@@ -86,8 +86,8 @@ vec2 InvInputSize()
 //layout (set = 0, binding = 1000) uniform sampler s_LinearClamp;
 //// SRVs
 //layout (set = 0, binding = 0) uniform texture2DArray r_input_downsample_src;
-
-layout (set = 0, binding = 1) uniform sampler2DArray r_input_downsample_src;
+// in our usage case, those arrays only have one element, so replace it with a sampler2D
+layout (set = 0, binding = 1) uniform sampler2D r_input_downsample_src;
 
 // UAV declarations
 // replace huge binding slot in original shader 2000 to 2
@@ -99,11 +99,11 @@ layout (set = 0, binding = 2, std430) coherent buffer rw_internal_global_atomic_
 // replace huge binding slot in original shader 2001 to 3
 // bind mip map 6 to this uniform
 // change format from rgba32f to r32f because we are handling depth texture
-layout (set = 0, binding = 3, r32f) coherent uniform image2DArray rw_input_downsample_src_mid_mip;
+layout (set = 0, binding = 3, r32f) coherent uniform image2D rw_input_downsample_src_mid_mip;
 
 // replace huge binding slot in original shader 2002 to 4
 // change format from rgba32f to r32f because we are handling depth texture
-layout (set = 0, binding = 4, r32f) uniform image2DArray rw_input_downsample_src_mips[SPD_MAX_MIP_LEVELS + 1];
+layout (set = 0, binding = 4, r32f) uniform image2D rw_input_downsample_src_mips[SPD_MAX_MIP_LEVELS + 1];
 
 /// Compute an SRGB value from a linear value.
 ///
@@ -146,34 +146,35 @@ uvec2 ffxRemapForWaveReduction(uint a)
     return uvec2(((a >> 2u) & 6u) | (a & 1u), ((a >> 3u) & 4u) | ((a >> 1u) & 3u));
 }
 
-vec4 SampleSrcImage(ivec2 uv, uint slice)
+// removed slice because we are using image2D/sampler2D
+vec4 SampleSrcImage(ivec2 uv)
 {
     vec2 textureCoord = vec2(uv) * InvInputSize() + InvInputSize();
     // vec4 result = textureLod(sampler2DArray(r_input_downsample_src, s_LinearClamp), vec3(textureCoord, slice), 0);
-    vec4 result = textureLod(r_input_downsample_src, vec3(textureCoord, slice), 0);
+    vec4 result = textureLod(r_input_downsample_src, textureCoord, 0);
     // remove srgb convert because minecraft use linear rgb8 unorm
     // return vec4(ffxSrgbFromLinear(result.x), ffxSrgbFromLinear(result.y), ffxSrgbFromLinear(result.z), result.w);
     return result;
 }
 
-vec4 LoadSrcImage(ivec2 uv, uint slice)
+vec4 LoadSrcImage(ivec2 uv)
 {
-    return imageLoad(rw_input_downsample_src_mips[0], ivec3(uv, slice));
+    return imageLoad(rw_input_downsample_src_mips[0], uv);
 }
 
-void StoreSrcMip(vec4 value, ivec2 uv, uint slice, uint mip)
+void StoreSrcMip(vec4 value, ivec2 uv, uint mip)
 {
-    imageStore(rw_input_downsample_src_mips[mip], ivec3(uv, slice), value);
+    imageStore(rw_input_downsample_src_mips[mip], uv, value);
 }
 
-vec4 LoadMidMip(ivec2 uv, uint slice)
+vec4 LoadMidMip(ivec2 uv)
 {
-    return imageLoad(rw_input_downsample_src_mid_mip, ivec3(uv, slice));
+    return imageLoad(rw_input_downsample_src_mid_mip, uv);
 }
 
-void StoreMidMip(vec4 value, ivec2 uv, uint slice)
+void StoreMidMip(vec4 value, ivec2 uv)
 {
-    imageStore(rw_input_downsample_src_mid_mip, ivec3(uv, slice), value);
+    imageStore(rw_input_downsample_src_mid_mip, uv, value);
 }
 
 void IncreaseAtomicCounter(uint slice, inout uint counter)
@@ -208,26 +209,26 @@ shared float spdIntermediateG[16][16];
 shared float spdIntermediateB[16][16];
 shared float spdIntermediateA[16][16];
 
-vec4 SpdLoadSourceImage(ivec2 tex, uint slice)
+vec4 SpdLoadSourceImage(ivec2 tex)
 {
     #if defined SPD_LINEAR_SAMPLER
-    return SampleSrcImage(tex, slice);
+    return SampleSrcImage(tex);
     #else
-    return LoadSrcImage(tex, slice);
+    return LoadSrcImage(tex);
     #endif // SPD_LINEAR_SAMPLER
 }
 
-vec4 SpdLoad(ivec2 tex, uint slice)
+vec4 SpdLoad(ivec2 tex)
 {
-    return LoadMidMip(tex, slice);
+    return LoadMidMip(tex);
 }
 
-void SpdStore(ivec2 pix, vec4 outValue, uint mip, uint slice)
+void SpdStore(ivec2 pix, vec4 outValue, uint mip)
 {
     if (mip == 5)
-        StoreMidMip(outValue, pix, slice);
+        StoreMidMip(outValue, pix);
     else
-        StoreSrcMip(outValue, pix, slice, mip + 1);
+        StoreSrcMip(outValue, pix, mip + 1);
 }
 
 vec4 SpdLoadIntermediate(uint x, uint y)
@@ -261,12 +262,12 @@ void ffxSpdWorkgroupShuffleBarrier()
 }
 
 // Only last active workgroup should proceed
-bool SpdExitWorkgroup(uint numWorkGroups, uint localInvocationIndex, uint slice)
+bool SpdExitWorkgroup(uint numWorkGroups, uint localInvocationIndex)
 {
     // global atomic counter
     if (localInvocationIndex == 0)
     {
-        SpdIncreaseAtomicCounter(slice);
+        SpdIncreaseAtomicCounter(0);
     }
 
     ffxSpdWorkgroupShuffleBarrier();
@@ -295,61 +296,61 @@ vec4 SpdReduceIntermediate(uvec2 i0, uvec2 i1, uvec2 i2, uvec2 i3)
     return SpdReduce4(v0, v1, v2, v3);
 }
 
-vec4 SpdReduceLoad4(uvec2 i0, uvec2 i1, uvec2 i2, uvec2 i3, uint slice)
+vec4 SpdReduceLoad4(uvec2 i0, uvec2 i1, uvec2 i2, uvec2 i3)
 {
-    vec4 v0 = SpdLoad(ivec2(i0), slice);
-    vec4 v1 = SpdLoad(ivec2(i1), slice);
-    vec4 v2 = SpdLoad(ivec2(i2), slice);
-    vec4 v3 = SpdLoad(ivec2(i3), slice);
+    vec4 v0 = SpdLoad(ivec2(i0));
+    vec4 v1 = SpdLoad(ivec2(i1));
+    vec4 v2 = SpdLoad(ivec2(i2));
+    vec4 v3 = SpdLoad(ivec2(i3));
     return SpdReduce4(v0, v1, v2, v3);
 }
 
-vec4 SpdReduceLoad4(uvec2 base, uint slice)
+vec4 SpdReduceLoad4(uvec2 base)
 {
-    return SpdReduceLoad4(base + uvec2(0, 0), base + uvec2(0, 1), base + uvec2(1, 0), base + uvec2(1, 1), slice);
+    return SpdReduceLoad4(base + uvec2(0, 0), base + uvec2(0, 1), base + uvec2(1, 0), base + uvec2(1, 1));
 }
 
-vec4 SpdReduceLoadSourceImage4(uvec2 i0, uvec2 i1, uvec2 i2, uvec2 i3, uint slice)
+vec4 SpdReduceLoadSourceImage4(uvec2 i0, uvec2 i1, uvec2 i2, uvec2 i3)
 {
-    vec4 v0 = SpdLoadSourceImage(ivec2(i0), slice);
-    vec4 v1 = SpdLoadSourceImage(ivec2(i1), slice);
-    vec4 v2 = SpdLoadSourceImage(ivec2(i2), slice);
-    vec4 v3 = SpdLoadSourceImage(ivec2(i3), slice);
+    vec4 v0 = SpdLoadSourceImage(ivec2(i0));
+    vec4 v1 = SpdLoadSourceImage(ivec2(i1));
+    vec4 v2 = SpdLoadSourceImage(ivec2(i2));
+    vec4 v3 = SpdLoadSourceImage(ivec2(i3));
     return SpdReduce4(v0, v1, v2, v3);
 }
 
-vec4 SpdReduceLoadSourceImage(uvec2 base, uint slice)
+vec4 SpdReduceLoadSourceImage(uvec2 base)
 {
     #if defined(SPD_LINEAR_SAMPLER)
-    return SpdLoadSourceImage(ivec2(base), slice);
+    return SpdLoadSourceImage(ivec2(base));
     #else
-    return SpdReduceLoadSourceImage4(base + uvec2(0, 0), base + uvec2(0, 1), base + uvec2(1, 0), base + uvec2(1, 1), slice);
+    return SpdReduceLoadSourceImage4(base + uvec2(0, 0), base + uvec2(0, 1), base + uvec2(1, 0), base + uvec2(1, 1));
     #endif
 }
 
-void SpdDownsampleMips_0_1_Intrinsics(uint x, uint y, uvec2 workGroupID, uint localInvocationIndex, uint mip, uint slice)
+void SpdDownsampleMips_0_1_Intrinsics(uint x, uint y, uvec2 workGroupID, uint localInvocationIndex, uint mip)
 {
     vec4 v[4];
 
     ivec2 tex = ivec2(workGroupID.xy * 64) + ivec2(x * 2, y * 2);
     ivec2 pix = ivec2(workGroupID.xy * 32) + ivec2(x, y);
-    v[0] = SpdReduceLoadSourceImage(tex, slice);
-    SpdStore(pix, v[0], 0, slice);
+    v[0] = SpdReduceLoadSourceImage(tex);
+    SpdStore(pix, v[0], 0);
 
     tex = ivec2(workGroupID.xy * 64) + ivec2(x * 2 + 32, y * 2);
     pix = ivec2(workGroupID.xy * 32) + ivec2(x + 16, y);
-    v[1] = SpdReduceLoadSourceImage(tex, slice);
-    SpdStore(pix, v[1], 0, slice);
+    v[1] = SpdReduceLoadSourceImage(tex);
+    SpdStore(pix, v[1], 0);
 
     tex = ivec2(workGroupID.xy * 64) + ivec2(x * 2, y * 2 + 32);
     pix = ivec2(workGroupID.xy * 32) + ivec2(x, y + 16);
-    v[2] = SpdReduceLoadSourceImage(tex, slice);
-    SpdStore(pix, v[2], 0, slice);
+    v[2] = SpdReduceLoadSourceImage(tex);
+    SpdStore(pix, v[2], 0);
 
     tex = ivec2(workGroupID.xy * 64) + ivec2(x * 2 + 32, y * 2 + 32);
     pix = ivec2(workGroupID.xy * 32) + ivec2(x + 16, y + 16);
-    v[3] = SpdReduceLoadSourceImage(tex, slice);
-    SpdStore(pix, v[3], 0, slice);
+    v[3] = SpdReduceLoadSourceImage(tex);
+    SpdStore(pix, v[3], 0);
 
     if (mip <= 1)
         return;
@@ -361,43 +362,43 @@ void SpdDownsampleMips_0_1_Intrinsics(uint x, uint y, uvec2 workGroupID, uint lo
 
     if ((localInvocationIndex % 4) == 0)
     {
-        SpdStore(ivec2(workGroupID.xy * 16) + ivec2(x / 2, y / 2), v[0], 1, slice);
+        SpdStore(ivec2(workGroupID.xy * 16) + ivec2(x / 2, y / 2), v[0], 1);
         SpdStoreIntermediate(x / 2, y / 2, v[0]);
 
-        SpdStore(ivec2(workGroupID.xy * 16) + ivec2(x / 2 + 8, y / 2), v[1], 1, slice);
+        SpdStore(ivec2(workGroupID.xy * 16) + ivec2(x / 2 + 8, y / 2), v[1], 1);
         SpdStoreIntermediate(x / 2 + 8, y / 2, v[1]);
 
-        SpdStore(ivec2(workGroupID.xy * 16) + ivec2(x / 2, y / 2 + 8), v[2], 1, slice);
+        SpdStore(ivec2(workGroupID.xy * 16) + ivec2(x / 2, y / 2 + 8), v[2], 1);
         SpdStoreIntermediate(x / 2, y / 2 + 8, v[2]);
 
-        SpdStore(ivec2(workGroupID.xy * 16) + ivec2(x / 2 + 8, y / 2 + 8), v[3], 1, slice);
+        SpdStore(ivec2(workGroupID.xy * 16) + ivec2(x / 2 + 8, y / 2 + 8), v[3], 1);
         SpdStoreIntermediate(x / 2 + 8, y / 2 + 8, v[3]);
     }
 }
 
-void SpdDownsampleMips_0_1_LDS(uint x, uint y, uvec2 workGroupID, uint localInvocationIndex, uint mip, uint slice)
+void SpdDownsampleMips_0_1_LDS(uint x, uint y, uvec2 workGroupID, uint localInvocationIndex, uint mip)
 {
     vec4 v[4];
 
     ivec2 tex = ivec2(workGroupID.xy * 64) + ivec2(x * 2, y * 2);
     ivec2 pix = ivec2(workGroupID.xy * 32) + ivec2(x, y);
-    v[0] = SpdReduceLoadSourceImage(tex, slice);
-    SpdStore(pix, v[0], 0, slice);
+    v[0] = SpdReduceLoadSourceImage(tex);
+    SpdStore(pix, v[0], 0);
 
     tex = ivec2(workGroupID.xy * 64) + ivec2(x * 2 + 32, y * 2);
     pix = ivec2(workGroupID.xy * 32) + ivec2(x + 16, y);
-    v[1] = SpdReduceLoadSourceImage(tex, slice);
-    SpdStore(pix, v[1], 0, slice);
+    v[1] = SpdReduceLoadSourceImage(tex);
+    SpdStore(pix, v[1], 0);
 
     tex = ivec2(workGroupID.xy * 64) + ivec2(x * 2, y * 2 + 32);
     pix = ivec2(workGroupID.xy * 32) + ivec2(x, y + 16);
-    v[2] = SpdReduceLoadSourceImage(tex, slice);
-    SpdStore(pix, v[2], 0, slice);
+    v[2] = SpdReduceLoadSourceImage(tex);
+    SpdStore(pix, v[2], 0);
 
     tex = ivec2(workGroupID.xy * 64) + ivec2(x * 2 + 32, y * 2 + 32);
     pix = ivec2(workGroupID.xy * 32) + ivec2(x + 16, y + 16);
-    v[3] = SpdReduceLoadSourceImage(tex, slice);
-    SpdStore(pix, v[3], 0, slice);
+    v[3] = SpdReduceLoadSourceImage(tex);
+    SpdStore(pix, v[3], 0);
 
     if (mip <= 1)
         return;
@@ -409,7 +410,7 @@ void SpdDownsampleMips_0_1_LDS(uint x, uint y, uvec2 workGroupID, uint localInvo
         if (localInvocationIndex < 64)
         {
             v[i] = SpdReduceIntermediate(uvec2(x * 2 + 0, y * 2 + 0), uvec2(x * 2 + 1, y * 2 + 0), uvec2(x * 2 + 0, y * 2 + 1), uvec2(x * 2 + 1, y * 2 + 1));
-            SpdStore(ivec2(workGroupID.xy * 16) + ivec2(x + (i % 2) * 8, y + (i / 2) * 8), v[i], 1, slice);
+            SpdStore(ivec2(workGroupID.xy * 16) + ivec2(x + (i % 2) * 8, y + (i / 2) * 8), v[i], 1);
         }
         ffxSpdWorkgroupShuffleBarrier();
     }
@@ -423,22 +424,22 @@ void SpdDownsampleMips_0_1_LDS(uint x, uint y, uvec2 workGroupID, uint localInvo
     }
 }
 
-void SpdDownsampleMips_0_1(uint x, uint y, uvec2 workGroupID, uint localInvocationIndex, uint mip, uint slice)
+void SpdDownsampleMips_0_1(uint x, uint y, uvec2 workGroupID, uint localInvocationIndex, uint mip)
 {
     #if defined(FFX_SPD_NO_WAVE_OPERATIONS)
-    SpdDownsampleMips_0_1_LDS(x, y, workGroupID, localInvocationIndex, mip, slice);
+    SpdDownsampleMips_0_1_LDS(x, y, workGroupID, localInvocationIndex, mip);
     #else
-    SpdDownsampleMips_0_1_Intrinsics(x, y, workGroupID, localInvocationIndex, mip, slice);
+    SpdDownsampleMips_0_1_Intrinsics(x, y, workGroupID, localInvocationIndex, mip);
     #endif
 }
 
-void SpdDownsampleMip_2(uint x, uint y, uvec2 workGroupID, uint localInvocationIndex, uint mip, uint slice)
+void SpdDownsampleMip_2(uint x, uint y, uvec2 workGroupID, uint localInvocationIndex, uint mip)
 {
     #if defined(FFX_SPD_NO_WAVE_OPERATIONS)
     if (localInvocationIndex < 64)
     {
         vec4 v = SpdReduceIntermediate(uvec2(x * 2 + 0, y * 2 + 0), uvec2(x * 2 + 1, y * 2 + 0), uvec2(x * 2 + 0, y * 2 + 1), uvec2(x * 2 + 1, y * 2 + 1));
-        SpdStore(ivec2(workGroupID.xy * 8) + ivec2(x, y), v, mip, slice);
+        SpdStore(ivec2(workGroupID.xy * 8) + ivec2(x, y), v, mip);
         // store to LDS, try to reduce bank conflicts
         // x 0 x 0 x 0 x 0 x 0 x 0 x 0 x 0
         // 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
@@ -455,13 +456,13 @@ void SpdDownsampleMip_2(uint x, uint y, uvec2 workGroupID, uint localInvocationI
     // quad index 0 stores result
     if (localInvocationIndex % 4 == 0)
     {
-        SpdStore(ivec2(workGroupID.xy * 8) + ivec2(x / 2, y / 2), v, mip, slice);
+        SpdStore(ivec2(workGroupID.xy * 8) + ivec2(x / 2, y / 2), v, mip);
         SpdStoreIntermediate(x + (y / 2) % 2, y, v);
     }
     #endif
 }
 
-void SpdDownsampleMip_3(uint x, uint y, uvec2 workGroupID, uint localInvocationIndex, uint mip, uint slice)
+void SpdDownsampleMip_3(uint x, uint y, uvec2 workGroupID, uint localInvocationIndex, uint mip)
 {
     #if defined(FFX_SPD_NO_WAVE_OPERATIONS)
     if (localInvocationIndex < 16)
@@ -471,7 +472,7 @@ void SpdDownsampleMip_3(uint x, uint y, uvec2 workGroupID, uint localInvocationI
         // 0 x 0 x
         // 0 0 0 0
         vec4 v = SpdReduceIntermediate(uvec2(x * 4 + 0 + 0, y * 4 + 0), uvec2(x * 4 + 2 + 0, y * 4 + 0), uvec2(x * 4 + 0 + 1, y * 4 + 2), uvec2(x * 4 + 2 + 1, y * 4 + 2));
-        SpdStore(ivec2(workGroupID.xy * 4) + ivec2(x, y), v, mip, slice);
+        SpdStore(ivec2(workGroupID.xy * 4) + ivec2(x, y), v, mip);
         // store to LDS
         // x 0 0 0 x 0 0 0 x 0 0 0 x 0 0 0
         // 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
@@ -493,14 +494,14 @@ void SpdDownsampleMip_3(uint x, uint y, uvec2 workGroupID, uint localInvocationI
         // quad index 0 stores result
         if (localInvocationIndex % 4 == 0)
         {
-            SpdStore(ivec2(workGroupID.xy * 4) + ivec2(x / 2, y / 2), v, mip, slice);
+            SpdStore(ivec2(workGroupID.xy * 4) + ivec2(x / 2, y / 2), v, mip);
             SpdStoreIntermediate(x * 2 + y / 2, y * 2, v);
         }
     }
     #endif
 }
 
-void SpdDownsampleMip_4(uint x, uint y, uvec2 workGroupID, uint localInvocationIndex, uint mip, uint slice)
+void SpdDownsampleMip_4(uint x, uint y, uvec2 workGroupID, uint localInvocationIndex, uint mip)
 {
     #if defined(FFX_SPD_NO_WAVE_OPERATIONS)
     if (localInvocationIndex < 4)
@@ -512,7 +513,7 @@ void SpdDownsampleMip_4(uint x, uint y, uvec2 workGroupID, uint localInvocationI
             uvec2(x * 8 + 4 + 0 + y * 2, y * 8 + 0),
             uvec2(x * 8 + 0 + 1 + y * 2, y * 8 + 4),
             uvec2(x * 8 + 4 + 1 + y * 2, y * 8 + 4));
-        SpdStore(ivec2(workGroupID.xy * 2) + ivec2(x, y), v, mip, slice);
+        SpdStore(ivec2(workGroupID.xy * 2) + ivec2(x, y), v, mip);
         // store to LDS
         // x x x x 0 ...
         // 0 ...
@@ -526,14 +527,14 @@ void SpdDownsampleMip_4(uint x, uint y, uvec2 workGroupID, uint localInvocationI
         // quad index 0 stores result
         if (localInvocationIndex % 4 == 0)
         {
-            SpdStore(ivec2(workGroupID.xy * 2) + ivec2(x / 2, y / 2), v, mip, slice);
+            SpdStore(ivec2(workGroupID.xy * 2) + ivec2(x / 2, y / 2), v, mip);
             SpdStoreIntermediate(x / 2 + y, 0, v);
         }
     }
     #endif
 }
 
-void SpdDownsampleMip_5(uvec2 workGroupID, uint localInvocationIndex, uint mip, uint slice)
+void SpdDownsampleMip_5(uvec2 workGroupID, uint localInvocationIndex, uint mip)
 {
     #if defined(FFX_SPD_NO_WAVE_OPERATIONS)
     if (localInvocationIndex < 1)
@@ -541,7 +542,7 @@ void SpdDownsampleMip_5(uvec2 workGroupID, uint localInvocationIndex, uint mip, 
         // x x x x 0 ...
         // 0 ...
         vec4 v = SpdReduceIntermediate(uvec2(0, 0), uvec2(1, 0), uvec2(2, 0), uvec2(3, 0));
-        SpdStore(ivec2(workGroupID.xy), v, mip, slice);
+        SpdStore(ivec2(workGroupID.xy), v, mip);
     }
     #else
     if (localInvocationIndex < 4)
@@ -551,64 +552,64 @@ void SpdDownsampleMip_5(uvec2 workGroupID, uint localInvocationIndex, uint mip, 
         // quad index 0 stores result
         if (localInvocationIndex % 4 == 0)
         {
-            SpdStore(ivec2(workGroupID.xy), v, mip, slice);
+            SpdStore(ivec2(workGroupID.xy), v, mip);
         }
     }
     #endif
 }
 
-void SpdDownsampleMips_6_7(uint x, uint y, uint mips, uint slice)
+void SpdDownsampleMips_6_7(uint x, uint y, uint mips)
 {
     ivec2 tex = ivec2(x * 4 + 0, y * 4 + 0);
     ivec2 pix = ivec2(x * 2 + 0, y * 2 + 0);
-    vec4 v0 = SpdReduceLoad4(tex, slice);
-    SpdStore(pix, v0, 6, slice);
+    vec4 v0 = SpdReduceLoad4(tex);
+    SpdStore(pix, v0, 6);
 
     tex = ivec2(x * 4 + 2, y * 4 + 0);
     pix = ivec2(x * 2 + 1, y * 2 + 0);
-    vec4 v1 = SpdReduceLoad4(tex, slice);
-    SpdStore(pix, v1, 6, slice);
+    vec4 v1 = SpdReduceLoad4(tex);
+    SpdStore(pix, v1, 6);
 
     tex = ivec2(x * 4 + 0, y * 4 + 2);
     pix = ivec2(x * 2 + 0, y * 2 + 1);
-    vec4 v2 = SpdReduceLoad4(tex, slice);
-    SpdStore(pix, v2, 6, slice);
+    vec4 v2 = SpdReduceLoad4(tex);
+    SpdStore(pix, v2, 6);
 
     tex = ivec2(x * 4 + 2, y * 4 + 2);
     pix = ivec2(x * 2 + 1, y * 2 + 1);
-    vec4 v3 = SpdReduceLoad4(tex, slice);
-    SpdStore(pix, v3, 6, slice);
+    vec4 v3 = SpdReduceLoad4(tex);
+    SpdStore(pix, v3, 6);
 
     if (mips <= 7)
         return;
     // no barrier needed, working on values only from the same thread
 
     vec4 v = SpdReduce4(v0, v1, v2, v3);
-    SpdStore(ivec2(x, y), v, 7, slice);
+    SpdStore(ivec2(x, y), v, 7);
     SpdStoreIntermediate(x, y, v);
 }
 
-void SpdDownsampleNextFour(uint x, uint y, uvec2 workGroupID, uint localInvocationIndex, uint baseMip, uint mips, uint slice)
+void SpdDownsampleNextFour(uint x, uint y, uvec2 workGroupID, uint localInvocationIndex, uint baseMip, uint mips)
 {
     if (mips <= baseMip)
         return;
     ffxSpdWorkgroupShuffleBarrier();
-    SpdDownsampleMip_2(x, y, workGroupID, localInvocationIndex, baseMip, slice);
+    SpdDownsampleMip_2(x, y, workGroupID, localInvocationIndex, baseMip);
 
     if (mips <= baseMip + 1)
         return;
     ffxSpdWorkgroupShuffleBarrier();
-    SpdDownsampleMip_3(x, y, workGroupID, localInvocationIndex, baseMip + 1, slice);
+    SpdDownsampleMip_3(x, y, workGroupID, localInvocationIndex, baseMip + 1);
 
     if (mips <= baseMip + 2)
         return;
     ffxSpdWorkgroupShuffleBarrier();
-    SpdDownsampleMip_4(x, y, workGroupID, localInvocationIndex, baseMip + 2, slice);
+    SpdDownsampleMip_4(x, y, workGroupID, localInvocationIndex, baseMip + 2);
 
     if (mips <= baseMip + 3)
         return;
     ffxSpdWorkgroupShuffleBarrier();
-    SpdDownsampleMip_5(workGroupID, localInvocationIndex, baseMip + 3, slice);
+    SpdDownsampleMip_5(workGroupID, localInvocationIndex, baseMip + 3);
 }
 
 /// Downsamples a 64x64 tile based on the work group id.
@@ -621,34 +622,34 @@ void SpdDownsampleNextFour(uint x, uint y, uvec2 workGroupID, uint localInvocati
 /// @param [in] slice                   the slice of the input texture
 ///
 /// @ingroup FfxGPUSpd
-void SpdDownsample(uvec2 workGroupID, uint localInvocationIndex, uint mips, uint numWorkGroups, uint slice)
+void SpdDownsample(uvec2 workGroupID, uint localInvocationIndex, uint mips, uint numWorkGroups)
 {
     // compute MIP level 0 and 1
     uvec2 sub_xy = ffxRemapForWaveReduction(localInvocationIndex % 64);
     uint x = sub_xy.x + 8 * ((localInvocationIndex >> 6) % 2);
     uint y = sub_xy.y + 8 * (localInvocationIndex >> 7);
-    SpdDownsampleMips_0_1(x, y, workGroupID, localInvocationIndex, mips, slice);
+    SpdDownsampleMips_0_1(x, y, workGroupID, localInvocationIndex, mips);
 
     // compute MIP level 2, 3, 4, 5
-    SpdDownsampleNextFour(x, y, workGroupID, localInvocationIndex, 2, mips, slice);
+    SpdDownsampleNextFour(x, y, workGroupID, localInvocationIndex, 2, mips);
 
     if (mips <= 6)
         return;
 
     // increase the global atomic counter for the given slice and check if it's the last remaining thread group:
     // terminate if not, continue if yes.
-    if (SpdExitWorkgroup(numWorkGroups, localInvocationIndex, slice))
+    if (SpdExitWorkgroup(numWorkGroups, localInvocationIndex))
         return;
 
     // reset the global atomic counter back to 0 for the next spd dispatch
-    SpdResetAtomicCounter(slice);
+    SpdResetAtomicCounter(0);
 
     // After mip 5 there is only a single workgroup left that downsamples the remaining up to 64x64 texels.
     // compute MIP level 6 and 7
-    SpdDownsampleMips_6_7(x, y, mips, slice);
+    SpdDownsampleMips_6_7(x, y, mips);
 
     // compute MIP level 8, 9, 10, 11
-    SpdDownsampleNextFour(x, y, uvec2(0, 0), localInvocationIndex, 8, mips, slice);
+    SpdDownsampleNextFour(x, y, uvec2(0, 0), localInvocationIndex, 8, mips);
 }
 
 /// Downsamples a 64x64 tile based on the work group id and work group offset.
@@ -662,14 +663,14 @@ void SpdDownsample(uvec2 workGroupID, uint localInvocationIndex, uint mips, uint
 /// @param [in] workGroupOffset         the work group offset. it's (0,0) in case the entire input texture is downsampled.
 ///
 /// @ingroup FfxGPUSpd
-void SpdDownsample(uvec2 workGroupID, uint localInvocationIndex, uint mips, uint numWorkGroups, uint slice, uvec2 workGroupOffset)
+void SpdDownsample(uvec2 workGroupID, uint localInvocationIndex, uint mips, uint numWorkGroups, uvec2 workGroupOffset)
 {
-    SpdDownsample(workGroupID + workGroupOffset, localInvocationIndex, mips, numWorkGroups, slice);
+    SpdDownsample(workGroupID + workGroupOffset, localInvocationIndex, mips, numWorkGroups);
 }
 
 void DOWNSAMPLE(uint localThreadId, uvec3 workGroupId)
 {
-    SpdDownsample(workGroupId.xy, localThreadId, Mips(), NumWorkGroups(), workGroupId.z, WorkGroupOffset());
+    SpdDownsample(workGroupId.xy, localThreadId, Mips(), NumWorkGroups(), WorkGroupOffset());
 }
 
 layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;

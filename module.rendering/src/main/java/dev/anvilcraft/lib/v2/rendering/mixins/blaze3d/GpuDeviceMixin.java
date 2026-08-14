@@ -2,12 +2,15 @@ package dev.anvilcraft.lib.v2.rendering.mixins.blaze3d;
 
 import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.GpuDeviceBackend;
+import com.mojang.blaze3d.textures.GpuTexture;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceBackendExtension;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceExtension;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRHICapabilities;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ExtendedTextureFormat;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstance;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstanceKey;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.GpuQueryObject;
+import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -50,6 +53,21 @@ public class GpuDeviceMixin implements ALRGpuDeviceExtension {
     @Override
     public ALRHICapabilities alrhiCreateCapabilities() {
         return alrBackend().alrhiCreateCapabilities();
+    }
+
+    @Override
+    public GpuTexture alrCreateExtendedTexture(
+        @Nullable String label,
+        @GpuTexture.Usage int usage,
+        ExtendedTextureFormat format,
+        int width,
+        int height,
+        int depthOrLayers,
+        int mipLevels
+    ){
+        return alrBackend().alrCreateExtendedTexture(
+            label, usage, format, width, height, depthOrLayers, mipLevels
+        );
     }
 
     @Unique

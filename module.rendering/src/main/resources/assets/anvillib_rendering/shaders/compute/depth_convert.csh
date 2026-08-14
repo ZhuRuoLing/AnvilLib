@@ -15,12 +15,12 @@ layout(binding = 2, r32f) writeonly uniform image2D Output;
 void main() {
     ivec2 idx = ivec2(gl_GlobalInvocationID.xy);
 
+    vec4 result;
+
     if (idx.x >= uWidth || idx.y >= uHeight) {
-        imageStore(Output, idx, vec4(1, 1, 1, 1));
-        return;
+        result = vec4(uPadValue, 0, 0, 1);
+    } else {
+        result = texelFetch(Input, idx, 0);
     }
-
-    vec4 converted = texelFetch(Input, idx, 0);
-
-    imageStore(Output, idx, converted);
+    imageStore(Output, idx, vec4(result.r, 0.0, 0.0, 1.0));
 }

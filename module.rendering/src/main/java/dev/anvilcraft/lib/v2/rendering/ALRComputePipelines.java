@@ -18,14 +18,23 @@ public class ALRComputePipelines {
                 .define("FFX_SPD_OPTION_WAVE_INTEROP_LDS", ALROptions.SPD_OPTION_WAVE_INTEROP_LDS ? 0 : 1) // weird inverted
                 .build()
         )
-        .withTexture("r_input_downsample_src") // a sampler2DArray in shader, changes needed?
-        .withReadWriteImage("rw_input_downsample_src_mid_mip") // a image2DArray in shader, changes needed?
-        .withReadWriteImage("rw_input_downsample_src_mips") // an array of image2DArray in shader, changes needed? length=13
+        .withUniformBlock("cbFSR1")
+        .withTexture("r_input_downsample_src")
+        .withReadWriteImage("rw_input_downsample_src_mid_mip")
+        .withImageArray("rw_input_downsample_src_mips", true, true, 13)
         .build();
 
+    public static final ALRComputePipeline DEPTH_CONVERT = ALRComputePipeline.builder()
+        .withName(AnvilLibRendering.location("depth_convert"))
+        .withShader(AnvilLibRendering.location("compute/depth_convert.csh"))
+        .withUniformBlock("ConvertParam")
+        .withTexture("Input")
+        .withWriteOnlyImage("Output")
+        .build();
 
     @SubscribeEvent
     public static void on(RegisterComputePipelinesEvent event) {
         event.registerPipeline(FFX_SPD_DOWNSAMPLE_PASS);
+        event.registerPipeline(DEPTH_CONVERT);
     }
 }

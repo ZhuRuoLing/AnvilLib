@@ -2,6 +2,7 @@ package dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline;
 
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.ComputeBindingLayout;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.AtomicCounterBinding;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.ImageArrayBinding;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.ImageBinding;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.ShaderStorageBinding;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.TextureBinding;
@@ -84,6 +85,11 @@ public record ALRComputePipeline(
 
         public Builder withReadWriteImage(String name) {
             return this.withImage(name, true, true);
+        }
+
+        /// an array of image2D, not image2DArray
+        public Builder withImageArray(String name, boolean read, boolean write, int size) {
+            return this.withBinding(new ImageArrayBinding(name, read, write, size));
         }
 
         public Builder withUniformBlock(String name) {

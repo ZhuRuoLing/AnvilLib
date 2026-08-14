@@ -1,16 +1,26 @@
 package dev.anvilcraft.lib.v2.rendering.mixins.blaze3d.gl;
 
+import com.mojang.blaze3d.GpuOutOfMemoryException;
+import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.opengl.GlDebugLabel;
+import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.blaze3d.opengl.GlTexture;
+import com.mojang.blaze3d.textures.GpuTexture;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceBackendExtension;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRHICapabilities;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ExtendedTextureFormat;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.ALRDebugLabelExtension;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstance;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstanceKey;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeShaderManager;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.GpuQueryObject;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.gl.GlSamplesQuery;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.gl.GlExtendedTexture;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.gl.GlExtendedTextureConstants;
+import org.jspecify.annotations.Nullable;
 import org.lwjgl.opengl.ARBComputeShader;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL46;
 import org.lwjgl.opengl.GLCapabilities;
 import org.slf4j.Logger;
@@ -31,6 +41,9 @@ public abstract class GlDeviceMixin implements ALRGpuDeviceBackendExtension {
     @Shadow
     public abstract GlDebugLabel debugLabels();
 
+    @Shadow
+    @Final
+    private GlDebugLabel debugLabels;
     @Unique
     private ALRHICapabilities alr$capabilities = null;
 
@@ -88,5 +101,79 @@ public abstract class GlDeviceMixin implements ALRGpuDeviceBackendExtension {
             );
         }
         return alr$capabilities;
+    }
+
+    @Override
+    public GpuTexture alrCreateExtendedTexture(
+        @Nullable String label,
+        int usage,
+        ExtendedTextureFormat format,
+        int width,
+        int height,
+        int depthOrLayers,
+        int mipLevels
+    ) {
+        GlStateManager.clearGlErrors();
+        int id = GlStateManager._genTexture();
+        if (label == null) {
+            label = String.valueOf(id);
+        }
+
+        boolean isCubemap = (usage & 16) != 0;
+        int target;
+        if (isCubemap) {
+            GL11.glBindTexture(34067, id);
+            target = 34067;
+        } else {
+            GlStateManager._bindTexture(id);
+            target = 3553;
+        }
+
+        GlStateManager._texParameter(target, 33085, mipLevels - 1);
+        GlStateManager._texParameter(target, 33082, 0);
+        GlStateManager._texParameter(target, 33083, mipLevels - 1);
+
+        if (isCubemap) {
+            for (int cubeTarget : GlConst.CUBEMAP_TARGETS) {
+                for (int i = 0; i < mipLevels; i++) {
+                    GlStateManager._texImage2D(
+                        cubeTarget,
+                        i,
+                        GlExtendedTextureConstants.toGlInternalId(format),
+                        width >> i,
+                        height >> i,
+                        0,
+                        GlExtendedTextureConstants.toGlExternalId(format),
+                        GlExtendedTextureConstants.toGlType(format),
+                        null
+                    );
+                }
+            }
+        } else {
+            for (int i = 0; i < mipLevels; i++) {
+                GlStateManager._texImage2D(
+                    target,
+                    i,
+                    GlExtendedTextureConstants.toGlInternalId(format),
+                    width >> i,
+                    height >> i,
+                    0,
+                    GlExtendedTextureConstants.toGlExternalId(format),
+                    GlExtendedTextureConstants.toGlType(format),
+                    null
+                );
+            }
+        }
+
+        int error = GlStateManager._getError();
+        if (error == 1285) {
+            throw new GpuOutOfMemoryException("Could not allocate texture of " + width + "x" + height + " for " + label);
+        } else if (error != 0) {
+            throw new IllegalStateException("OpenGL error " + error);
+        } else {
+            GlExtendedTexture texture = new GlExtendedTexture(usage, label, format, width, height, depthOrLayers, mipLevels, id);
+            this.debugLabels.applyLabel(texture);
+            return texture;
+        }
     }
 }

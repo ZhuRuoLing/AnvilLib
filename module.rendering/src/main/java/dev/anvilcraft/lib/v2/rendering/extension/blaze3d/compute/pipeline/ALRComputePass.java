@@ -59,12 +59,12 @@ public class ALRComputePass implements AutoCloseable {
     public void bindAll(List<?> elements) {
         int bindingPoint = 0;
         for (ComputeBindingLayout binding : pipeline.bindings()) {
-            this.bind(bindingPoint++, binding, elements.get(bindingPoint - 1));
+            bindingPoint += this.bind(bindingPoint, binding, elements.get(bindingPoint - 1));
         }
     }
 
-    public <T> void bind(int bindingPoint, ComputeBindingLayout<T> layout, T resource) {
-        layout.apply(bindingPoint, resource, this);
+    public <T> int bind(int bindingPointStart, ComputeBindingLayout<T> layout, T resource) {
+        return layout.applyOrdered(bindingPointStart, resource, this);
     }
 
     public void bindTexture(int bindingPoint, TextureBinding.SamplerAndTexture resource) {

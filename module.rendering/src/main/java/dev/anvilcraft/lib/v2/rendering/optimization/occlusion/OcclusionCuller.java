@@ -5,6 +5,7 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import org.jspecify.annotations.Nullable;
 
 public interface OcclusionCuller {
+    void onResize(int newWidth, int newHeight);
 
     void beginFrame();
 

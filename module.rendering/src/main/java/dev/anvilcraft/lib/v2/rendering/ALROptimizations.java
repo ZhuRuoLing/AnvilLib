@@ -14,4 +14,8 @@ public class ALROptimizations {
         }
         return occlusionCuller;
     }
+
+    public static void create() {
+        occlusionCuller = OcclusionCuller.createInstance(RenderSystem.getDevice());
+    }
 }

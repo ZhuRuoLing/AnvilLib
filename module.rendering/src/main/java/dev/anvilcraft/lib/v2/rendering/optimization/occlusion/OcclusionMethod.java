@@ -3,6 +3,7 @@ package dev.anvilcraft.lib.v2.rendering.optimization.occlusion;
 import com.mojang.blaze3d.systems.GpuDevice;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceExtension;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.ALRComputeCapabilities;
+import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.hiz.HierarchicalZOcclusionCuller;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.query.GpuQueryOcclusionCuller;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -25,8 +26,8 @@ public enum OcclusionMethod {
         }
 
         @Override
-        public @Nullable OcclusionCuller createInstance(GpuDevice device) {
-            return null;
+        public @NonNull OcclusionCuller createInstance(GpuDevice device) {
+            return new HierarchicalZOcclusionCuller((ALRGpuDeviceExtension) device);
         }
     };
 

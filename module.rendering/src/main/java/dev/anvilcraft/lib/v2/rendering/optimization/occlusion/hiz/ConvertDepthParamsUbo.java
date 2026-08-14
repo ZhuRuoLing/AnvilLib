@@ -22,9 +22,9 @@ import org.jetbrains.annotations.ApiStatus;
 public class ConvertDepthParamsUbo extends BufferObject<ConvertDepthParamsUbo> {
 
     public static final BufferObjectLayoutDefinition<ConvertDepthParamsUbo> DEFINITION = BufferObjectLayoutDefinition.create(
-        BufferObjectLayoutEntry.<ConvertDepthParamsUbo>ofInt().forGetter(ConvertDepthParamsUbo::getHeight).build(),
         BufferObjectLayoutEntry.<ConvertDepthParamsUbo>ofInt().forGetter(ConvertDepthParamsUbo::getWidth).build(),
-            BufferObjectLayoutEntry.<ConvertDepthParamsUbo>ofFloat().forGetter(ConvertDepthParamsUbo::getPadValue).build()
+        BufferObjectLayoutEntry.<ConvertDepthParamsUbo>ofInt().forGetter(ConvertDepthParamsUbo::getHeight).build(),
+        BufferObjectLayoutEntry.<ConvertDepthParamsUbo>ofFloat().forGetter(ConvertDepthParamsUbo::getPadValue).build()
     );
 
     public static final int SIZE = DEFINITION.size(BufferLayout.STD140);
