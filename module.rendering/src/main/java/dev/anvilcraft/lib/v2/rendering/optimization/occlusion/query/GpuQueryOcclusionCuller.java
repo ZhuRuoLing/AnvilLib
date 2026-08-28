@@ -7,10 +7,16 @@ import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.GpuQueryObject;
 import dev.anvilcraft.lib.v2.rendering.foundation.buffers.ubo.FullTransformsUbo;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.OcclusionCuller;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.OcclusionKey;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import lombok.Getter;
 import net.minecraft.client.renderer.DynamicUniformStorage;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import org.jetbrains.annotations.ApiStatus;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /// ### How does this work
 /// In a single frame query happens in order described below.
@@ -20,6 +26,7 @@ import org.jetbrains.annotations.ApiStatus;
 ///     - Culler collects OcclusionKey for features requested to cull
 /// - Minecraft draws solid terrain
 /// - Culler draws bounding box of each OcclusionKey and submits query about whether any samples passed in each draw event
+/// - Especially, if camera is inside a bounding box, the corresponding feature will always being drawn
 /// - Minecraft draws features
 ///     - Ask culler whether a feature should be drawn, answers are based on the previous frame's query results (one-frame latency)
 /// - ...
@@ -78,8 +85,11 @@ public class GpuQueryOcclusionCuller implements OcclusionCuller {
     }
 
     @Override
-    public void submitFeatureKey(OcclusionKey key, Object feature) {
-        this.currentFrameState.addKey(key);
+    public void submitFeatureKey(OcclusionKey key, List<Object> feature) {
+        for (Object o : feature) {
+            this.currentFrameState.addKey(key, o);
+        }
+
     }
 
     @Override
@@ -88,10 +98,11 @@ public class GpuQueryOcclusionCuller implements OcclusionCuller {
     }
 
     @Override
-    public boolean shouldDraw(OcclusionKey key, Object feature) {
+    public boolean shouldDraw(Object feature) {
         if (previousFrameState == null) {
             return true;
         }
+        OcclusionKey key = this.currentFrameState.getKey(feature);
         return this.previousFrameState.shouldDraw(key);
     }
 

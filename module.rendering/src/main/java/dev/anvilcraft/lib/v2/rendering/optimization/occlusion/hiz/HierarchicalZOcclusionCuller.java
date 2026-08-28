@@ -11,6 +11,8 @@ import dev.anvilcraft.lib.v2.rendering.foundation.buffers.GpuBufferConstants;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.OcclusionCuller;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.OcclusionKey;
 import dev.anvilcraft.lib.v2.rendering.util.MemoryAccess;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.util.Mth;
@@ -18,6 +20,7 @@ import org.joml.Vector2f;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 
 public class HierarchicalZOcclusionCuller implements OcclusionCuller {
     /// uint * 6
@@ -26,6 +29,8 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
     private final Minecraft minecraft;
     private final ALRGpuDeviceExtension gpuDeviceExtension;
     private final GpuDevice gpuDevice;
+
+    private final Reference2ObjectMap<Object, OcclusionKey> keyAssociations = new Reference2ObjectLinkedOpenHashMap<>();
 
     private final SPDConstantBuffer spdParams = new SPDConstantBuffer();
     private final ConvertDepthParamsUbo convertParams = new ConvertDepthParamsUbo();
@@ -46,6 +51,12 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
     private int mipLayerCount = 0;
     private GpuTexture[] mipTextures;
     private MipLayer[] mipLayers;
+
+    /// update interval for z-buffer mipmap
+    ///
+    /// interval = 0 -> update every frame
+    ///
+    private int mipmapUpdateInterval = 0;
 
     public HierarchicalZOcclusionCuller(ALRGpuDeviceExtension device) {
         this.minecraft = Minecraft.getInstance();
@@ -73,6 +84,8 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
         );
 
         this.onResize(mainRenderTarget.width, mainRenderTarget.height);
+
+        this.clearAtomicCounter();
     }
 
     @Override
@@ -129,7 +142,6 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
         CommandEncoder commandEncoder = gpuDevice.createCommandEncoder();
         this.ffxSpdSetup(commandEncoder);
         this.depthConvertSetup(commandEncoder);
-        this.clearAtomicCounter();
     }
 
     /// Setup required constant values for SPD (CPU).
@@ -162,12 +174,14 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
 
     @Override
     public void beginFrame() {
-
+        this.keyAssociations.clear();
     }
 
     @Override
-    public void submitFeatureKey(OcclusionKey key, Object feature) {
-
+    public void submitFeatureKey(OcclusionKey key, List<Object> feature) {
+        for (Object o : feature) {
+            this.keyAssociations.put(o, key);
+        }
     }
 
     @Override
@@ -176,7 +190,7 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
     }
 
     @Override
-    public boolean shouldDraw(OcclusionKey key, Object feature) {
+    public boolean shouldDraw(Object feature) {
         return true;
     }
 

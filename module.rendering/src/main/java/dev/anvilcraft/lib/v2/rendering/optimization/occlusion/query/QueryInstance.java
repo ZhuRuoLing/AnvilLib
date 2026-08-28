@@ -13,6 +13,8 @@ import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.GpuQueryObject;
 import dev.anvilcraft.lib.v2.rendering.foundation.GpuReusableResource;
 import dev.anvilcraft.lib.v2.rendering.foundation.buffers.ubo.FullTransformsUbo;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.OcclusionKey;
+import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -44,6 +46,10 @@ public final class QueryInstance implements GpuReusableResource {
 
     private boolean closed = false;
     private boolean acquired = false;
+
+    @Setter
+    @Getter
+    private boolean cameraInside = false;
 
     public QueryInstance(
         GpuBuffer vertexBuffer,

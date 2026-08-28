@@ -35,5 +35,4 @@ public enum OcclusionMethod {
 
     @Nullable
     public abstract OcclusionCuller createInstance(GpuDevice device);
-
 }
