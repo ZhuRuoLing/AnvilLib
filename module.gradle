@@ -52,6 +52,9 @@ neoForge {
                     client()
                     systemProperty('neoforge.enabledGameTestNamespaces', project.mod_id)
                     systemProperty("neoforge.disableGlValidation", "true")
+                    jvmArgument("-XX:+UseParallelGC")
+                    jvmArgument("-XX:+UnlockDiagnosticVMOptions")
+                    jvmArgument("-XX:+DebugNonSafepoints")
                     programArgument("--renderDebugLabels")
                 }
             }

@@ -65,8 +65,11 @@ public final class QueryInstance implements GpuReusableResource {
 
         this.transformsUbo.getProjMat().set(camera.projectionMatrix);
 
+        Matrix4f cameraViewMat = this.transformsUbo.getCameraViewMat();
+        cameraViewMat.set(camera.viewRotationMatrix);
+
         Matrix4f modelViewMat = this.transformsUbo.getModelViewMat();
-        modelViewMat.set(camera.viewRotationMatrix);
+        modelViewMat.identity();
 
         Vec3 cameraPos = camera.pos;
         modelViewMat.translate(
@@ -90,15 +93,12 @@ public final class QueryInstance implements GpuReusableResource {
         );
 
         // ChatGPT can make mistakes. Check important info.
-        Matrix4f transformation = new Matrix4f()
-            .translate(min)
+        modelViewMat.translate(min)
             .scale(
                 max.x - min.x,
                 max.y - min.y,
                 max.z - min.z
             );
-
-        modelViewMat.mul(transformation);
     }
 
     @Override
