@@ -14,8 +14,9 @@ public record TextureBinding(
     }
 
     @Override
-    public void apply(int bindingPoint, SamplerAndTexture resource, ALRComputePass pass) {
-        pass.bindTexture(bindingPoint, resource);
+    public int applyOrdered(int bindingPointStart, SamplerAndTexture resource, ALRComputePass pass) {
+        pass.bindTexture(bindingPointStart, resource);
+        return 1;
     }
 
     public record SamplerAndTexture(

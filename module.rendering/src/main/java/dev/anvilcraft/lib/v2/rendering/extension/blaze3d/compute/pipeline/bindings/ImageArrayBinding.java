@@ -29,10 +29,12 @@ public record ImageArrayBinding (
     ///
     /// `resource.size <= this.size` is allowed, but `resource` must not have elements more than `this.size`
     @Override
-    public void apply(int bindingPoint, List<GpuTexture> resource, ALRComputePass computePass) {
-        Preconditions.checkElementIndex(size, resource.size(), "resource must not have elements more than this.size");
+    public int applyOrdered(int bindingPointStart, List<GpuTexture> resource, ALRComputePass computePass) {
+        int increment = 0;
+        Preconditions.checkArgument(this.size >= resource.size(), "resource must not have elements more than this.size");
         for (GpuTexture texture : resource) {
-            computePass.bindImage(bindingPoint++, texture, read, write);
+            computePass.bindImage(bindingPointStart + increment++, texture, read, write);
         }
+        return increment;
     }
 }

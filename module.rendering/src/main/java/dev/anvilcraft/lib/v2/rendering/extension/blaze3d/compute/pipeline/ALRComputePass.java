@@ -35,14 +35,22 @@ public class ALRComputePass implements AutoCloseable {
         int groupCountZ
     ) {
         this.backend.pushDebugGroup(() -> "ALRComputePass " + pipeline.identifier());
-        this.backend.dispatchWorkgroups(groupCountX, groupCountY, groupCountZ);
-        this.backend.popDebugGroup();
+        try {
+            this.backend.dispatchWorkgroups(groupCountX, groupCountY, groupCountZ);
+        } finally {
+            this.backend.popDebugGroup();
+        }
     }
 
     public void dispatchWorkgroupsIndirect(
         GpuBufferSlice buffer
     ) {
-        this.backend.dispatchWorkgroupsIndirect(buffer);
+        this.backend.pushDebugGroup(() -> "ALRComputePass " + pipeline.identifier());
+        try {
+            this.backend.dispatchWorkgroupsIndirect(buffer);
+        } finally {
+            this.backend.popDebugGroup();
+        }
     }
 
     @Override

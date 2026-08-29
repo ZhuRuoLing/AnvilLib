@@ -22,7 +22,8 @@ public record ImageBinding(
     }
 
     @Override
-    public void apply(int bindingPoint, GpuTexture resource, ALRComputePass computePass) {
-        computePass.bindImage(bindingPoint, resource, read, write);
+    public int applyOrdered(int bindingPointStart, GpuTexture resource, ALRComputePass computePass) {
+        computePass.bindImage(bindingPointStart, resource, read, write);
+        return 1;
     }
 }

@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -51,7 +52,8 @@ public class ALRComputeShaderManager extends SimplePreparableReloadListener<ALRC
 
             try (Reader reader = it.getValue().openAsReader()) {
                 String source = IOUtils.toString(reader);
-                sources.put(it.getKey(), String.join("", preprocessor.process(source)));
+                List<String> processed = preprocessor.process(source);
+                sources.put(it.getKey(), String.join("", processed));
             } catch (IOException ex) {
                 log.error("Failed to load compute shader source at {}", it.getKey(), ex);
             }

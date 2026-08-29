@@ -20,6 +20,7 @@ public class ALRComputePipelines {
         )
         .withUniformBlock("cbFSR1")
         .withTexture("r_input_downsample_src")
+        .withShaderStorage("rw_internal_global_atomic")
         .withReadWriteImage("rw_input_downsample_src_mid_mip")
         .withImageArray("rw_input_downsample_src_mips", true, true, 13)
         .build();

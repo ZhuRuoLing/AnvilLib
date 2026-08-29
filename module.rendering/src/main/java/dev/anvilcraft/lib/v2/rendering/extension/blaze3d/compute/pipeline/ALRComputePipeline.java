@@ -1,5 +1,6 @@
 package dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline;
 
+import com.google.common.collect.ImmutableList;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.ComputeBindingLayout;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.AtomicCounterBinding;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.ImageArrayBinding;
@@ -35,11 +36,12 @@ public record ALRComputePipeline(
         private Identifier shaderLocation;
         private ShaderDefines defines = ShaderDefines.EMPTY;
 
-        public Builder withPipeline(ALRComputePipeline pipeline) {
+        /// name will not copy from template pipeline
+        public Builder withPipeline(ALRComputePipeline pipelineTemplate) {
             this.bindings.clear();
-            this.bindings.addAll(pipeline.bindings());
-            this.shaderLocation = pipeline.shaderLocation();
-            this.defines = pipeline.defines();
+            this.bindings.addAll(pipelineTemplate.bindings());
+            this.shaderLocation = pipelineTemplate.shaderLocation();
+            this.defines = pipelineTemplate.defines();
             return this;
         }
 
@@ -107,7 +109,7 @@ public record ALRComputePipeline(
         public ALRComputePipeline build() {
             return new ALRComputePipeline(
                 Objects.requireNonNull(this.name, "name"),
-                this.bindings,
+                ImmutableList.copyOf(this.bindings),
                 Objects.requireNonNull(this.shaderLocation, "shaderLocation"),
                 this.defines
             );

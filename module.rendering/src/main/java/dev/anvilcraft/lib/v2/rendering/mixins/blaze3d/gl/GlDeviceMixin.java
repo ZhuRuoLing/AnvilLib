@@ -5,6 +5,7 @@ import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.opengl.GlDebugLabel;
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.opengl.GlTexture;
+import com.mojang.blaze3d.preprocessor.GlslPreprocessor;
 import com.mojang.blaze3d.textures.GpuTexture;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceBackendExtension;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRHICapabilities;
@@ -56,10 +57,11 @@ public abstract class GlDeviceMixin implements ALRGpuDeviceBackendExtension {
     public ALRComputeProgramInstance alrCompileComputeShader(ALRComputeProgramInstanceKey instanceKey) {
         String source = ALRComputeShaderManager.INSTANCE.getSource(instanceKey.location());
         int shaderId = GL46.glCreateShader(ARBComputeShader.GL_COMPUTE_SHADER);
-        GL46.glShaderSource(shaderId, source);
+        GL46.glShaderSource(shaderId, GlslPreprocessor.injectDefines(source, instanceKey.defines()));
         GL46.glCompileShader(shaderId);
         if (GL46.glGetShaderi(shaderId, GL46.GL_COMPILE_STATUS) == 0) {
             String infoLog = GL46.glGetShaderInfoLog(shaderId);
+            GL46.glDeleteShader(shaderId);
             LOGGER.error("Could not compile COMPUTE shader {}: {}", instanceKey.location(), infoLog);
             return ALRComputeProgramInstance.INVALID;
         }
@@ -67,8 +69,10 @@ public abstract class GlDeviceMixin implements ALRGpuDeviceBackendExtension {
         GL46.glAttachShader(program, shaderId);
         GL46.glLinkProgram(program);
         if (GL46.glGetProgrami(program, GL46.GL_LINK_STATUS) == 0) {
-            String infoLog = GL46.glGetProgramInfoLog(shaderId);
+            String infoLog = GL46.glGetProgramInfoLog(program);
             LOGGER.error("Could not link COMPUTE shader {}: {}", instanceKey.location(), infoLog);
+            GL46.glDeleteShader(shaderId);
+            GL46.glDeleteProgram(program);
             return ALRComputeProgramInstance.INVALID;
         }
         GL46.glDeleteShader(shaderId);

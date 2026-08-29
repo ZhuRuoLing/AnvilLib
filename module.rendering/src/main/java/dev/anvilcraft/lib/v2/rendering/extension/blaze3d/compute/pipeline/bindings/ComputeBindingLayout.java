@@ -8,11 +8,6 @@ public interface ComputeBindingLayout<T> {
 
     String name();
 
-    void apply(int bindingPoint, T resource, ALRComputePass computePass);
-
     /// @return binding point incremental
-    default int applyOrdered(int bindingPointStart, T resource, ALRComputePass computePass) {
-        this.apply(bindingPointStart, resource, computePass);
-        return 1;
-    }
+    int applyOrdered(int bindingPointStart, T resource, ALRComputePass computePass);
 }

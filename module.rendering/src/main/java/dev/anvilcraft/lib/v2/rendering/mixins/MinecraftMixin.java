@@ -27,10 +27,10 @@ public class MinecraftMixin {
         at = @At("RETURN")
     )
     private void onCreateInstance(GameConfig gameConfig, CallbackInfo ci) {
+        ALRComputeCapabilities.init();
         ALRPostEffects.createPostEffects();
         ALROptimizations.create();
         CachedBlockEntityRenderingPipeline.create();
-        ALRComputeCapabilities.init();
     }
 
 //    @Inject(

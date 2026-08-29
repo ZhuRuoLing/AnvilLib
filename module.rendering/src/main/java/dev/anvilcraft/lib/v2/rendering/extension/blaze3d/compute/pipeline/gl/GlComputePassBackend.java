@@ -16,6 +16,8 @@ import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.ALRCom
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.TextureBinding;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstance;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeShaderManager;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.ExtendedGpuTexture;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.gl.GlExtendedTextureConstants;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.jetbrains.annotations.ApiStatus;
@@ -114,7 +116,9 @@ public class GlComputePassBackend implements ALRComputePassBackend {
 
     private void setupState() {
         ALRComputeProgramInstance program = ALRComputeShaderManager.INSTANCE.getShader(pipeline);
-        if (program == null || program == ALRComputeProgramInstance.INVALID) return;
+        if (program == null || program == ALRComputeProgramInstance.INVALID) {
+            throw new IllegalStateException("dispatching compute using a invalid program");
+        }
         GL46.glUseProgram(program.id());
 
         for (Int2ObjectMap.Entry<TextureBinding.SamplerAndTexture> entry : this.textureBindings.int2ObjectEntrySet()) {
@@ -156,15 +160,27 @@ public class GlComputePassBackend implements ALRComputePassBackend {
             }
         }
 
-        ARBShaderImageLoadStore.glBindImageTexture(
-            bindingPoint,
-            ((GlTexture) state.resource()).glId(),
-            0,
-            false,
-            0,
-            access,
-            GlConst.toGlInternalId(state.resource().getFormat())
-        );
+        if (state.resource() instanceof ExtendedGpuTexture ext) {
+            ARBShaderImageLoadStore.glBindImageTexture(
+                bindingPoint,
+                ((GlTexture) state.resource()).glId(),
+                0,
+                false,
+                0,
+                access,
+                GlExtendedTextureConstants.toGlInternalId(ext.getActualFormat())
+            );
+        } else {
+            ARBShaderImageLoadStore.glBindImageTexture(
+                bindingPoint,
+                ((GlTexture) state.resource()).glId(),
+                0,
+                false,
+                0,
+                access,
+                GlConst.toGlInternalId(state.resource().getFormat())
+            );
+        }
     }
 
     private void setupUniformBlock(int bindingPoint, GpuBufferSlice resource) {
