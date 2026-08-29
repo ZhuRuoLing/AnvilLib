@@ -9,6 +9,7 @@ import dev.anvilcraft.lib.v2.rendering.gui.state.StructurePipRenderingState;
 import lombok.extern.slf4j.Slf4j;
 import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -17,6 +18,7 @@ import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterPictureInPictureRenderersEvent;
 import net.neoforged.neoforge.client.event.RenderFrameEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent;
 import org.jetbrains.annotations.ApiStatus;
 
 @Slf4j
@@ -40,6 +42,12 @@ public class AnvilLibRendering {
             CachedBlockEntityRenderingPipeline.getInstance().runTasks();
         }
         ALRPostEffects.getBloomPostEffect().beginFrame();
+        ALROptimizations.getOcclusionCuller().beginFrame();
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void on(SubmitCustomGeometryEvent event) {
+        ALROptimizations.getOcclusionCuller().processFeatures(event.getLevelRenderState().cameraRenderState);
     }
 
     @SubscribeEvent

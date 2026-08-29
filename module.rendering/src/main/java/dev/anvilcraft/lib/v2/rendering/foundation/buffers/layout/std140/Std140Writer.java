@@ -85,8 +85,11 @@ public final class Std140Writer implements BufferWriter {
         this.buffer.position(this.buffer.position() + 64);
     }
 
-    public ByteBuffer intoBuffer() {
-        return this.buffer.flip();
+    public ByteBuffer intoBuffer(boolean flip) {
+        if (flip) {
+            return this.buffer.flip();
+        }
+        return this.buffer;
     }
 
     @Override

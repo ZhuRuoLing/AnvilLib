@@ -11,7 +11,7 @@ public class OcclusionFeatureRendererHelper {
 
     public static <T> List<T> filterVisibleFeatures(List<T> features) {
         OcclusionCuller culler = ALROptimizations.getOcclusionCuller();
-        if (culler == null) {
+        if (culler == null || culler.isEmpty()) {
             return features;
         }
 

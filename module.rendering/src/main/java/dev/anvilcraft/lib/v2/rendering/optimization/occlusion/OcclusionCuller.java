@@ -2,6 +2,8 @@ package dev.anvilcraft.lib.v2.rendering.optimization.occlusion;
 
 import com.mojang.blaze3d.systems.GpuDevice;
 import dev.anvilcraft.lib.v2.rendering.ALROptions;
+import net.minecraft.client.renderer.SubmitNodeCollection;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import org.jspecify.annotations.Nullable;
@@ -23,7 +25,9 @@ public interface OcclusionCuller {
 
     boolean shouldDraw(Object feature);
 
-    default OcclusionSubmitNodeStorage wrapSubmitNodeStorage(SubmitNodeStorage original) {
+    boolean isEmpty();
+
+    default OcclusionSubmitNodeStorage wrapSubmitNodeStorage(SubmitNodeCollector original) {
         return new OcclusionSubmitNodeStorage(this, original);
     }
 

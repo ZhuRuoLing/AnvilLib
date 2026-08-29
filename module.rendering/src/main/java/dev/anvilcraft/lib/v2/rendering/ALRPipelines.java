@@ -89,7 +89,7 @@ public class ALRPipelines {
         .withFragmentShader(AnvilLibRendering.location("core/occlusion_query"))
         .withColorTargetState(new ColorTargetState(Optional.empty(), ColorTargetState.WRITE_NONE))
         .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
-        .withCull(true)
+        .withCull(false)
         .build();
 
 

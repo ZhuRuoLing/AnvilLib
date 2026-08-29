@@ -81,15 +81,14 @@ public class FrameState implements AutoCloseable {
         List<QueryInstance> queries = new ArrayList<>();
 
         for (Map.Entry<OcclusionKey, GpuQueryObject> entry : keySamplesMap.entrySet()) {
-            QueryInstance query = this.owner.acquireInstance();
             OcclusionKey key = entry.getKey();
             if (key.getBoundingBox().contains(camera.pos)) {
-                query.setCameraInside(true);
                 cameraInside.add(key);
             } else {
+                QueryInstance query = this.owner.acquireInstance();
                 query.prepareTransform(key, entry.getValue(), camera);
+                queries.add(query);
             }
-            queries.add(query);
         }
 
         FullTransformsUbo[] transforms = new FullTransformsUbo[queries.size()];
@@ -143,5 +142,9 @@ public class FrameState implements AutoCloseable {
         for (GpuQueryObject value : keySamplesMap.values()) {
             owner.releaseQuery(value);
         }
+    }
+
+    public boolean isEmpty() {
+        return this.keyAssociations.isEmpty();
     }
 }

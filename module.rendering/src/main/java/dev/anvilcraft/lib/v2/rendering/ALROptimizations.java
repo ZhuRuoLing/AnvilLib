@@ -7,7 +7,6 @@ import org.jspecify.annotations.Nullable;
 public class ALROptimizations {
     private static OcclusionCuller occlusionCuller;
 
-    @Nullable
     public static OcclusionCuller getOcclusionCuller() {
         if (occlusionCuller == null) {
             occlusionCuller = OcclusionCuller.createInstance(RenderSystem.getDevice());

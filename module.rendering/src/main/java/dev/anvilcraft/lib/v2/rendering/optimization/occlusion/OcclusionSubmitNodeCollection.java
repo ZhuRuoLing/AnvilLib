@@ -30,6 +30,9 @@ public class OcclusionSubmitNodeCollection extends SubmitNodeCollection {
     }
 
     public void beginOcclusionRecord(OcclusionKey occlusionKey) {
+        if (this.currentKey != null){
+            throw new IllegalStateException("occlusion record begun without terminating previous record.");
+        }
         this.clear();
         this.endFrame();
         this.currentKey = occlusionKey;

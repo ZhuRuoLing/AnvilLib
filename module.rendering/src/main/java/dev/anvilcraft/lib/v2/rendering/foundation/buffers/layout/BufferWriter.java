@@ -30,11 +30,15 @@ public interface BufferWriter {
 
     void putFloat(float object);
 
-    ByteBuffer intoBuffer();
+    default ByteBuffer intoBuffer() {
+        return this.intoBuffer(true);
+    }
+
+    ByteBuffer intoBuffer(boolean flip);
 
     <E> void putStructArray(int index, E object, BufferObjectLayoutDefinition<E> definition);
 
-    default  <E> void putStructArray(E[] objects, BufferObjectLayoutDefinition<E> definition) {
+    default <E> void putStructArray(E[] objects, BufferObjectLayoutDefinition<E> definition) {
         for (int i = 0; i < objects.length; i++) {
             putStructArray(i, objects[i], definition);
         }

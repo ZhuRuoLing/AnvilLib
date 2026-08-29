@@ -2,15 +2,16 @@ package dev.anvilcraft.lib.v2.rendering.optimization.occlusion;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import net.minecraft.client.renderer.SubmitNodeCollection;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import org.jspecify.annotations.NonNull;
 
 public class OcclusionSubmitNodeStorage extends SubmitNodeStorage {
     private final Int2ObjectAVLTreeMap<SubmitNodeCollection> submitsPerOrder = new Int2ObjectAVLTreeMap<>();
     private final OcclusionCuller culler;
-    private final SubmitNodeStorage original;
+    private final SubmitNodeCollector original;
 
-    public OcclusionSubmitNodeStorage(OcclusionCuller culler, SubmitNodeStorage original) {
+    public OcclusionSubmitNodeStorage(OcclusionCuller culler, SubmitNodeCollector original) {
         this.culler = culler;
         this.original = original;
     }
@@ -18,7 +19,7 @@ public class OcclusionSubmitNodeStorage extends SubmitNodeStorage {
     @Override
     @NonNull
     public SubmitNodeCollection order(int order) {
-        SubmitNodeCollection originalCollection = original.order(order);
+        SubmitNodeCollection originalCollection = (SubmitNodeCollection) original.order(order);
         return this.submitsPerOrder.computeIfAbsent(
             order,
             _ -> new OcclusionSubmitNodeCollection(this, this.culler, originalCollection)

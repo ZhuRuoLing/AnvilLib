@@ -21,19 +21,19 @@ public class GlSamplesQuery implements GpuQueryObject {
 
     @Override
     public void begin() {
-        GL46.glBeginQuery(GL46.GL_ANY_SAMPLES_PASSED, id);
+        GL46.glBeginQuery(GL46.GL_SAMPLES_PASSED, id);
     }
 
     @Override
     public void end() {
-        GL46.glEndQuery(GL46.GL_ANY_SAMPLES_PASSED);
+        GL46.glEndQuery(GL46.GL_SAMPLES_PASSED);
     }
 
     @Override
     public long getValue() {
         RenderSystem.assertOnRenderThread();
         if (this.closed) {
-            throw new IllegalStateException("GlTimerQuery is closed");
+            throw new IllegalStateException("GlSamplesQuery is closed");
         } else {
             if (result == -1) {
                 try (MemoryStack stack = MemoryStack.stackPush()) {

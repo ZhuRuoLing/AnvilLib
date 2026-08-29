@@ -106,6 +106,14 @@ public class GpuQueryOcclusionCuller implements OcclusionCuller {
         return this.previousFrameState.shouldDraw(key);
     }
 
+    @Override
+    public boolean isEmpty() {
+        if (this.previousFrameState == null) {
+            return true;
+        }
+        return this.previousFrameState.isEmpty();
+    }
+
     public GpuQueryObject acquireQuery() {
         return this.sampleQueryPool.acquire();
     }

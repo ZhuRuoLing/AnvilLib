@@ -52,6 +52,7 @@ neoForge {
                     client()
                     systemProperty('neoforge.enabledGameTestNamespaces', project.mod_id)
                     systemProperty("neoforge.disableGlValidation", "true")
+                    programArgument("--renderDebugLabels")
                 }
             }
 

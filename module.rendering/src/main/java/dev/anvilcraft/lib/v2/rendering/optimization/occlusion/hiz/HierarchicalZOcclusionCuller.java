@@ -186,7 +186,11 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
 
     @Override
     public void processFeatures(CameraRenderState camera) {
+    }
 
+    @Override
+    public boolean isEmpty() {
+        return this.keyAssociations.isEmpty();
     }
 
     @Override

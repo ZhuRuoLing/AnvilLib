@@ -58,8 +58,9 @@ public class ALRComputePass implements AutoCloseable {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void bindAll(List<?> elements) {
         int bindingPoint = 0;
+        int i = 0;
         for (ComputeBindingLayout binding : pipeline.bindings()) {
-            bindingPoint += this.bind(bindingPoint, binding, elements.get(bindingPoint - 1));
+            bindingPoint += this.bind(bindingPoint, binding, elements.get(i++));
         }
     }
 
