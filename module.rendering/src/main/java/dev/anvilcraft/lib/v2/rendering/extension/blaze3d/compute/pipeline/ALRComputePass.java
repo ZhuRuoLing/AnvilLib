@@ -5,6 +5,7 @@ import com.mojang.blaze3d.textures.GpuTexture;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.MemoryBarrierFlag;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.ComputeBindingLayout;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.TextureBinding;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ShaderResourceType;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -63,17 +64,12 @@ public class ALRComputePass implements AutoCloseable {
         this.backend.setPipeline(pipeline);
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public void bindAll(List<?> elements) {
-        int bindingPoint = 0;
-        int i = 0;
-        for (ComputeBindingLayout binding : pipeline.bindings()) {
-            bindingPoint += this.bind(bindingPoint, binding, elements.get(i++));
-        }
-    }
-
     public <T> int bind(int bindingPointStart, ComputeBindingLayout<T> layout, T resource) {
         return layout.applyOrdered(bindingPointStart, resource, this);
+    }
+
+    public void bindArrayOfTexture(int bindingPoint, TextureBinding.SamplerAndTexture resource) {
+        this.backend.bindTexture(bindingPoint, resource);
     }
 
     public void bindTexture(int bindingPoint, TextureBinding.SamplerAndTexture resource) {
@@ -94,5 +90,9 @@ public class ALRComputePass implements AutoCloseable {
 
     public void bindAtomicCounter(int bindingPoint, GpuBufferSlice resource) {
         this.backend.bindAtomicCounter(bindingPoint, resource);
+    }
+
+    public void bindBindlessImageArray(List<GpuTexture> textures, boolean read, boolean write) {
+        this.backend.bindBindlessImageArray(textures, read, write);
     }
 }

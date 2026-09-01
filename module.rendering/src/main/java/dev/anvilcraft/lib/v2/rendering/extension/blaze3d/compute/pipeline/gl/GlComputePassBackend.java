@@ -28,6 +28,7 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL33;
 import org.lwjgl.opengl.GL46;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 @ApiStatus.Internal
@@ -107,6 +108,11 @@ public class GlComputePassBackend implements ALRComputePassBackend {
     @Override
     public void bindAtomicCounter(int bindingPoint, GpuBufferSlice resource) {
         this.atomicCounterBindings.put(bindingPoint, resource);
+    }
+
+    @Override
+    public void bindBindlessImageArray(List<GpuTexture> textures, boolean read, boolean write) {
+        //TODO: implement with ARB_bindless_texture
     }
 
     @Override

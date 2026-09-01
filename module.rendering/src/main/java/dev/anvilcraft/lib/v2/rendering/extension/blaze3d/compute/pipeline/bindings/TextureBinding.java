@@ -10,7 +10,7 @@ public record TextureBinding(
 ) implements ComputeBindingLayout<TextureBinding.SamplerAndTexture> {
     @Override
     public ShaderResourceType type() {
-        return ShaderResourceType.TEXTURE;
+        return ShaderResourceType.TEXTURE_OR_IMAGE;
     }
 
     @Override

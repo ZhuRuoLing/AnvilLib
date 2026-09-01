@@ -115,14 +115,10 @@ public class ComputeSupport {
         addParam.upload(commandEncoder, addParamUBO.slice());
         try (ALRComputePass pass = commandEncoderExtension.alrCreateComputePass()) {
             pass.setPipeline(TestPipelines.ADD);
-            pass.bindAll(
-                List.of(
-                    addInputSSBO.slice(),
-                    addOutputSSBO.slice(),
-                    addParamUBO.slice(),
-                    addOutputCounter.slice()
-                )
-            );
+            pass.bindShaderStorage(0, addInputSSBO.slice());
+            pass.bindShaderStorage(1, addOutputSSBO.slice());
+            pass.bindUniformBlock(2, addParamUBO.slice());
+            pass.bindAtomicCounter(3, addOutputCounter.slice());
             pass.dispatchWorkgroups(Math.ceilDiv(input.length, 16), 1, 1);
             pass.memoryBarrier(
                 MemoryBarrierFlag.SHADER_STORAGE_BARRIER,
@@ -177,13 +173,9 @@ public class ComputeSupport {
 
         try (ALRComputePass pass = commandEncoderExtension.alrCreateComputePass()) {
             pass.setPipeline(TestPipelines.BLUR);
-            pass.bindAll(
-                List.of(
-                    blurParamUBO.slice(),
-                    new TextureBinding.SamplerAndTexture(theSampler, colorTexture),
-                    outputTexture
-                )
-            );
+            pass.bindShaderStorage(0, addInputSSBO.slice());
+            pass.bindTexture(1, new TextureBinding.SamplerAndTexture(theSampler, colorTexture));
+            pass.bindImage(2, outputTexture, false, true);
 
             pass.dispatchWorkgroups(Math.ceilDiv(width, 16), Math.ceilDiv(height, 16), 1);
             pass.memoryBarrier(

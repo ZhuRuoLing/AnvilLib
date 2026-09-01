@@ -2,25 +2,28 @@ package dev.anvilcraft.lib.v2.rendering.optimization.occlusion;
 
 import com.mojang.blaze3d.systems.GpuDevice;
 import dev.anvilcraft.lib.v2.rendering.ALROptions;
-import net.minecraft.client.renderer.SubmitNodeCollection;
+import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.noop.NoOpOcclusionCuller;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
-public interface OcclusionCuller {
+public interface OcclusionCuller extends AutoCloseable{
 
     void onResize(int newWidth, int newHeight);
 
     /// called on a frame before all features are extracted
-    void beginFrame();
+    void beforeExtract();
+
+    /// called on a frame before rendering start
+    void beginRenderingFrame();
 
     /// OcclusionCuller relies on OcclusionKey to distinguish features between frames,
     /// so the key param is also required to be the same object between frames.
     void submitFeatureKey(OcclusionKey key, List<Object> feature);
 
+    /// called on all features submitted and solid/cutout terrain rendered
     void processFeatures(CameraRenderState camera);
 
     boolean shouldDraw(Object feature);
@@ -31,8 +34,10 @@ public interface OcclusionCuller {
         return new OcclusionSubmitNodeStorage(this, original);
     }
 
-    @SuppressWarnings("ConstantValue")
     @Nullable
+    CullingStatistics collectStatistics();
+
+    @SuppressWarnings("ConstantValue")
     static OcclusionCuller createInstance(GpuDevice device) {
         OcclusionCuller instance;
 
@@ -59,6 +64,6 @@ public interface OcclusionCuller {
             return instance;
         }
 
-        return null;
+        return new NoOpOcclusionCuller();
     }
 }

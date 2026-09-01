@@ -105,7 +105,7 @@ layout (/*set = 0, */binding = 3, r32f) coherent uniform image2D rw_input_downsa
 
 // replace huge binding slot in original shader 2002 to 4
 // change format from rgba32f to r32f because we are handling depth texture
-layout (/*set = 0, */binding = 4, r32f) uniform image2D rw_input_downsample_src_mips[SPD_MAX_MIP_LEVELS + 1];
+layout (/*set = 0, */bindless_image, r32f) uniform image2D rw_input_downsample_src_mips[SPD_MAX_MIP_LEVELS + 1];
 
 /// Compute an SRGB value from a linear value.
 ///

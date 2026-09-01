@@ -18,7 +18,7 @@ public record ImageBinding(
 
     @Override
     public ShaderResourceType type() {
-        return ShaderResourceType.IMAGE;
+        return ShaderResourceType.TEXTURE_OR_IMAGE;
     }
 
     @Override

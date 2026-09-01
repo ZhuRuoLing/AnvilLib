@@ -1,6 +1,7 @@
 package dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline;
 
 import com.google.common.collect.ImmutableList;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.BindlessImageArrayBinding;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.ComputeBindingLayout;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.AtomicCounterBinding;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.ImageArrayBinding;
@@ -8,19 +9,44 @@ import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindin
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.ShaderStorageBinding;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.TextureBinding;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.UniformBlockBinding;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ShaderResourceType;
 import net.minecraft.client.renderer.ShaderDefines;
 import net.minecraft.resources.Identifier;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
-public record ALRComputePipeline(
-    Identifier identifier,
-    List<ComputeBindingLayout<?>> bindings,
-    Identifier shaderLocation,
-    ShaderDefines defines
-) {
+public final class ALRComputePipeline {
+    private final Identifier identifier;
+    private final List<ComputeBindingLayout<?>> bindings;
+    private final Identifier shaderLocation;
+    private final ShaderDefines defines;
+
+    private final Map<ShaderResourceType, List<ComputeBindingLayout<?>>> bindingsByType =
+        new EnumMap<>(ShaderResourceType.class);
+
+    public ALRComputePipeline(
+        Identifier identifier,
+        List<ComputeBindingLayout<?>> bindings,
+        Identifier shaderLocation,
+        ShaderDefines defines
+    ) {
+        this.identifier = identifier;
+        this.bindings = bindings;
+        this.shaderLocation = shaderLocation;
+        this.defines = defines;
+
+        for (ComputeBindingLayout<?> binding : bindings) {
+            bindingsByType.computeIfAbsent(
+                binding.type(),
+                _ -> new ArrayList<>()
+            ).add(binding);
+        }
+    }
 
     public static Builder builder() {
         return new Builder();
@@ -29,6 +55,65 @@ public record ALRComputePipeline(
     public static Builder builder(ALRComputePipeline pipeline) {
         return builder().withPipeline(pipeline);
     }
+
+    public Identifier identifier() {
+        return identifier;
+    }
+
+    public List<ComputeBindingLayout<?>> bindings() {
+        return bindings;
+    }
+
+    @Nullable
+    public List<ComputeBindingLayout<?>> getBinding(ShaderResourceType type) {
+        return this.bindingsByType.get(type);
+    }
+
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public <T> ComputeBindingLayout<T> getBinding(int bindingPointStart, ShaderResourceType type) {
+        List<ComputeBindingLayout<T>> ts = (List<ComputeBindingLayout<T>>) (Object) this.bindingsByType.get(type);
+
+        if (ts == null) {
+            return null;
+        }
+
+        return ts.get(bindingPointStart);
+    }
+
+    public Identifier shaderLocation() {
+        return shaderLocation;
+    }
+
+    public ShaderDefines defines() {
+        return defines;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (ALRComputePipeline) obj;
+        return Objects.equals(this.identifier, that.identifier) &&
+            Objects.equals(this.bindings, that.bindings) &&
+            Objects.equals(this.shaderLocation, that.shaderLocation) &&
+            Objects.equals(this.defines, that.defines);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(identifier, bindings, shaderLocation, defines);
+    }
+
+    @Override
+    public String toString() {
+        return "ALRComputePipeline[" +
+            "identifier=" + identifier + ", " +
+            "bindings=" + bindings + ", " +
+            "shaderLocation=" + shaderLocation + ", " +
+            "defines=" + defines + ']';
+    }
+
 
     public static class Builder {
         private final List<ComputeBindingLayout<?>> bindings = new ArrayList<>();
@@ -90,8 +175,12 @@ public record ALRComputePipeline(
         }
 
         /// an array of image2D, not image2DArray
-        public Builder withImageArray(String name, boolean read, boolean write, int size) {
+        public Builder withArrayOfImage(String name, boolean read, boolean write, int size) {
             return this.withBinding(new ImageArrayBinding(name, read, write, size));
+        }
+
+        public Builder withBindlessArrayOfImage(String name, boolean read, boolean write, int size) {
+            return this.withBinding(new BindlessImageArrayBinding(name, read, write, size));
         }
 
         public Builder withUniformBlock(String name) {

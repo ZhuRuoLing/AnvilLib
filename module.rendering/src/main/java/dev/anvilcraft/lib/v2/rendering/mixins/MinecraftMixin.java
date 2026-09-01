@@ -8,6 +8,7 @@ import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.ALRComputeCapab
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.main.GameConfig;
 import net.minecraft.client.multiplayer.ClientLevel;
+import org.lwjgl.opengl.GL46;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,6 +32,14 @@ public class MinecraftMixin {
         ALRPostEffects.createPostEffects();
         ALROptimizations.create();
         CachedBlockEntityRenderingPipeline.create();
+    }
+
+    @Inject(
+        method = "renderFrame",
+        at = @At("HEAD")
+    )
+    private void onBeforeRenderFrame(boolean advanceGameTime, CallbackInfo ci) {
+        ALROptimizations.getOcclusionCuller().beforeExtract();
     }
 
 //    @Inject(

@@ -7,34 +7,29 @@ import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ShaderRe
 
 import java.util.List;
 
-public record ImageArrayBinding (
+public record BindlessImageArrayBinding(
     String name,
     boolean read,
     boolean write,
     int size
 ) implements ComputeBindingLayout<List<GpuTexture>> {
 
-    public ImageArrayBinding {
+    public BindlessImageArrayBinding {
         if (!read && !write) {
-            throw new IllegalArgumentException("ImageResource does not allow both read and write are false");
+            throw new IllegalArgumentException("BindlessImageArrayBinding does not allow both read and write are false");
         }
     }
 
     @Override
     public ShaderResourceType type() {
-        return ShaderResourceType.TEXTURE_OR_IMAGE;
+        return ShaderResourceType.IMAGE;
     }
 
     /// Just assume iterating over the list passed in is ordered.
-    ///
-    /// `resource.size <= this.size` is allowed, but `resource` must not have elements more than `this.size`
     @Override
     public int applyOrdered(int bindingPointStart, List<GpuTexture> resource, ALRComputePass computePass) {
-        int increment = 0;
         Preconditions.checkArgument(this.size >= resource.size(), "resource must not have elements more than this.size");
-        for (GpuTexture texture : resource) {
-            computePass.bindImage(bindingPointStart + increment++, texture, read, write);
-        }
-        return increment;
+        computePass.bindBindlessImageArray(resource, read, write);
+        return 0;
     }
 }

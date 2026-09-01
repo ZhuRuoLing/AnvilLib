@@ -42,7 +42,7 @@ public class AnvilLibRendering {
             CachedBlockEntityRenderingPipeline.getInstance().runTasks();
         }
         ALRPostEffects.getBloomPostEffect().beginFrame();
-        ALROptimizations.getOcclusionCuller().beginFrame();
+        ALROptimizations.getOcclusionCuller().beginRenderingFrame();
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

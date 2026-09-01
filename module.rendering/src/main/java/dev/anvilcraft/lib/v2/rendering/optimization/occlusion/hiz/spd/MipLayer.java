@@ -1,4 +1,4 @@
-package dev.anvilcraft.lib.v2.rendering.optimization.occlusion.hiz;
+package dev.anvilcraft.lib.v2.rendering.optimization.occlusion.hiz.spd;
 
 import dev.anvilcraft.lib.v2.rendering.foundation.buffers.layout.BufferLayout;
 import dev.anvilcraft.lib.v2.rendering.foundation.buffers.object.BufferObject;

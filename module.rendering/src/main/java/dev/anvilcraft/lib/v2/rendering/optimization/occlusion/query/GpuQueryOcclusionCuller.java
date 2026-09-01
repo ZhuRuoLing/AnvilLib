@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.GpuDevice;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceExtension;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.GpuQueryObject;
 import dev.anvilcraft.lib.v2.rendering.foundation.buffers.ubo.FullTransformsUbo;
+import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.CullingStatistics;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.OcclusionCuller;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.OcclusionKey;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectLinkedOpenHashMap;
@@ -13,6 +14,7 @@ import lombok.Getter;
 import net.minecraft.client.renderer.DynamicUniformStorage;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -71,7 +73,12 @@ public class GpuQueryOcclusionCuller implements OcclusionCuller {
     }
 
     @Override
-    public void beginFrame() {
+    public void beforeExtract() {
+
+    }
+
+    @Override
+    public void beginRenderingFrame() {
         if (this.currentFrameState == null) {
             this.currentFrameState = new FrameState(this);
             return;
@@ -114,6 +121,14 @@ public class GpuQueryOcclusionCuller implements OcclusionCuller {
         return this.previousFrameState.isEmpty();
     }
 
+    @Override
+    public @Nullable CullingStatistics collectStatistics() {
+        if (this.previousFrameState == null) {
+            return null;
+        }
+        return this.previousFrameState.createStatistics();
+    }
+
     public GpuQueryObject acquireQuery() {
         return this.sampleQueryPool.acquire();
     }
@@ -128,5 +143,10 @@ public class GpuQueryOcclusionCuller implements OcclusionCuller {
 
     public void releaseInstance(QueryInstance queryInstance) {
         this.queryInstancePool.release(queryInstance);
+    }
+
+    @Override
+    public void close() throws Exception {
+
     }
 }
