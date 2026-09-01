@@ -84,7 +84,7 @@ public class ALRComputeShaderManager extends SimplePreparableReloadListener<ALRC
                 pipeline.defines()
             );
             log.debug("Compiled COMPUTE shader {}", pipeline.shaderLocation());
-            ALRComputeProgramInstance instance = deviceExtension.alrCompileComputeShader(key);
+            ALRComputeProgramInstance instance = deviceExtension.alrCompileComputePipeline(pipeline, key);
             this.shaderInstanceMap.put(key, instance);
             this.pipelineToProgramMap.put(pipeline, instance);
         }
