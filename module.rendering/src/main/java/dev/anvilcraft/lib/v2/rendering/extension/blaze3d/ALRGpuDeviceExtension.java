@@ -2,15 +2,17 @@ package dev.anvilcraft.lib.v2.rendering.extension.blaze3d;
 
 import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.textures.TextureFormat;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.ALRComputePipeline;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstance;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstanceKey;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.GpuQueryObject;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.bindless.BindlessTexturingSupport;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
 public interface ALRGpuDeviceExtension {
-    ALRComputeProgramInstance alrCompileComputeShader(ALRComputeProgramInstanceKey instanceKey);
+    ALRComputeProgramInstance alrCompileComputePipeline(ALRComputePipeline pipeline,ALRComputeProgramInstanceKey instanceKey);
 
     void alrDestroyComputeShader(ALRComputeProgramInstance instance);
 
@@ -31,4 +33,8 @@ public interface ALRGpuDeviceExtension {
         int depthOrLayers,
         int mipLevels
     );
+
+    int alrGetUniformLocation(ALRComputeProgramInstance program, ALRComputePipeline owner, String name);
+
+    BindlessTexturingSupport alrGetBindlessTexturingSupport();
 }

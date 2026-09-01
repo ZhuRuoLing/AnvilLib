@@ -7,9 +7,11 @@ import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceBackendExte
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceExtension;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRHICapabilities;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ExtendedTextureFormat;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.ALRComputePipeline;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstance;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstanceKey;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.GpuQueryObject;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.bindless.BindlessTexturingSupport;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -26,8 +28,8 @@ public class GpuDeviceMixin implements ALRGpuDeviceExtension {
     private GpuDeviceBackend backend;
 
     @Override
-    public ALRComputeProgramInstance alrCompileComputeShader(ALRComputeProgramInstanceKey instanceKey) {
-        return alrBackend().alrCompileComputeShader(instanceKey);
+    public ALRComputeProgramInstance alrCompileComputePipeline(ALRComputePipeline pipeline, ALRComputeProgramInstanceKey instanceKey) {
+        return alrBackend().alrCompileComputePipeline(pipeline, instanceKey);
     }
 
     @Override
@@ -68,6 +70,16 @@ public class GpuDeviceMixin implements ALRGpuDeviceExtension {
         return alrBackend().alrCreateExtendedTexture(
             label, usage, format, width, height, depthOrLayers, mipLevels
         );
+    }
+
+    @Override
+    public int alrGetUniformLocation(ALRComputeProgramInstance program, ALRComputePipeline owner, String name) {
+        return alrBackend().alrGetUniformLocation(program, owner, name);
+    }
+
+    @Override
+    public BindlessTexturingSupport alrGetBindlessTexturingSupport() {
+        return alrBackend().alrGetBindlessTexturingSupport();
     }
 
     @Unique

@@ -16,6 +16,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,6 +29,8 @@ public final class ALRComputePipeline {
 
     private final Map<ShaderResourceType, List<ComputeBindingLayout<?>>> bindingsByType =
         new EnumMap<>(ShaderResourceType.class);
+
+    private final Map<String, ComputeBindingLayout<?>> bindingsByName = new HashMap<>();
 
     public ALRComputePipeline(
         Identifier identifier,
@@ -45,6 +48,7 @@ public final class ALRComputePipeline {
                 binding.type(),
                 _ -> new ArrayList<>()
             ).add(binding);
+            bindingsByName.put(binding.name(), binding);
         }
     }
 
@@ -112,6 +116,15 @@ public final class ALRComputePipeline {
             "bindings=" + bindings + ", " +
             "shaderLocation=" + shaderLocation + ", " +
             "defines=" + defines + ']';
+    }
+
+    @Nullable
+    public ShaderResourceType getBindingType(String name) {
+        ComputeBindingLayout<?> computeBindingLayout = this.bindingsByName.get(name);
+        if (computeBindingLayout == null) {
+            return null;
+        }
+        return computeBindingLayout.type();
     }
 
 

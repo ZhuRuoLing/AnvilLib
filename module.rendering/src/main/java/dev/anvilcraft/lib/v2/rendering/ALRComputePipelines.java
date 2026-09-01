@@ -14,7 +14,7 @@ public class ALRComputePipelines {
         .withShader(AnvilLibRendering.location("compute/ffx_spd_downsample_pass.csh"))
         .withDefines(
             ShaderDefines.builder()
-                .define("SPD_MAX_MIP_LEVELS", 4) // minium required value in spec of GL_MAX_IMAGE_UNITS is 8, spd use one for input tex
+//                .define("SPD_MAX_MIP_LEVELS", 5) // minium required value in spec of GL_MAX_IMAGE_UNITS is 8, spd use one for input tex, one for mid tex
                 .define("FFX_SPD_OPTION_DOWNSAMPLE_FILTER", "2") // use max for HZB
                 .define("FFX_SPD_OPTION_WAVE_INTEROP_LDS", ALROptions.SPD_OPTION_WAVE_INTEROP_LDS ? 0 : 1) // weird inverted
                 .build()

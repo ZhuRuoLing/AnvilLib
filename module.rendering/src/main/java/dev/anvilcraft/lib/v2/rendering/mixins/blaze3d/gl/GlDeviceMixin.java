@@ -11,13 +11,16 @@ import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceBackendExte
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRHICapabilities;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ExtendedTextureFormat;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.ALRDebugLabelExtension;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.ALRComputePipeline;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstance;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstanceKey;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeShaderManager;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.GpuQueryObject;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.query.gl.GlSamplesQuery;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.bindless.BindlessTexturingSupport;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.gl.GlExtendedTexture;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.gl.GlExtendedTextureConstants;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.gl.bindless.GlBindlessTexturingSupport;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.opengl.ARBComputeShader;
 import org.lwjgl.opengl.GL;
@@ -45,8 +48,11 @@ public abstract class GlDeviceMixin implements ALRGpuDeviceBackendExtension {
     @Shadow
     @Final
     private GlDebugLabel debugLabels;
+
     @Unique
     private ALRHICapabilities alr$capabilities = null;
+    @Unique
+    private BindlessTexturingSupport alr$bindlessTexturingImpl;
 
     @Override
     public void alrDestroyComputeShader(ALRComputeProgramInstance instance) {
@@ -54,7 +60,10 @@ public abstract class GlDeviceMixin implements ALRGpuDeviceBackendExtension {
     }
 
     @Override
-    public ALRComputeProgramInstance alrCompileComputeShader(ALRComputeProgramInstanceKey instanceKey) {
+    public ALRComputeProgramInstance alrCompileComputePipeline(
+        ALRComputePipeline pipeline,
+        ALRComputeProgramInstanceKey instanceKey
+    ) {
         String source = ALRComputeShaderManager.INSTANCE.getSource(instanceKey.location());
         int shaderId = GL46.glCreateShader(ARBComputeShader.GL_COMPUTE_SHADER);
         GL46.glShaderSource(shaderId, GlslPreprocessor.injectDefines(source, instanceKey.defines()));
@@ -76,7 +85,7 @@ public abstract class GlDeviceMixin implements ALRGpuDeviceBackendExtension {
             return ALRComputeProgramInstance.INVALID;
         }
         GL46.glDeleteShader(shaderId);
-        ALRComputeProgramInstance instance = new ALRComputeProgramInstance(program, instanceKey);
+        ALRComputeProgramInstance instance = new ALRComputeProgramInstance(program, instanceKey, pipeline);
         ((ALRDebugLabelExtension) this.debugLabels()).alrApplyLabel(instance);
         return instance;
     }
@@ -101,7 +110,9 @@ public abstract class GlDeviceMixin implements ALRGpuDeviceBackendExtension {
         if (this.alr$capabilities == null) {
             GLCapabilities capabilities = GL.getCapabilities();
             this.alr$capabilities = new ALRHICapabilities(
-                capabilities.GL_ARB_compute_shader
+                capabilities.GL_ARB_compute_shader,
+                capabilities.GL_ARB_bindless_texture,
+                GL46.glGetInteger(GL46.GL_MAX_IMAGE_UNITS)
             );
         }
         return alr$capabilities;
@@ -175,9 +186,35 @@ public abstract class GlDeviceMixin implements ALRGpuDeviceBackendExtension {
         } else if (error != 0) {
             throw new IllegalStateException("OpenGL error " + error);
         } else {
-            GlExtendedTexture texture = new GlExtendedTexture(usage, label, format, width, height, depthOrLayers, mipLevels, id);
+            GlExtendedTexture texture = new GlExtendedTexture(
+                usage,
+                label,
+                format,
+                width,
+                height,
+                depthOrLayers,
+                mipLevels,
+                id
+            );
             this.debugLabels.applyLabel(texture);
             return texture;
         }
+    }
+
+    @Override
+    public int alrGetUniformLocation(ALRComputeProgramInstance program, ALRComputePipeline owner, String name) {
+        return switch (owner.getBindingType(name)) {
+            case TEXTURE_OR_IMAGE -> GlStateManager._glGetUniformLocation(program.id(), name);
+            case null -> -1;
+            default -> throw new IllegalStateException("Shader resource other than texture or image is not allowed to getLocation");
+        };
+    }
+
+    @Override
+    public BindlessTexturingSupport alrGetBindlessTexturingSupport() {
+        if (alrhiCreateCapabilities().bindlessTexturing() && alr$bindlessTexturingImpl == null) {
+            this.alr$bindlessTexturingImpl = new GlBindlessTexturingSupport(this);
+        }
+        return this.alr$bindlessTexturingImpl;
     }
 }

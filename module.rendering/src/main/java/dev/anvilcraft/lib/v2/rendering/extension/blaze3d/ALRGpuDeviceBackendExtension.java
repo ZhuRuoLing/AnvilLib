@@ -1,6 +1,8 @@
 package dev.anvilcraft.lib.v2.rendering.extension.blaze3d;
 
 import com.mojang.blaze3d.textures.GpuTexture;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.ALRComputePipeline;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.bindless.BindlessTexturingSupport;
 import org.jetbrains.annotations.ApiStatus;
 
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.shader.ALRComputeProgramInstance;
@@ -12,7 +14,7 @@ import java.util.function.Supplier;
 
 @ApiStatus.Internal
 public interface ALRGpuDeviceBackendExtension {
-    ALRComputeProgramInstance alrCompileComputeShader(ALRComputeProgramInstanceKey instanceKey);
+    ALRComputeProgramInstance alrCompileComputePipeline(ALRComputePipeline pipeline, ALRComputeProgramInstanceKey instanceKey);
 
     void alrDestroyComputeShader(ALRComputeProgramInstance instance);
 
@@ -33,4 +35,8 @@ public interface ALRGpuDeviceBackendExtension {
         int depthOrLayers,
         int mipLevels
     );
+
+    int alrGetUniformLocation(ALRComputeProgramInstance program, ALRComputePipeline owner, String name);
+
+    BindlessTexturingSupport alrGetBindlessTexturingSupport();
 }
