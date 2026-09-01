@@ -22,7 +22,7 @@ public record BindlessImageArrayBinding(
 
     @Override
     public ShaderResourceType type() {
-        return ShaderResourceType.IMAGE;
+        return ShaderResourceType.TEXTURE_OR_IMAGE;
     }
 
     /// Just assume iterating over the list passed in is ordered.

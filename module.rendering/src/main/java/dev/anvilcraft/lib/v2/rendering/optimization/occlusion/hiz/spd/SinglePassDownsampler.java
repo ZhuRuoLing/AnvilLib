@@ -180,6 +180,10 @@ public class SinglePassDownsampler {
     }
 
     public void spdDispatch(CommandEncoder commandEncoder, GpuTexture source) {
+
+    }
+
+    public void spdDispathBindless(CommandEncoder commandEncoder, GpuTexture source) {
         ALRCommandEncoderExtension commandEncoderExtension = (ALRCommandEncoderExtension) commandEncoder;
         List<GpuTexture> textures = new ArrayList<>(13);
         GpuTexture midTex;
@@ -195,15 +199,11 @@ public class SinglePassDownsampler {
         }
         try (ALRComputePass pass = commandEncoderExtension.alrCreateComputePass()) {
             pass.setPipeline(ALRComputePipelines.FFX_SPD_DOWNSAMPLE_PASS);
-            pass.bindAll(
-                List.of(
-                    spdParamsBuffer.slice(),
-                    new TextureBinding.SamplerAndTexture(this.inputSampler, source),
-                    spdGlobalAtomicCounterBuffer.slice(),
-                    midTex,
-                    textures
-                )
-            );
+            pass.bindUniformBlock(0, spdParamsBuffer.slice());
+            pass.bindTexture(0, new TextureBinding.SamplerAndTexture(this.inputSampler, source));
+            pass.bindShaderStorage(0, spdGlobalAtomicCounterBuffer.slice());
+            pass.bindImage(0, midTex, true, true);
+            pass.bindBindlessImageArray(textures, true, true);
 
             pass.dispatchWorkgroups(dispatchDimensionX, dispatchDimensionY, 1);
 

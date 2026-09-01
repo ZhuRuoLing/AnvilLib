@@ -89,11 +89,11 @@ vec2 InvInputSize()
 //// SRVs
 //layout (/*set = 0, */binding = 0) uniform texture2DArray r_input_downsample_src;
 // in our usage case, those arrays only have one element, so replace it with a sampler2D
-layout (/*set = 0, */binding = 1) uniform sampler2D r_input_downsample_src;
+layout (/*set = 0, */binding = 0) uniform sampler2D r_input_downsample_src;
 
 // UAV declarations
 // replace huge binding slot in original shader 2000 to 2
-layout (/*set = 0, */binding = 2, std430) coherent buffer rw_internal_global_atomic_t
+layout (/*set = 0, */binding = 0, std430) coherent buffer rw_internal_global_atomic_t
 {
     uint counter[6];
 } rw_internal_global_atomic;
@@ -101,7 +101,7 @@ layout (/*set = 0, */binding = 2, std430) coherent buffer rw_internal_global_ato
 // replace huge binding slot in original shader 2001 to 3
 // bind mip map 6 to this uniform
 // change format from rgba32f to r32f because we are handling depth texture
-layout (/*set = 0, */binding = 3, r32f) coherent uniform image2D rw_input_downsample_src_mid_mip;
+layout (/*set = 0, */binding = 1, r32f) coherent uniform image2D rw_input_downsample_src_mid_mip;
 
 // replace huge binding slot in original shader 2002 to 4
 // change format from rgba32f to r32f because we are handling depth texture
