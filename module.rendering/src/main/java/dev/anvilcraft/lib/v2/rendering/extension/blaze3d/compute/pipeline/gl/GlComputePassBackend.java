@@ -6,7 +6,6 @@ import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.opengl.GlSampler;
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.opengl.GlTexture;
-import com.mojang.blaze3d.systems.GpuDeviceBackend;
 import com.mojang.blaze3d.textures.GpuTexture;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRCommandEncoderBackendExtension;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceBackendExtension;
@@ -40,6 +39,8 @@ public class GlComputePassBackend implements ALRComputePassBackend {
     private final Int2ObjectMap<GpuBufferSlice> uniformBlockBindings = new Int2ObjectOpenHashMap<>();
     private final Int2ObjectMap<GpuBufferSlice> shaderStorageBindings = new Int2ObjectOpenHashMap<>();
     private final Int2ObjectMap<GpuBufferSlice> atomicCounterBindings = new Int2ObjectOpenHashMap<>();
+
+
     private ALRComputePipeline pipeline = null;
 
     public GlComputePassBackend(
@@ -111,7 +112,7 @@ public class GlComputePassBackend implements ALRComputePassBackend {
     }
 
     @Override
-    public void bindBindlessImageArray(List<GpuTexture> textures, boolean read, boolean write) {
+    public void bindBindlessImageArray(String name, List<GpuTexture> textures, boolean read, boolean write) {
         //TODO: implement with ARB_bindless_texture
     }
 
@@ -125,7 +126,7 @@ public class GlComputePassBackend implements ALRComputePassBackend {
         if (program == null || program == ALRComputeProgramInstance.INVALID) {
             throw new IllegalStateException("dispatching compute using a invalid program");
         }
-        GL46.glUseProgram(program.id());
+        GlStateManager._glUseProgram(program.id());
 
         for (Int2ObjectMap.Entry<TextureBinding.SamplerAndTexture> entry : this.textureBindings.int2ObjectEntrySet()) {
             this.setupTexture(entry.getIntKey(), entry.getValue());

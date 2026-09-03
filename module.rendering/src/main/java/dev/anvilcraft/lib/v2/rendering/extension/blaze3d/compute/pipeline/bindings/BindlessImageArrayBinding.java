@@ -28,8 +28,11 @@ public record BindlessImageArrayBinding(
     /// Just assume iterating over the list passed in is ordered.
     @Override
     public int applyOrdered(int bindingPointStart, List<GpuTexture> resource, ALRComputePass computePass) {
-        Preconditions.checkArgument(this.size >= resource.size(), "resource must not have elements more than this.size");
-        computePass.bindBindlessImageArray(resource, read, write);
+        Preconditions.checkArgument(
+            this.size >= resource.size(),
+            "resource must not have elements more than this.size"
+        );
+        computePass.bindBindlessImageArray(name, resource, read, write);
         return 0;
     }
 }
