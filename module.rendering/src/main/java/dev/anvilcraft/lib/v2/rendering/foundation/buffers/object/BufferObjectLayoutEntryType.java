@@ -165,6 +165,94 @@ public interface BufferObjectLayoutEntryType<T> {
         }
     };
 
+    static BufferObjectLayoutEntryType<Vector2f[]> createVec2Array(int size) {
+        if (size < 0) {
+            throw new IllegalArgumentException("size must be non-negative");
+        }
+        return new BufferObjectLayoutEntryType<>() {
+            @Override
+            public void acceptSizeCalculator(BufferSizeCalculator sizeCalculator) {
+                sizeCalculator.putVec2Array(size);
+            }
+
+            @Override
+            public void acceptWriter(BufferWriter writer, Vector2f[] objects) {
+                writer.putVec2Array(size, objects);
+            }
+
+            @Override
+            public int alignment(BufferLayout layout) {
+                return layout == BufferLayout.STD140 ? 16 : 8;
+            }
+        };
+    }
+
+    static BufferObjectLayoutEntryType<Vector2i[]> createIVec2Array(int size) {
+        if (size < 0) {
+            throw new IllegalArgumentException("size must be non-negative");
+        }
+        return new BufferObjectLayoutEntryType<>() {
+            @Override
+            public void acceptSizeCalculator(BufferSizeCalculator sizeCalculator) {
+                sizeCalculator.putIVec2Array(size);
+            }
+
+            @Override
+            public void acceptWriter(BufferWriter writer, Vector2i[] objects) {
+                writer.putIVec2Array(size, objects);
+            }
+
+            @Override
+            public int alignment(BufferLayout layout) {
+                return layout == BufferLayout.STD140 ? 16 : 8;
+            }
+        };
+    }
+
+    static <T extends BufferObject<T>> BufferObjectLayoutEntryType<T> createStruct(BufferObjectLayoutDefinition<T> definition) {
+        return new BufferObjectLayoutEntryType<>() {
+            @Override
+            public void acceptSizeCalculator(BufferSizeCalculator sizeCalculator) {
+                sizeCalculator.putStructArray(definition, 1);
+            }
+
+            @Override
+            public void acceptWriter(BufferWriter writer, T object) {
+                writer.putStructArray(0, object, definition);
+            }
+
+            @Override
+            public int alignment(BufferLayout layout) {
+                return definition.alignment(layout);
+            }
+        };
+    }
+
+    static <T extends BufferObject<T>> BufferObjectLayoutEntryType<T[]> createStructArray(
+        BufferObjectLayoutDefinition<T> definition,
+        int size
+    ) {
+        if (size < 0) {
+            throw new IllegalArgumentException("size must be non-negative");
+        }
+        return new BufferObjectLayoutEntryType<>() {
+            @Override
+            public void acceptSizeCalculator(BufferSizeCalculator sizeCalculator) {
+                sizeCalculator.putStructArray(definition, size);
+            }
+
+            @Override
+            public void acceptWriter(BufferWriter writer, T[] objects) {
+                writer.putStructArray(objects, definition);
+            }
+
+            @Override
+            public int alignment(BufferLayout layout) {
+                return definition.alignment(layout);
+            }
+        };
+    }
+
     void acceptSizeCalculator(BufferSizeCalculator sizeCalculator);
 
     void acceptWriter(BufferWriter writer, T object);

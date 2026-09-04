@@ -64,26 +64,6 @@ layout (/*set = 0, */binding = 0, std140) uniform cbFSR1_t
     vec2 invInputSize; // Only used for linear sampling mode
 } cbFSR1;
 
-uint Mips()
-{
-    return cbFSR1.mips;
-}
-
-uint NumWorkGroups()
-{
-    return cbFSR1.numWorkGroups;
-}
-
-uvec2 WorkGroupOffset()
-{
-    return cbFSR1.workGroupOffset;
-}
-
-vec2 InvInputSize()
-{
-    return cbFSR1.invInputSize;
-}
-
 // separate texture and sampler objects are unavailable in opengl
 //layout (/*set = 0, */binding = 1000) uniform sampler s_LinearClamp;
 //// SRVs
@@ -106,6 +86,27 @@ layout (/*set = 0, */binding = 1, r32f) coherent uniform image2D rw_input_downsa
 // replace huge binding slot in original shader 2002 to 4
 // change format from rgba32f to r32f because we are handling depth texture
 layout (/*set = 0, */binding = 2, r32f) uniform image2D rw_input_downsample_src_mips[SPD_MAX_MIP_LEVELS + 1];
+
+uint Mips()
+{
+    return cbFSR1.mips;
+}
+
+uint NumWorkGroups()
+{
+    return cbFSR1.numWorkGroups;
+}
+
+uvec2 WorkGroupOffset()
+{
+    return cbFSR1.workGroupOffset;
+}
+
+vec2 InvInputSize()
+{
+    return cbFSR1.invInputSize;
+}
+
 
 /// Compute an SRGB value from a linear value.
 ///

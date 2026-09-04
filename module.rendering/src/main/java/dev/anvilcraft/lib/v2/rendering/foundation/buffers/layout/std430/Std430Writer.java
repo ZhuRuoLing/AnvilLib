@@ -49,10 +49,28 @@ public class Std430Writer implements BufferWriter {
         this.buffer.position(this.buffer.position() + 8);
     }
 
+    @Override
+    public void putVec2Array(int size, Vector2f[] vector2fs) {
+        this.align(8);
+        for (int i = 0; i < size; i++) {
+            vector2fs[i].get(this.buffer);
+            this.buffer.position(this.buffer.position() + 8);
+        }
+    }
+
     public void putIVec2(Vector2i vec) {
         this.align(8);
         vec.get(this.buffer);
         this.buffer.position(this.buffer.position() + 8);
+    }
+
+    @Override
+    public void putIVec2Array(int size, Vector2i[] vector2is) {
+        this.align(8);
+        for (int i = 0; i < size; i++) {
+            vector2is[i].get(this.buffer);
+            this.buffer.position(this.buffer.position() + 8);
+        }
     }
 
     public void putVec3(Vector3f vec) {

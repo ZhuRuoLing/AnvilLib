@@ -68,8 +68,8 @@ public class ALRComputePass implements AutoCloseable {
         return layout.applyOrdered(bindingPointStart, resource, this);
     }
 
-    public void bindArrayOfTexture(int bindingPoint, TextureBinding.SamplerAndTexture resource) {
-        this.backend.bindTexture(bindingPoint, resource);
+    public void bindArrayOfTexture(int bindingPoint, List<GpuTexture> resource, boolean read, boolean write) {
+        this.backend.bindArrayOfTexture(bindingPoint, resource, read, write);
     }
 
     public void bindTexture(int bindingPoint, TextureBinding.SamplerAndTexture resource) {

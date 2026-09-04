@@ -28,6 +28,10 @@ public interface BufferWriter {
 
     void putVec2(Vector2f object);
 
+    void putVec2Array(int size, Vector2f[] vector2fs);
+
+    void putIVec2Array(int size, Vector2i[] vector2is);
+
     void putFloat(float object);
 
     default ByteBuffer intoBuffer() {

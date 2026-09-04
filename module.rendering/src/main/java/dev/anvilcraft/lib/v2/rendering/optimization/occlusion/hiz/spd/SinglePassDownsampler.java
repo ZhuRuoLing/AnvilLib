@@ -22,6 +22,7 @@ import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import org.joml.Vector2f;
+import org.joml.Vector2i;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.ByteBuffer;
@@ -69,9 +70,11 @@ public class SinglePassDownsampler {
     /// mip layer count, excluding input layer (mip 0)
     private int mipLayerCount = 0;
     /// mip layer textures, excluding input layer (mip 0)
+    @Getter
     private GpuTexture[] mipTextures;
     /// mip layers, excluding input layer (mip 0)
-    private MipLayer[] mipLayers;
+    @Getter
+    private Vector2i[] mipLayers;
 
     public SinglePassDownsampler(
         Minecraft minecraft,
@@ -138,16 +141,16 @@ public class SinglePassDownsampler {
         this.deleteTextures();
 
         this.mipTextures = new GpuTexture[mipLayerCount];
-        this.mipLayers = new MipLayer[mipLayerCount];
+        this.mipLayers = new Vector2i[mipLayerCount];
 
         // generates mip 1 - mipLayerCount
         for (int i = 1; i <= mipLayerCount; i++) {
             int mipW = Math.max(1, this.paddedWidth >> i);
             int mipH = Math.max(1, this.paddedHeight >> i);
 
-            MipLayer mipLayer = new MipLayer();
-            mipLayer.setWidth(mipW);
-            mipLayer.setHeight(mipH);
+            Vector2i mipLayer = new Vector2i();
+            mipLayer.x = mipW;
+            mipLayer.y = mipH;
 
             GpuTexture texture = this.gpuDeviceExtension.alrCreateExtendedTexture(
                 "HierarchicalZ Mip Chain Image #" + i,
@@ -196,7 +199,36 @@ public class SinglePassDownsampler {
     }
 
     public void spdDispatchImpl(CommandEncoder commandEncoder, GpuTexture source) {
-        // TODO spd dispatch normally
+        // TODO validate this
+        ALRCommandEncoderExtension commandEncoderExtension = (ALRCommandEncoderExtension) commandEncoder;
+        List<GpuTexture> textures = new ArrayList<>(13);
+        GpuTexture midTex;
+        textures.add(source);
+        textures.addAll(Arrays.asList(mipTextures));
+        if (textures.size() < 7) {
+            midTex = source;
+        } else {
+            midTex = textures.get(6);
+        }
+        while (textures.size() < 13) {
+            textures.add(source);
+        }
+        try (ALRComputePass pass = commandEncoderExtension.alrCreateComputePass()) {
+            pass.setPipeline(ALRComputePipelines.FFX_SPD_DOWNSAMPLE_PASS);
+            pass.bindUniformBlock(0, spdParamsBuffer.slice());
+            pass.bindTexture(0, new TextureBinding.SamplerAndTexture(this.inputSampler, source));
+            pass.bindShaderStorage(0, spdGlobalAtomicCounterBuffer.slice());
+            pass.bindImage(1, midTex, true, true);
+            pass.bindArrayOfTexture(2, textures, true, true);
+
+            pass.dispatchWorkgroups(dispatchDimensionX, dispatchDimensionY, 1);
+
+            pass.memoryBarrier(
+                MemoryBarrierFlag.SHADER_IMAGE_ACCESS_BARRIER,
+                MemoryBarrierFlag.BUFFER_UPDATE_BARRIER,
+                MemoryBarrierFlag.SHADER_STORAGE_BARRIER
+            );
+        }
     }
 
     public void spdDispatchBindless(CommandEncoder commandEncoder, GpuTexture source) {

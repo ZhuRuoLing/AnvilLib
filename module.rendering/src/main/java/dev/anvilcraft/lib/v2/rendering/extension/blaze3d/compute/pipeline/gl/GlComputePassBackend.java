@@ -49,6 +49,7 @@ public class GlComputePassBackend implements ALRComputePassBackend {
     private final Int2ObjectMap<GpuBufferSlice> uniformBlockBindings = new Int2ObjectOpenHashMap<>();
     private final Int2ObjectMap<GpuBufferSlice> shaderStorageBindings = new Int2ObjectOpenHashMap<>();
     private final Int2ObjectMap<GpuBufferSlice> atomicCounterBindings = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<ImageArrayState> arrayOfImageBindings = new Int2ObjectOpenHashMap<>();
     private final List<BindlessImageArrayState> bindlessImageArrayBindings = new ArrayList<>();
     private final Map<TextureHandle, ResidentState> residentHandles = new HashMap<>();
 
@@ -171,6 +172,11 @@ public class GlComputePassBackend implements ALRComputePassBackend {
         }
     }
 
+    @Override
+    public void bindArrayOfTexture(int bindingPoint, List<GpuTexture> resource, boolean read, boolean write) {
+        this.arrayOfImageBindings.put(bindingPoint, new ImageArrayState(resource, read, write));
+    }
+
     private void setupState() {
         ALRComputeProgramInstance program = ALRComputeShaderManager.INSTANCE.getShader(pipeline);
         if (program == null || program == ALRComputeProgramInstance.INVALID) {
@@ -193,7 +199,49 @@ public class GlComputePassBackend implements ALRComputePassBackend {
         for (Int2ObjectMap.Entry<GpuBufferSlice> entry : this.atomicCounterBindings.int2ObjectEntrySet()) {
             this.setupAtomicCounter(entry.getIntKey(), entry.getValue());
         }
+        for (Int2ObjectMap.Entry<ImageArrayState> entry : this.arrayOfImageBindings.int2ObjectEntrySet()) {
+            this.setupArrayOfImage(entry.getIntKey(), entry.getValue());
+        }
         this.setupBindlessImageArrays(program);
+    }
+
+    //TODO test on amd
+    private void setupArrayOfImage(int bindingPointStart, ImageArrayState state) {
+        for (GpuTexture texture : state.resource) {
+            int access = 0;
+            if (state.read() && state.write()) {
+                access = GL46.GL_READ_WRITE;
+            } else {
+                if (state.read()) {
+                    access |= GL46.GL_READ_ONLY;
+                }
+                if (state.write()) {
+                    access |= GL46.GL_WRITE_ONLY;
+                }
+            }
+            int unit = bindingPointStart++;
+            if (texture instanceof ExtendedGpuTexture ext) {
+                ARBShaderImageLoadStore.glBindImageTexture(
+                    unit,
+                    ((GlTexture) texture).glId(),
+                    0,
+                    false,
+                    0,
+                    access,
+                    GlExtendedTextureConstants.toGlInternalId(ext.getActualFormat())
+                );
+            } else {
+                ARBShaderImageLoadStore.glBindImageTexture(
+                    unit,
+                    ((GlTexture) texture).glId(),
+                    0,
+                    false,
+                    0,
+                    access,
+                    GlConst.toGlInternalId(texture.getFormat())
+                );
+            }
+        }
     }
 
     private void setupBindlessImageArrays(ALRComputeProgramInstance program) {
@@ -362,6 +410,13 @@ public class GlComputePassBackend implements ALRComputePassBackend {
 
     private record ImageState(
         GpuTexture resource,
+        boolean read,
+        boolean write
+    ) {
+    }
+
+    private record ImageArrayState(
+        List<GpuTexture> resource,
         boolean read,
         boolean write
     ) {

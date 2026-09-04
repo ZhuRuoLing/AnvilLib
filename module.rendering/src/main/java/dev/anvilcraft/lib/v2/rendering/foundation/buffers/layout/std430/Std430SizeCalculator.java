@@ -50,6 +50,12 @@ public class Std430SizeCalculator implements BufferSizeCalculator {
         this.size += 16;
     }
 
+    @Override
+    public void putVec2Array(int size) {
+        this.align(8);
+        this.size += 8 * size;
+    }
+
     public void putIVec4() {
         this.align(16);
         this.size += 16;
@@ -58,6 +64,12 @@ public class Std430SizeCalculator implements BufferSizeCalculator {
     public void putMat4f() {
         this.align(16);
         this.size += 64;
+    }
+
+    @Override
+    public void putIVec2Array(int size) {
+        this.align(8);
+        this.size += 8 * size;
     }
 
     @Override

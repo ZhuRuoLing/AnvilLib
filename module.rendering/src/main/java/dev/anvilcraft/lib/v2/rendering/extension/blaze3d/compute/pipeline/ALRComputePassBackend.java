@@ -34,10 +34,11 @@ public interface ALRComputePassBackend {
 
     void bindAtomicCounter(int bindingPoint, GpuBufferSlice resource);
 
+    void bindArrayOfTexture(int bindingPoint, List<GpuTexture> resource, boolean read, boolean write);
+
     void bindBindlessImageArray(BindlessImageArrayBinding binding, List<GpuTexture> textures);
 
     void bindBindlessImageArray(String name, List<GpuTexture> textures);
 
     void close();
-
 }

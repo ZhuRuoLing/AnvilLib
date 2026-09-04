@@ -51,6 +51,12 @@ public final class Std140SizeCalculator implements BufferSizeCalculator {
         this.size += 16;
     }
 
+    @Override
+    public void putVec2Array(int size) {
+        this.align(16);
+        this.size += 16 * size;
+    }
+
     public void putIVec4() {
         this.align(16);
         this.size += 16;
@@ -59,6 +65,12 @@ public final class Std140SizeCalculator implements BufferSizeCalculator {
     public void putMat4f() {
         this.align(16);
         this.size += 64;
+    }
+
+    @Override
+    public void putIVec2Array(int size) {
+        this.align(16);
+        this.size += 16 * size;
     }
 
     @Override
