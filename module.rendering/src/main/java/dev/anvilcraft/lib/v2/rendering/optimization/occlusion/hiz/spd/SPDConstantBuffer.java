@@ -22,8 +22,8 @@ public class SPDConstantBuffer extends BufferObject<SPDConstantBuffer> {
 
     public static final int SIZE = DEFINITION.size(BufferLayout.STD140);
 
-    /// The total number of mip levels SPD generates for each input texture slice.
-    private int mips = 13;
+    /// The total number of mip levels SPD generates for each input texture slice, excluding input (mip 0)
+    private int mips = 12;
 
     /// number of thread groups per slice
     private int numWorkGroups;

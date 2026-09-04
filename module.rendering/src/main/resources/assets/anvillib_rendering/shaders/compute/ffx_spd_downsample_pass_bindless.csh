@@ -1,4 +1,5 @@
 #version 460 core
+#extension GL_ARB_bindless_texture : require
 
 // This file is part of the FidelityFX SDK.
 //

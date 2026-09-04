@@ -27,7 +27,7 @@ public class ALRComputePipelines {
         .build();
 
     public static final ALRComputePipeline FFX_SPD_DOWNSAMPLE_PASS_BINDLESS = ALRComputePipeline.builder()
-        .withName(AnvilLibRendering.location("ffx_spd_downsample_pass"))
+        .withName(AnvilLibRendering.location("ffx_spd_downsample_pass_bindless"))
         .withShader(AnvilLibRendering.location("compute/ffx_spd_downsample_pass_bindless.csh"))
         .withDefines(
             ShaderDefines.builder()
@@ -54,6 +54,7 @@ public class ALRComputePipelines {
     @SubscribeEvent
     public static void on(RegisterComputePipelinesEvent event) {
         event.registerPipeline(FFX_SPD_DOWNSAMPLE_PASS);
+        event.registerPipeline(FFX_SPD_DOWNSAMPLE_PASS_BINDLESS);
         event.registerPipeline(DEPTH_CONVERT);
     }
 }

@@ -21,6 +21,7 @@ import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.ExtendedGpuText
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.bindless.BindlessTexturingSupport;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.bindless.TextureHandle;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.gl.GlExtendedTextureConstants;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.texture.gl.bindless.GlTextureHandle;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.jetbrains.annotations.ApiStatus;
@@ -208,13 +209,31 @@ public class GlComputePassBackend implements ALRComputePassBackend {
 
         for (BindlessImageArrayState state : this.bindlessImageArrayBindings) {
             List<TextureHandle> handles = new ArrayList<>(state.views().size());
-            for (BindlessImageViewState view : state.views()) {
+            for (int index = 0; index < state.views().size(); index++) {
+                BindlessImageViewState view = state.views().get(index);
                 TextureHandle handle = support.alrCreateImageHandle(
                     view.texture(),
                     view.level(),
                     view.layered(),
                     view.layer()
                 );
+//                GlTexture texture = (GlTexture) view.texture();
+//                long handleId = ((GlTextureHandle) handle).handleId();
+//                String format = view.texture() instanceof ExtendedGpuTexture extendedTexture
+//                    ? extendedTexture.getActualFormat().name()
+//                    : view.texture().getFormat().name();
+//                System.out.println(
+//                    "ALR bindless image " + state.binding().name() + "[" + index + "]"
+//                        + ": label=\"" + view.texture().getLabel() + "\""
+//                        + ", glTexture=" + texture.glId()
+//                        + ", size=" + view.texture().getWidth(view.level()) + "x" + view.texture().getHeight(view.level())
+//                        + ", format=" + format
+//                        + ", level=" + view.level()
+//                        + ", layered=" + view.layered()
+//                        + ", layer=" + view.layer()
+//                        + ", handle=" + Long.toUnsignedString(handleId)
+//                        + " (0x" + Long.toUnsignedString(handleId, 16) + ")"
+//                );
                 this.ensureResident(handle, state.binding().write(), state.binding().read());
                 handles.add(handle);
             }

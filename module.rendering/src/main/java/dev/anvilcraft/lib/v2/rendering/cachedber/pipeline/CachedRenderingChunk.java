@@ -196,6 +196,8 @@ public class CachedRenderingChunk implements VertexBufferHost {
 
     private void renderLayers(Collection<RenderType> renderingOrders, Vec3 cameraPosition, boolean translucent) {
         for (RenderType renderType : renderingOrders) {
+            //noinspection DataFlowIssue
+            renderType = modifyRenderTypeIfNeeded(renderType);
             if (renderType.sortOnUpload() != translucent) continue;
             GpuBuffer vb = buffers.get(renderType);
             if (vb == null) continue;
@@ -351,6 +353,10 @@ public class CachedRenderingChunk implements VertexBufferHost {
         pipeline.submitCompileTask(new RebuildTask(this));
     }
 
+    private RenderType modifyRenderTypeIfNeeded(RenderType rt) {
+        return rt;
+    }
+
     public <E extends BlockEntity> void addIfPossible(E blockEntity) {
         if (!blockEntities.contains(blockEntity)) {
             blockEntities.add(blockEntity);
@@ -369,8 +375,8 @@ public class CachedRenderingChunk implements VertexBufferHost {
     ) {
         this.meshSorting = meshSorts;
         this.indexCountMap = indexCountMap;
-        indexBuffers.forEach((_, buffers) -> buffers.close());
-        indexBuffers.clear();
+        this.indexBuffers.forEach((_, buffers) -> buffers.close());
+        this.indexBuffers.clear();
         this.isFreshMesh = true;
     }
 

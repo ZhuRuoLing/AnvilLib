@@ -1,7 +1,10 @@
 package dev.anvilcraft.lib.v2.rendering.optimization.occlusion;
 
 import com.mojang.blaze3d.systems.GpuDevice;
+import com.mojang.blaze3d.systems.RenderSystem;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceBackendExtension;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceExtension;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRHICapabilities;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.ALRComputeCapabilities;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.hiz.HierarchicalZOcclusionCuller;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.noop.NoOpOcclusionCuller;
@@ -23,7 +26,8 @@ public enum OcclusionMethod {
     }, HIERARCHICAL_Z {
         @Override
         public boolean isSupported() {
-            return ALRComputeCapabilities.isComputeSupported();
+            boolean textureEnoughToUse = ALRHICapabilities.getInstance().bindlessTexturing() || ALRHICapabilities.getInstance().maxImageUnit() > 16;
+            return ALRComputeCapabilities.isComputeSupported() && textureEnoughToUse;
         }
 
         @Override

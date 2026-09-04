@@ -11,6 +11,7 @@ import com.mojang.blaze3d.textures.GpuTexture;
 import dev.anvilcraft.lib.v2.rendering.ALRComputePipelines;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRCommandEncoderExtension;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceExtension;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRHICapabilities;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ExtendedTextureFormat;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.MemoryBarrierFlag;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.ALRComputePass;
@@ -52,6 +53,8 @@ public class SinglePassDownsampler {
 
     private final GpuSampler inputSampler;
 
+    private final boolean useBindlessTexturing;
+
     private int framebufferWidth;
     private int framebufferHeight;
 
@@ -65,7 +68,9 @@ public class SinglePassDownsampler {
 
     /// mip layer count, excluding input layer (mip 0)
     private int mipLayerCount = 0;
+    /// mip layer textures, excluding input layer (mip 0)
     private GpuTexture[] mipTextures;
+    /// mip layers, excluding input layer (mip 0)
     private MipLayer[] mipLayers;
 
     public SinglePassDownsampler(
@@ -99,6 +104,9 @@ public class SinglePassDownsampler {
             OptionalDouble.empty()
         );
 
+        ALRHICapabilities capabilities = ALRHICapabilities.getInstance();
+
+        this.useBindlessTexturing = capabilities.bindlessTexturing() && capabilities.maxImageUnit() < 16;
 
         this.onResize(mainRenderTarget.width, mainRenderTarget.height);
 
@@ -129,11 +137,11 @@ public class SinglePassDownsampler {
 
         this.deleteTextures();
 
-        int slotCount = mipLayerCount + 1;
-        this.mipTextures = new GpuTexture[slotCount];
-        this.mipLayers = new MipLayer[slotCount];
+        this.mipTextures = new GpuTexture[mipLayerCount];
+        this.mipLayers = new MipLayer[mipLayerCount];
 
-        for (int i = 0; i < slotCount; i++) {
+        // generates mip 1 - mipLayerCount
+        for (int i = 1; i <= mipLayerCount; i++) {
             int mipW = Math.max(1, this.paddedWidth >> i);
             int mipH = Math.max(1, this.paddedHeight >> i);
 
@@ -151,8 +159,8 @@ public class SinglePassDownsampler {
                 1
             );
 
-            this.mipTextures[i] = texture;
-            this.mipLayers[i] = mipLayer;
+            this.mipTextures[i - 1] = texture;
+            this.mipLayers[i - 1] = mipLayer;
         }
 
         CommandEncoder commandEncoder = gpuDevice.createCommandEncoder();
@@ -180,10 +188,18 @@ public class SinglePassDownsampler {
     }
 
     public void spdDispatch(CommandEncoder commandEncoder, GpuTexture source) {
-
+        if (this.useBindlessTexturing) {
+            this.spdDispatchBindless(commandEncoder, source);
+            return;
+        }
+        this.spdDispatchImpl(commandEncoder, source);
     }
 
-    public void spdDispathBindless(CommandEncoder commandEncoder, GpuTexture source) {
+    public void spdDispatchImpl(CommandEncoder commandEncoder, GpuTexture source) {
+        // TODO spd dispatch normally
+    }
+
+    public void spdDispatchBindless(CommandEncoder commandEncoder, GpuTexture source) {
         ALRCommandEncoderExtension commandEncoderExtension = (ALRCommandEncoderExtension) commandEncoder;
         List<GpuTexture> textures = new ArrayList<>(13);
         GpuTexture midTex;
@@ -198,11 +214,11 @@ public class SinglePassDownsampler {
             textures.add(source);
         }
         try (ALRComputePass pass = commandEncoderExtension.alrCreateComputePass()) {
-            pass.setPipeline(ALRComputePipelines.FFX_SPD_DOWNSAMPLE_PASS);
+            pass.setPipeline(ALRComputePipelines.FFX_SPD_DOWNSAMPLE_PASS_BINDLESS);
             pass.bindUniformBlock(0, spdParamsBuffer.slice());
             pass.bindTexture(0, new TextureBinding.SamplerAndTexture(this.inputSampler, source));
             pass.bindShaderStorage(0, spdGlobalAtomicCounterBuffer.slice());
-            pass.bindImage(0, midTex, true, true);
+            pass.bindImage(1, midTex, true, true);
             pass.bindBindlessImageArray("rw_input_downsample_src_mips", textures);
 
             pass.dispatchWorkgroups(dispatchDimensionX, dispatchDimensionY, 1);

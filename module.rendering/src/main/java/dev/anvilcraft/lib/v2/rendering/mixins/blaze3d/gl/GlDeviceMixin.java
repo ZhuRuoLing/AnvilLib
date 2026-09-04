@@ -7,6 +7,7 @@ import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.preprocessor.GlslPreprocessor;
 import com.mojang.blaze3d.textures.GpuTexture;
+import dev.anvilcraft.lib.v2.rendering.ALROptions;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceBackendExtension;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRHICapabilities;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ExtendedTextureFormat;
@@ -33,6 +34,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
+import java.nio.ByteBuffer;
 import java.util.function.Supplier;
 
 @Mixin(targets = "com.mojang.blaze3d.opengl.GlDevice")
@@ -206,7 +208,8 @@ public abstract class GlDeviceMixin implements ALRGpuDeviceBackendExtension {
         return switch (owner.getBindingType(name)) {
             case TEXTURE_OR_IMAGE -> GlStateManager._glGetUniformLocation(program.id(), name);
             case null -> -1;
-            default -> throw new IllegalStateException("Shader resource other than texture or image is not allowed to getLocation");
+            default -> throw new IllegalStateException(
+                "Shader resource other than texture or image is not allowed to getLocation");
         };
     }
 

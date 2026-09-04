@@ -21,6 +21,10 @@ public class ALRIntegrationCompatMixinPlugin implements IMixinConfigPlugin {
                 isPresent("iris")
             )
             .put(
+                "dev.anvilcraft.lib.v2.rendering.integration.mixins.CachedChunkMixin",
+                isPresent("iris")
+            )
+            .put(
                 "dev.anvilcraft.lib.v2.rendering.integration.mixins.RebuildTaskMixin",
                 isPresent("iris")
             )
