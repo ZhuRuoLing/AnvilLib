@@ -23,6 +23,7 @@ public class GlBindlessTexturingSupport implements BindlessTexturingSupport {
 
     private final Object2ReferenceMap<TextureCacheKey, GlTextureHandle> textureHandleCache = new Object2ReferenceLinkedOpenHashMap<>();
     private final Object2ReferenceMap<ImageCacheKey, GlTextureHandle> imageHandleCache = new Object2ReferenceLinkedOpenHashMap<>();
+    // TODO: evict cached handles when the underlying GPU texture or sampler is destroyed.
     private final ALRGpuDeviceBackendExtension backendExtension;
 
     public GlBindlessTexturingSupport(ALRGpuDeviceBackendExtension backendExtension) {

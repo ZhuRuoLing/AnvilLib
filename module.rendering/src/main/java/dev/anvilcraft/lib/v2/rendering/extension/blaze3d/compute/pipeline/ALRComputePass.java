@@ -4,6 +4,7 @@ import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.textures.GpuTexture;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.MemoryBarrierFlag;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.ComputeBindingLayout;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.BindlessImageArrayBinding;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.TextureBinding;
 
 import java.util.List;
@@ -91,7 +92,14 @@ public class ALRComputePass implements AutoCloseable {
         this.backend.bindAtomicCounter(bindingPoint, resource);
     }
 
-    public void bindBindlessImageArray(String name, List<GpuTexture> textures, boolean read, boolean write) {
-        this.backend.bindBindlessImageArray(name, textures, read, write);
+    public void bindBindlessImageArray(
+        BindlessImageArrayBinding binding,
+        List<GpuTexture> textures
+    ) {
+        this.backend.bindBindlessImageArray(binding, textures);
+    }
+
+    public void bindBindlessImageArray(String name, List<GpuTexture> textures) {
+        this.backend.bindBindlessImageArray(name, textures);
     }
 }

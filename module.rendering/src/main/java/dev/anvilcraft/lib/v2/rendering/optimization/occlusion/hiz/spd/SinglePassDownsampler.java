@@ -203,7 +203,7 @@ public class SinglePassDownsampler {
             pass.bindTexture(0, new TextureBinding.SamplerAndTexture(this.inputSampler, source));
             pass.bindShaderStorage(0, spdGlobalAtomicCounterBuffer.slice());
             pass.bindImage(0, midTex, true, true);
-            pass.bindBindlessImageArray(name, textures, true, true);
+            pass.bindBindlessImageArray("rw_input_downsample_src_mips", textures);
 
             pass.dispatchWorkgroups(dispatchDimensionX, dispatchDimensionY, 1);
 

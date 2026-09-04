@@ -85,6 +85,11 @@ public final class ALRComputePipeline {
         return ts.get(bindingPointStart);
     }
 
+    @Nullable
+    public ComputeBindingLayout<?> getBinding(String name) {
+        return this.bindingsByName.get(name);
+    }
+
     public Identifier shaderLocation() {
         return shaderLocation;
     }

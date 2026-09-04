@@ -3,6 +3,7 @@ package dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.textures.GpuTexture;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.MemoryBarrierFlag;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.BindlessImageArrayBinding;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.bindings.TextureBinding;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -33,7 +34,9 @@ public interface ALRComputePassBackend {
 
     void bindAtomicCounter(int bindingPoint, GpuBufferSlice resource);
 
-    void bindBindlessImageArray(String name, List<GpuTexture> textures, boolean read, boolean write);
+    void bindBindlessImageArray(BindlessImageArrayBinding binding, List<GpuTexture> textures);
+
+    void bindBindlessImageArray(String name, List<GpuTexture> textures);
 
     void close();
 
