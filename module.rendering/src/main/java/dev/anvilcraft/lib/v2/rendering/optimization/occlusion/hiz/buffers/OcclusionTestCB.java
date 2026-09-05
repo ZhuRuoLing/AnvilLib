@@ -25,15 +25,15 @@ import org.joml.Vector4f;
 @Getter
 @Setter
 @ApiStatus.Internal
-public class HizOcclusionTestCB extends BufferObject<HizOcclusionTestCB> {
+public class OcclusionTestCB extends BufferObject<OcclusionTestCB> {
 
-    public static final BufferObjectLayoutDefinition<HizOcclusionTestCB> DEFINITION = BufferObjectLayoutDefinition.create(
-        BufferObjectLayoutEntry.<HizOcclusionTestCB>ofInt().forGetter(HizOcclusionTestCB::getElementCount).build(),
-        BufferObjectLayoutEntry.<HizOcclusionTestCB>ofInt().forGetter(HizOcclusionTestCB::getMipLevels).build(),
-        BufferObjectLayoutEntry.<HizOcclusionTestCB>ofVec2f().forGetter(HizOcclusionTestCB::getViewportSize).build(),
-        BufferObjectLayoutEntry.<HizOcclusionTestCB>ofVec4f().forGetter(HizOcclusionTestCB::getCameraPos).build(),
-        BufferObjectLayoutEntry.<HizOcclusionTestCB>ofMat4f().forGetter(HizOcclusionTestCB::getProjMat).build(),
-        BufferObjectLayoutEntry.<HizOcclusionTestCB>ofMat4f().forGetter(HizOcclusionTestCB::getCameraMat).build()
+    public static final BufferObjectLayoutDefinition<OcclusionTestCB> DEFINITION = BufferObjectLayoutDefinition.create(
+        BufferObjectLayoutEntry.<OcclusionTestCB>ofInt().forGetter(OcclusionTestCB::getElementCount).build(),
+        BufferObjectLayoutEntry.<OcclusionTestCB>ofInt().forGetter(OcclusionTestCB::getMipLevels).build(),
+        BufferObjectLayoutEntry.<OcclusionTestCB>ofVec2f().forGetter(OcclusionTestCB::getViewportSize).build(),
+        BufferObjectLayoutEntry.<OcclusionTestCB>ofVec4f().forGetter(OcclusionTestCB::getCameraPos).build(),
+        BufferObjectLayoutEntry.<OcclusionTestCB>ofMat4f().forGetter(OcclusionTestCB::getProjMat).build(),
+        BufferObjectLayoutEntry.<OcclusionTestCB>ofMat4f().forGetter(OcclusionTestCB::getCameraMat).build()
     );
 
     public static final int SIZE = DEFINITION.size(BufferLayout.STD430);
@@ -44,12 +44,12 @@ public class HizOcclusionTestCB extends BufferObject<HizOcclusionTestCB> {
     private Vector4f cameraPos = new Vector4f(0, 0, 0, 1);
     private Matrix4f projMat = new Matrix4f();
     private Matrix4f cameraMat = new Matrix4f();
-    public HizOcclusionTestCB() {
+    public OcclusionTestCB() {
         super(BufferLayout.STD430, ShaderBufferObjectUsage.UBO);
     }
 
     @Override
-    protected BufferObjectLayoutDefinition<HizOcclusionTestCB> getDefinition() {
+    protected BufferObjectLayoutDefinition<OcclusionTestCB> getDefinition() {
         return DEFINITION;
     }
 

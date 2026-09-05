@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 public record ALRHICapabilities(
     boolean compute,
     boolean bindlessTexturing,
+    boolean persistentMappedBuffer,
     int maxImageUnit
 ) {
 

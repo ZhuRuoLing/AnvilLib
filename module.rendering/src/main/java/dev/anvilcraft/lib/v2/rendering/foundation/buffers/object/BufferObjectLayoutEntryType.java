@@ -165,46 +165,76 @@ public interface BufferObjectLayoutEntryType<T> {
         }
     };
 
-    static BufferObjectLayoutEntryType<Vector2f[]> createVec2Array(int size) {
+    static Array<Vector2f[]> createVec2Array(int size) {
         if (size < 0) {
             throw new IllegalArgumentException("size must be non-negative");
         }
-        return new BufferObjectLayoutEntryType<>() {
+        return new Array<>() {
+            private int arraySize = size;
+
             @Override
             public void acceptSizeCalculator(BufferSizeCalculator sizeCalculator) {
-                sizeCalculator.putVec2Array(size);
+                sizeCalculator.putVec2Array(arraySize);
             }
 
             @Override
             public void acceptWriter(BufferWriter writer, Vector2f[] objects) {
-                writer.putVec2Array(size, objects);
+                writer.putVec2Array(arraySize, objects);
             }
 
             @Override
             public int alignment(BufferLayout layout) {
                 return layout == BufferLayout.STD140 ? 16 : 8;
+            }
+
+            @Override
+            public int size() {
+                return this.arraySize;
+            }
+
+            @Override
+            public void size(int value) {
+                if (value < 0) {
+                    throw new IllegalArgumentException("size must be non-negative");
+                }
+                this.arraySize = value;
             }
         };
     }
 
-    static BufferObjectLayoutEntryType<Vector2i[]> createIVec2Array(int size) {
+    static Array<Vector2i[]> createIVec2Array(int size) {
         if (size < 0) {
             throw new IllegalArgumentException("size must be non-negative");
         }
-        return new BufferObjectLayoutEntryType<>() {
+        return new Array<>() {
+            private int arraySize = size;
+
             @Override
             public void acceptSizeCalculator(BufferSizeCalculator sizeCalculator) {
-                sizeCalculator.putIVec2Array(size);
+                sizeCalculator.putIVec2Array(arraySize);
             }
 
             @Override
             public void acceptWriter(BufferWriter writer, Vector2i[] objects) {
-                writer.putIVec2Array(size, objects);
+                writer.putIVec2Array(arraySize, objects);
             }
 
             @Override
             public int alignment(BufferLayout layout) {
                 return layout == BufferLayout.STD140 ? 16 : 8;
+            }
+
+            @Override
+            public int size() {
+                return this.arraySize;
+            }
+
+            @Override
+            public void size(int value) {
+                if (value < 0) {
+                    throw new IllegalArgumentException("size must be non-negative");
+                }
+                this.arraySize = value;
             }
         };
     }
@@ -228,17 +258,19 @@ public interface BufferObjectLayoutEntryType<T> {
         };
     }
 
-    static <T extends BufferObject<T>> BufferObjectLayoutEntryType<T[]> createStructArray(
+    static <T extends BufferObject<T>> Array<T[]> createStructArray(
         BufferObjectLayoutDefinition<T> definition,
         int size
     ) {
         if (size < 0) {
             throw new IllegalArgumentException("size must be non-negative");
         }
-        return new BufferObjectLayoutEntryType<>() {
+        return new Array<>() {
+            private int arraySize = size;
+
             @Override
             public void acceptSizeCalculator(BufferSizeCalculator sizeCalculator) {
-                sizeCalculator.putStructArray(definition, size);
+                sizeCalculator.putStructArray(definition, arraySize);
             }
 
             @Override
@@ -250,6 +282,19 @@ public interface BufferObjectLayoutEntryType<T> {
             public int alignment(BufferLayout layout) {
                 return definition.alignment(layout);
             }
+
+            @Override
+            public int size() {
+                return this.arraySize;
+            }
+
+            @Override
+            public void size(int value) {
+                if (value < 0) {
+                    throw new IllegalArgumentException("size must be non-negative");
+                }
+                this.arraySize = value;
+            }
         };
     }
 
@@ -258,4 +303,10 @@ public interface BufferObjectLayoutEntryType<T> {
     void acceptWriter(BufferWriter writer, T object);
 
     int alignment(BufferLayout layout);
+
+    interface Array<T> extends BufferObjectLayoutEntryType<T> {
+        int size();
+
+        void size(int value);
+    }
 }

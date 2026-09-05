@@ -54,6 +54,7 @@ public class SinglePassDownsampler {
 
     private final GpuSampler inputSampler;
 
+    @Getter
     private final boolean useBindlessTexturing;
 
     private int framebufferWidth;

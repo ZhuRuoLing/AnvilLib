@@ -54,4 +54,10 @@ public class Aabb extends BufferObject<Aabb> {
     protected BufferObjectLayoutDefinition<Aabb> getDefinition() {
         return DEFINITION;
     }
+
+    public static Aabb of(AABB aabb) {
+        Aabb a = new Aabb();
+        a.set(aabb);
+        return a;
+    }
 }

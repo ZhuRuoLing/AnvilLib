@@ -1,28 +1,49 @@
 package dev.anvilcraft.lib.v2.rendering.optimization.occlusion.hiz;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.textures.GpuTexture;
 import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRGpuDeviceExtension;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.MemoryBarrierFlag;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.compute.pipeline.ALRComputePass;
+import dev.anvilcraft.lib.v2.rendering.extension.blaze3d.ALRCommandEncoderExtension;
+import dev.anvilcraft.lib.v2.rendering.foundation.buffers.GpuBufferConstants;
+import dev.anvilcraft.lib.v2.rendering.foundation.buffers.StagingSupport;
+import dev.anvilcraft.lib.v2.rendering.foundation.buffers.layout.BufferLayout;
+import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.hiz.buffers.Aabb;
+import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.hiz.buffers.OcclusionTestCB;
+import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.hiz.buffers.OcclusionTestSSBO;
+import dev.anvilcraft.lib.v2.rendering.ALRComputePipelines;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.CullingStatistics;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.OcclusionCuller;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.OcclusionKey;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.hiz.converter.DepthTexConverter;
 import dev.anvilcraft.lib.v2.rendering.optimization.occlusion.hiz.spd.SinglePassDownsampler;
+import it.unimi.dsi.fastutil.objects.Reference2IntLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import org.joml.Vector2f;
+import org.joml.Vector4f;
 import org.jspecify.annotations.Nullable;
+import org.joml.Vector2i;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class HierarchicalZOcclusionCuller implements OcclusionCuller {
-
+    private final Logger logger = LoggerFactory.getLogger("HierarchicalZOcclusionCuller");
 
     private final Minecraft minecraft;
     private final ALRGpuDeviceExtension gpuDeviceExtension;
@@ -31,10 +52,19 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
     private final SinglePassDownsampler downsampler;
     private final DepthTexConverter depthTexConverter;
 
-    private final Reference2ObjectMap<Object, OcclusionKey> keyAssociations = new Reference2ObjectLinkedOpenHashMap<>();
-
     private final List<OcclusionKey> occlusionKeys = new ArrayList<>();
 
+    private final OcclusionTestCB testCB = new OcclusionTestCB();
+    private final OcclusionTestSSBO inputSSBO = new OcclusionTestSSBO();
+
+    private final StagingSupport stagingInputBuffer;
+
+    private final GpuBuffer testCBBuffer;
+    private final boolean bindlessTexturing;
+    private int[] results;
+
+    private FrameState previousFrameState = null;
+    private FrameState currentFrameState = null;
     /// update interval for z-buffer mipmap
     ///
     /// interval = 0 -> update every frame
@@ -44,11 +74,18 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
     private int mipmapUpdateInterval = 0;
 
     private int mipmapUpdateCd = mipmapUpdateInterval;
+    private GpuBuffer inputBuffer;
+    private GpuBuffer outputBuffer;
 
     public HierarchicalZOcclusionCuller(ALRGpuDeviceExtension device) {
         this.minecraft = Minecraft.getInstance();
         this.gpuDeviceExtension = device;
         this.gpuDevice = (GpuDevice) device;
+        this.testCBBuffer = gpuDevice.createBuffer(
+            () -> "Hi-Z Occlusion Test CB",
+            GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_UNIFORM,
+            OcclusionTestCB.SIZE
+        );
 
         RenderTarget mainRenderTarget = this.minecraft.getMainRenderTarget();
 
@@ -65,6 +102,8 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
             this.downsampler.getPaddedWidth(),
             this.downsampler.getPaddedHeight()
         );
+        this.stagingInputBuffer = StagingSupport.createInstance(gpuDevice, "HiZ Occlusion Test Staging Buffer");
+        this.bindlessTexturing = downsampler.isUseBindlessTexturing();
     }
 
     @Override
@@ -84,13 +123,32 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
 
     @Override
     public void beginRenderingFrame() {
-        this.keyAssociations.clear();
+        if (this.currentFrameState == null) {
+            this.currentFrameState = FrameState.create();
+        }
+        this.previousFrameState = this.currentFrameState;
+        this.fetchResults();
+        this.currentFrameState = FrameState.create();
+    }
+
+    private void fetchResults() {
+        if (this.outputBuffer == null) return;
+        int size = this.previousFrameState.size();
+        if (results == null || results.length < size) {
+            results = new int[size];
+        }
+        CommandEncoder commandEncoder = this.gpuDevice.createCommandEncoder();
+        try (GpuBuffer.MappedView mappedView = commandEncoder.mapBuffer(outputBuffer, true, false)) {
+            ByteBuffer data = mappedView.data();
+            IntBuffer intBuffer = data.asIntBuffer();
+            intBuffer.get(0, results, 0, size);
+        }
     }
 
     @Override
     public void submitFeatureKey(OcclusionKey key, List<Object> feature) {
         for (Object o : feature) {
-            this.keyAssociations.put(o, key);
+            this.currentFrameState.keyAssociations.put(o, key);
         }
     }
 
@@ -103,11 +161,119 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
             mainRenderTarget.getDepthTexture()
         );
         this.downsampler.spdDispatch(commandEncoder, texture);
+        this.dispatch(commandEncoder, camera, texture);
+    }
+
+    private void dispatch(CommandEncoder commandEncoder, CameraRenderState camera, GpuTexture mip0) {
+        if (this.isEmpty()) return;
+
+        FrameState currentFrameState = this.currentFrameState;
+        int elementCount = currentFrameState.keyAssociations.size();
+
+        Aabb[] aabbs = this.inputSSBO.getAabbs(elementCount);
+        int i = 0;
+        for (OcclusionKey key : currentFrameState.keyAssociations.values()) {
+            int id = i++;
+            aabbs[id].set(key.getBoundingBox());
+            currentFrameState.keyToIdMap.put(key, id);
+        }
+
+        Vector2i[] mipLayers = this.inputSSBO.getMipLayers();
+        mipLayers[0] = new Vector2i(downsampler.getPaddedWidth(), downsampler.getPaddedHeight());
+
+        GpuTexture[] mipTextures = downsampler.getMipTextures();
+
+        for (i = 1; i < mipLayers.length; ++i) {
+            boolean inRange = (i - 1) < downsampler.getMipLayers().length;
+            if (inRange) {
+                mipLayers[i].set(downsampler.getMipLayers()[i - 1]);
+            } else {
+                mipLayers[i].set(0, 0);
+            }
+        }
+
+        this.inputSSBO.setMipLayers(mipLayers);
+        this.inputSSBO.setAabbs(aabbs);
+
+        this.testCB.setElementCount(elementCount);
+        this.testCB.setMipLevels(Math.min(1 + mipTextures.length, OcclusionTestSSBO.MIP_LAYER_COUNT));
+        this.testCB.setViewportSize(new Vector2f(downsampler.getPaddedWidth(), downsampler.getPaddedHeight()));
+        this.testCB.setCameraPos(new Vector4f((float) camera.pos.x, (float) camera.pos.y, (float) camera.pos.z, 1));
+        this.testCB.getProjMat().set(camera.projectionMatrix);
+        this.testCB.getCameraMat().set(camera.viewRotationMatrix);
+
+        this.ensureBuffers(elementCount);
+
+        this.testCB.upload(commandEncoder, testCBBuffer.slice());
+
+        long actualRequestedSize = this.inputSSBO.actualSize(elementCount);
+
+        ByteBuffer buffer = this.stagingInputBuffer.getBuffer(this.gpuDevice, commandEncoder, actualRequestedSize);
+        this.inputSSBO.write(buffer);
+        buffer.position(0);
+        // TODO check if mojang added coherent flag
+        ((ALRCommandEncoderExtension) commandEncoder).alrMemoryBarrier(MemoryBarrierFlag.BUFFER_UPDATE_BARRIER);
+        this.stagingInputBuffer.copyToBuffer(commandEncoder, 0, actualRequestedSize, inputBuffer.slice());
+
+        List<GpuTexture> textures = new ArrayList<>(OcclusionTestSSBO.MIP_LAYER_COUNT);
+        textures.add(mip0);
+        textures.addAll(Arrays.asList(mipTextures));
+
+        while (textures.size() < OcclusionTestSSBO.MIP_LAYER_COUNT) {
+            textures.add(mip0);
+        }
+
+        ALRCommandEncoderExtension extension = (ALRCommandEncoderExtension) commandEncoder;
+
+        try (ALRComputePass pass = extension.alrCreateComputePass()) {
+            if (this.bindlessTexturing) {
+                pass.setPipeline(ALRComputePipelines.HIZ_OCCLUSION_TEST_BINDLESS);
+            } else {
+                pass.setPipeline(ALRComputePipelines.HIZ_OCCLUSION_TEST);
+            }
+            pass.bindUniformBlock(0, testCBBuffer.slice());
+            pass.bindShaderStorage(0, inputBuffer.slice());
+            pass.bindShaderStorage(1, outputBuffer.slice());
+            if (this.bindlessTexturing) {
+                pass.bindBindlessImageArray("uInputs", textures);
+            } else {
+                pass.bindArrayOfTexture(0, textures, true, false);
+            }
+            pass.dispatchWorkgroups(Math.ceilDiv(elementCount, 32), 1, 1);
+            pass.memoryBarrier(MemoryBarrierFlag.SHADER_IMAGE_ACCESS_BARRIER, MemoryBarrierFlag.SHADER_STORAGE_BARRIER);
+        }
+    }
+
+    private void ensureBuffers(int elementCount) {
+        long requiredInputSize = inputSSBO.getDefinition().size(BufferLayout.STD430);
+        long requiredOutputSize = (long) elementCount * Integer.BYTES;
+
+        if (inputBuffer == null || inputBuffer.size() < requiredInputSize) {
+            if (inputBuffer != null) {
+                inputBuffer.close();
+            }
+            inputBuffer = gpuDevice.createBuffer(
+                () -> "Hi-Z Occlusion Test Input",
+                GpuBuffer.USAGE_COPY_DST | GpuBufferConstants.USAGE_SHADER_STORAGE,
+                requiredInputSize
+            );
+        }
+
+        if (outputBuffer == null || outputBuffer.size() < requiredOutputSize) {
+            if (outputBuffer != null) {
+                outputBuffer.close();
+            }
+            outputBuffer = gpuDevice.createBuffer(
+                () -> "Hi-Z Occlusion Test Output",
+                GpuBuffer.USAGE_COPY_DST | GpuBufferConstants.USAGE_SHADER_STORAGE | GpuBuffer.USAGE_MAP_READ,
+                requiredOutputSize
+            );
+        }
     }
 
     @Override
     public boolean isEmpty() {
-        return this.keyAssociations.isEmpty();
+        return this.previousFrameState.keyAssociations.isEmpty();
     }
 
     @Override
@@ -117,10 +283,42 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
 
     @Override
     public boolean shouldDraw(Object feature) {
-        return true;
+        OcclusionKey key = this.currentFrameState.keyAssociations.get(feature);
+        if (key == null || results == null) {
+            return true;
+        }
+        int orDefault = this.previousFrameState.keyToIdMap.getOrDefault(key, -1);
+        if (orDefault < 0) {
+            return true;
+        }
+        if (orDefault > results.length) {
+            this.logger.warn("Trying to read invalid position {} as it exceeds results.length.", orDefault);
+            return true;
+        }
+        return results[orDefault] > 0;
     }
 
     @Override
     public void close() throws Exception {
+        this.testCBBuffer.close();
+        if (this.inputBuffer != null) this.inputBuffer.close();
+        if (this.outputBuffer != null) this.outputBuffer.close();
     }
+
+    record FrameState(
+        Reference2ObjectMap<Object, OcclusionKey> keyAssociations,
+        Reference2IntMap<OcclusionKey> keyToIdMap
+    ) {
+        public static FrameState create() {
+            return new FrameState(
+                new Reference2ObjectLinkedOpenHashMap<>(),
+                new Reference2IntLinkedOpenHashMap<>()
+            );
+        }
+
+        public int size() {
+            return keyToIdMap.size();
+        }
+    }
+
 }

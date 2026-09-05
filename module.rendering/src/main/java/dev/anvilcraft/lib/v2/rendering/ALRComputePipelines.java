@@ -51,10 +51,30 @@ public class ALRComputePipelines {
         .withWriteOnlyImage("Output")
         .build();
 
+    public static final ALRComputePipeline HIZ_OCCLUSION_TEST = ALRComputePipeline.builder()
+        .withName(AnvilLibRendering.location("hiz_occlusion_test"))
+        .withShader(AnvilLibRendering.location("compute/hiz_occlusion_test.csh"))
+        .withUniformBlock("cbOcclusionTest")
+        .withShaderStorage("ShaderInput")
+        .withShaderStorage("ShaderOutput")
+        .withArrayOfImage("uInputs", true, false, 13)
+        .build();
+
+    public static final ALRComputePipeline HIZ_OCCLUSION_TEST_BINDLESS = ALRComputePipeline.builder()
+        .withName(AnvilLibRendering.location("hiz_occlusion_test_bindless"))
+        .withShader(AnvilLibRendering.location("compute/hiz_occlusion_test_bindless.csh"))
+        .withUniformBlock("cbOcclusionTest")
+        .withShaderStorage("ShaderInput")
+        .withShaderStorage("ShaderOutput")
+        .withBindlessArrayOfImage("uInputs", true, false, 13)
+        .build();
+
     @SubscribeEvent
     public static void on(RegisterComputePipelinesEvent event) {
         event.registerPipeline(FFX_SPD_DOWNSAMPLE_PASS);
         event.registerPipeline(FFX_SPD_DOWNSAMPLE_PASS_BINDLESS);
         event.registerPipeline(DEPTH_CONVERT);
+        event.registerPipeline(HIZ_OCCLUSION_TEST);
+        event.registerPipeline(HIZ_OCCLUSION_TEST_BINDLESS);
     }
 }

@@ -33,9 +33,6 @@ public abstract class BufferObject<T extends BufferObject<T>> implements Dynamic
     @Override
     @SuppressWarnings("unchecked")
     public void write(@NonNull ByteBuffer buffer) {
-        if (this.usage == ShaderBufferObjectUsage.SSBO) {
-            throw new IllegalStateException();
-        }
         BufferWriter builder = layout.createWriter(buffer);
         getDefinition().writeInto(builder, (T) this);
     }
