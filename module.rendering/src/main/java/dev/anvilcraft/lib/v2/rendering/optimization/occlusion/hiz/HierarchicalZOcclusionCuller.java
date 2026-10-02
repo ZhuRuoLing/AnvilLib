@@ -1,6 +1,7 @@
 package dev.anvilcraft.lib.v2.rendering.optimization.occlusion.hiz;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.buffers.GpuFence;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.GpuDevice;
@@ -82,6 +83,7 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
     private int size = 0;
     private GpuBuffer inputBuffer;
     private GpuBuffer outputBuffer;
+    private @Nullable GpuFence fence;
 
     public HierarchicalZOcclusionCuller(ALRGpuDeviceExtension device) {
         this.minecraft = Minecraft.getInstance();
@@ -138,6 +140,13 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
     }
 
     private void fetchResults() {
+        if (this.fence != null) {
+            try (GpuFence fence = this.fence) {
+                fence.awaitCompletion(Long.MAX_VALUE);
+            } finally {
+                this.fence = null;
+            }
+        }
         if (this.outputBuffer == null) return;
         int size = this.previousFrameState.size();
         if (results == null || results.length < size) {
@@ -186,6 +195,8 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
         }
 
         this.dispatch(commandEncoder, camera, this.depthTexConverter.getOutput());
+        if (this.fence != null) this.fence.close();
+        this.fence = commandEncoder.createFence();
     }
 
     private void dispatch(CommandEncoder commandEncoder, CameraRenderState camera, GpuTexture mip0) {
@@ -341,6 +352,10 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
 
     @Override
     public void close() throws Exception {
+        if (this.fence != null) {
+            this.fence.close();
+            this.fence = null;
+        }
         this.testCBBuffer.close();
         if (this.inputBuffer != null) this.inputBuffer.close();
         if (this.outputBuffer != null) this.outputBuffer.close();
