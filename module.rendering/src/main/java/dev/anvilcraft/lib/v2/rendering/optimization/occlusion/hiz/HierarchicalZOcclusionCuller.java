@@ -181,6 +181,7 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
 
     @Override
     public void processFeatures(CameraRenderState camera) {
+        if (this.isEmpty()) return;
         RenderTarget mainRenderTarget = this.minecraft.getMainRenderTarget();
         CommandEncoder commandEncoder = this.gpuDevice.createCommandEncoder();
         if (this.mipmapUpdateCd <= 0) {
