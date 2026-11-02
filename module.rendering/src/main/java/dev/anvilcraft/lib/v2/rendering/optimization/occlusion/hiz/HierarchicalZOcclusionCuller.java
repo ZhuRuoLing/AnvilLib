@@ -1,6 +1,7 @@
 package dev.anvilcraft.lib.v2.rendering.optimization.occlusion.hiz;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.buffers.GpuFence;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.GpuDevice;
@@ -43,9 +44,11 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.IntConsumer;
 
 @ApiStatus.Internal
 public class HierarchicalZOcclusionCuller implements OcclusionCuller {
@@ -61,9 +64,16 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
     private final OcclusionTestCB testCB = new OcclusionTestCB();
     private final OcclusionTestSSBO inputSSBO = new OcclusionTestSSBO();
 
-    private final StagingSupport stagingInputBuffer;
+    private Slot[] slots = new Slot[0];
+    private final SlotRing slotRing = new SlotRing();
+    private long generation;
+    private long frameId = -1;
+    private boolean processed;
+    private boolean closed;
+    private boolean disabled;
+    private long inputCapacity;
+    private int elementCapacity;
 
-    private final GpuBuffer testCBBuffer;
     private final boolean bindlessTexturing;
     private int[] results;
 
@@ -80,18 +90,11 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
     private int mipmapUpdateCd = mipmapUpdateInterval;
     private int culled = 0;
     private int size = 0;
-    private GpuBuffer inputBuffer;
-    private GpuBuffer outputBuffer;
 
     public HierarchicalZOcclusionCuller(ALRGpuDeviceExtension device) {
         this.minecraft = Minecraft.getInstance();
         this.gpuDeviceExtension = device;
         this.gpuDevice = (GpuDevice) device;
-        this.testCBBuffer = gpuDevice.createBuffer(
-            () -> "Hi-Z Occlusion Test CB",
-            GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_UNIFORM,
-            OcclusionTestCB.SIZE
-        );
 
         RenderTarget mainRenderTarget = this.minecraft.getMainRenderTarget();
 
@@ -108,12 +111,17 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
             this.downsampler.getPaddedWidth(),
             this.downsampler.getPaddedHeight()
         );
-        this.stagingInputBuffer = StagingSupport.createInstance(gpuDevice, "HiZ Occlusion Test Staging Buffer");
         this.bindlessTexturing = downsampler.isUseBindlessTexturing();
     }
 
     @Override
     public void onResize(int width, int height) {
+        if (this.closed) return;
+        // The window resize path provides no explicit GPU-idle guarantee here; discard old buffers without waiting.
+        this.discardSlots();
+        this.clearResults();
+        this.processed = true;
+        this.mipmapUpdateCd = 0;
         this.downsampler.onResize(width, height);
         this.depthTexConverter.onResize(
             width,
@@ -129,41 +137,78 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
 
     @Override
     public void beginRenderingFrame() {
-        if (this.currentFrameState == null) {
-            this.currentFrameState = FrameState.create();
+        this.clearResults();
+        if (!this.closed && !this.disabled) {
+            try {
+                this.fetchResults();
+            } catch (RuntimeException exception) {
+                this.disable(exception);
+            }
         }
-        this.previousFrameState = this.currentFrameState;
-        this.fetchResults();
+        this.frameId++;
+        this.processed = false;
         this.currentFrameState = FrameState.create();
     }
 
+    private void clearResults() {
+        this.results = null;
+        this.previousFrameState = null;
+        this.size = 0;
+        this.culled = 0;
+    }
+
     private void fetchResults() {
-        if (this.outputBuffer == null) return;
-        int size = this.previousFrameState.size();
-        if (results == null || results.length < size) {
-            results = new int[size];
+        for (int index : this.slotRing.pending()) {
+            Slot slot = this.slots[index];
+            this.awaitSlot(index);
+            if (slot.valid && slot.frameId == this.frameId && slot.generation == this.generation) {
+                int[] snapshot = new int[slot.elementCount];
+                CommandEncoder commandEncoder = this.gpuDevice.createCommandEncoder();
+                try (GpuBuffer.MappedView mappedView = commandEncoder.mapBuffer(slot.outputBuffer, true, false)) {
+                    IntBuffer intBuffer = mappedView.data().asIntBuffer();
+                    intBuffer.get(0, snapshot, 0, snapshot.length);
+                }
+                this.results = snapshot;
+                this.previousFrameState = slot.frameState;
+                this.size = snapshot.length;
+                for (int result : snapshot) {
+                    if (result == 0) this.culled++;
+                }
+            }
+            this.retireSlot(index);
         }
-        CommandEncoder commandEncoder = this.gpuDevice.createCommandEncoder();
-        try (GpuBuffer.MappedView mappedView = commandEncoder.mapBuffer(outputBuffer, true, false)) {
-            ByteBuffer data = mappedView.data();
-            IntBuffer intBuffer = data.asIntBuffer();
-            intBuffer.get(0, results, 0, size);
-        }
-        int culled = 0;
-        for (int result : results) {
-            if (result == 0) {
-                culled++;
+    }
+
+    private void awaitSlot(int index) {
+        Slot slot = this.slots[index];
+        if (slot.fence == null) throw new IllegalStateException("Missing Hi-Z submission fence");
+        if (slot.fence.awaitCompletion(0)) return;
+        while (!slot.fence.awaitCompletion(1_000_000L)) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw new IllegalStateException("Interrupted waiting for Hi-Z submission");
             }
         }
-        this.size = size;
-        this.culled = culled;
-//        if (flag){
-//            logger.error("222222222222222222222222");
-//        }
+    }
+
+    private void retireSlot(int index) {
+        Slot slot = this.slots[index];
+        slot.fence.close();
+        slot.fence = null;
+        slot.frameState = null;
+        slot.valid = false;
+        this.slotRing.release(index);
+    }
+
+    private void disable(RuntimeException exception) {
+        this.disabled = true;
+        this.clearResults();
+        this.logger.error("Disabling Hi-Z occlusion after submission failure", exception);
+        this.discardSlots();
     }
 
     @Override
     public void submitFeatureKey(OcclusionKey key, List<Object> feature) {
+        if (this.closed || this.disabled || this.processed || this.currentFrameState == null) return;
         this.currentFrameState.keys.add(key);
         for (Object o : feature) {
             this.currentFrameState.keyAssociations.put(o, key);
@@ -172,20 +217,28 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
 
     @Override
     public void processFeatures(CameraRenderState camera) {
-        RenderTarget mainRenderTarget = this.minecraft.getMainRenderTarget();
-        CommandEncoder commandEncoder = this.gpuDevice.createCommandEncoder();
-        if (this.mipmapUpdateCd <= 0) {
-            GpuTexture texture = this.depthTexConverter.runConvert(
-                commandEncoder,
-                mainRenderTarget.getDepthTexture()
-            );
-            this.downsampler.spdDispatch(commandEncoder, texture);
-            this.mipmapUpdateCd = mipmapUpdateInterval;
-        } else {
-            this.mipmapUpdateCd--;
+        if (this.closed || this.disabled || this.processed || this.currentFrameState == null) return;
+        this.processed = true;
+        try {
+            RenderTarget mainRenderTarget = this.minecraft.getMainRenderTarget();
+            CommandEncoder commandEncoder = this.gpuDevice.createCommandEncoder();
+            if (this.mipmapUpdateCd <= 0) {
+                GpuTexture texture = this.depthTexConverter.runConvert(
+                    commandEncoder,
+                    mainRenderTarget.getDepthTexture()
+                );
+                this.downsampler.spdDispatch(commandEncoder, texture);
+                this.mipmapUpdateCd = mipmapUpdateInterval;
+            } else {
+                this.mipmapUpdateCd--;
+            }
+            if (this.currentFrameState.keyAssociations.isEmpty()) return;
+            this.dispatch(commandEncoder, camera, this.depthTexConverter.getOutput());
+        } catch (RuntimeException exception) {
+            this.clearResults();
+            this.mipmapUpdateCd = 0;
+            this.logger.error("Hi-Z submission failed; drawing conservatively", exception);
         }
-        if (this.currentFrameState.keyAssociations.isEmpty()) return;
-        this.dispatch(commandEncoder, camera, this.depthTexConverter.getOutput());
     }
 
     private void dispatch(CommandEncoder commandEncoder, CameraRenderState camera, GpuTexture mip0) {
@@ -230,84 +283,157 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
         this.testCB.getProjMat().set(camera.projectionMatrix);
         this.testCB.getCameraMat().set(camera.viewRotationMatrix);
 
-        this.ensureBuffers(elementCount);
+        this.ensureBuffers(commandEncoder, elementCount);
+        int slotIndex = this.slotRing.acquire(index -> {
+            this.awaitSlot(index);
+            this.retireSlot(index);
+        });
+        Slot slot = this.slots[slotIndex];
+        slot.frameId = this.frameId;
+        slot.generation = this.generation;
+        slot.elementCount = elementCount;
+        slot.frameState = currentFrameState;
 
-        this.testCB.upload(commandEncoder, testCBBuffer.slice());
+        try {
+            long actualRequestedSize = this.inputSSBO.actualSize(elementCount);
+            ByteBuffer buffer = slot.staging.getBuffer(this.gpuDevice, commandEncoder, actualRequestedSize);
+            buffer.clear();
+            this.inputSSBO.write(buffer);
+            buffer.position(0);
 
-        long actualRequestedSize = this.inputSSBO.actualSize(elementCount);
+            ALRCommandEncoderExtension extension = (ALRCommandEncoderExtension) commandEncoder;
+            extension.alrMemoryBarrier(MemoryBarrierFlag.BUFFER_UPDATE_BARRIER);
+            slot.staging.copyToBuffer(
+                commandEncoder,
+                0,
+                actualRequestedSize,
+                slot.inputBuffer.slice(0, actualRequestedSize)
+            );
+            this.testCB.upload(commandEncoder, slot.testCBBuffer.slice());
 
-        ByteBuffer buffer = this.stagingInputBuffer.getBuffer(this.gpuDevice, commandEncoder, actualRequestedSize);
-        this.inputSSBO.write(buffer);
-        buffer.position(0);
-
-        // TODO check if mojang added coherent flag. UPDATE: seems not, pray for driver handles this correctly
-        ((ALRCommandEncoderExtension) commandEncoder).alrMemoryBarrier(MemoryBarrierFlag.BUFFER_UPDATE_BARRIER);
-        this.stagingInputBuffer.copyToBuffer(
-            commandEncoder,
-            0,
-            actualRequestedSize,
-            inputBuffer.slice(0, actualRequestedSize)
-        );
-
-        List<GpuTexture> textures = new ArrayList<>(OcclusionTestSSBO.MIP_LAYER_COUNT);
-        textures.add(mip0);
-        textures.addAll(Arrays.asList(mipTextures));
-
-        while (textures.size() < OcclusionTestSSBO.MIP_LAYER_COUNT) {
+            List<GpuTexture> textures = new ArrayList<>(OcclusionTestSSBO.MIP_LAYER_COUNT);
             textures.add(mip0);
-        }
-
-        ALRCommandEncoderExtension extension = (ALRCommandEncoderExtension) commandEncoder;
-
-        try (ALRComputePass pass = extension.alrCreateComputePass()) {
-            if (this.bindlessTexturing) {
-                pass.setPipeline(ALRComputePipelines.HIZ_OCCLUSION_TEST_BINDLESS);
-            } else {
-                pass.setPipeline(ALRComputePipelines.HIZ_OCCLUSION_TEST);
+            textures.addAll(Arrays.asList(mipTextures));
+            while (textures.size() < OcclusionTestSSBO.MIP_LAYER_COUNT) {
+                textures.add(mip0);
             }
-            pass.bindUniformBlock(0, testCBBuffer.slice());
-            pass.bindShaderStorage(0, inputBuffer.slice());
-            pass.bindShaderStorage(1, outputBuffer.slice());
-            if (this.bindlessTexturing) {
-                pass.bindBindlessImageArray("uInputs", textures);
-            } else {
-                pass.bindArrayOfTexture(0, textures, true, false);
+
+            try (ALRComputePass pass = extension.alrCreateComputePass()) {
+                if (this.bindlessTexturing) {
+                    pass.setPipeline(ALRComputePipelines.HIZ_OCCLUSION_TEST_BINDLESS);
+                } else {
+                    pass.setPipeline(ALRComputePipelines.HIZ_OCCLUSION_TEST);
+                }
+                pass.bindUniformBlock(0, slot.testCBBuffer.slice());
+                pass.bindShaderStorage(0, slot.inputBuffer.slice());
+                pass.bindShaderStorage(1, slot.outputBuffer.slice());
+                if (this.bindlessTexturing) {
+                    pass.bindBindlessImageArray("uInputs", textures);
+                } else {
+                    pass.bindArrayOfTexture(0, textures, true, false);
+                }
+                pass.dispatchWorkgroups(Math.ceilDiv(elementCount, 32), 1, 1);
+                pass.memoryBarrier(
+                    MemoryBarrierFlag.SHADER_IMAGE_ACCESS_BARRIER,
+                    MemoryBarrierFlag.SHADER_STORAGE_BARRIER
+                );
             }
-            pass.dispatchWorkgroups(Math.ceilDiv(elementCount, 32), 1, 1);
-            pass.memoryBarrier(MemoryBarrierFlag.SHADER_IMAGE_ACCESS_BARRIER, MemoryBarrierFlag.SHADER_STORAGE_BARRIER);
+            if (StagingSupport.usesPersistentMapping(this.gpuDevice)) {
+                extension.alrMemoryBarrier(
+                    MemoryBarrierFlag.CLIENT_MAPPED_BUFFER_BARRIER,
+                    MemoryBarrierFlag.BUFFER_UPDATE_BARRIER
+                );
+            } else {
+                extension.alrMemoryBarrier(MemoryBarrierFlag.BUFFER_UPDATE_BARRIER);
+            }
+            slot.fence = commandEncoder.createFence();
+            slot.valid = true;
+            this.slotRing.submit(slotIndex);
+        } catch (RuntimeException exception) {
+            slot.valid = false;
+            try {
+                if (slot.fence == null) slot.fence = commandEncoder.createFence();
+                this.slotRing.submit(slotIndex);
+            } catch (RuntimeException fenceException) {
+                exception.addSuppressed(fenceException);
+                this.disable(exception);
+            }
+            throw exception;
         }
     }
 
-    private void ensureBuffers(int elementCount) {
+    private void ensureBuffers(CommandEncoder commandEncoder, int elementCount) {
         long requiredInputSize = inputSSBO.getDefinition().size(BufferLayout.STD430);
-        long requiredOutputSize = (long) elementCount * Integer.BYTES;
+        if (this.slots.length == SlotRing.COUNT && this.inputCapacity >= requiredInputSize && this.elementCapacity >= elementCount)
+            return;
 
-        if (inputBuffer == null || inputBuffer.size() < requiredInputSize) {
-            if (inputBuffer != null) {
-                inputBuffer.close();
+        long newInputCapacity = Math.max(this.inputCapacity, requiredInputSize);
+        int newElementCapacity = Math.max(this.elementCapacity, elementCount);
+        Slot[] replacement = new Slot[SlotRing.COUNT];
+        try {
+            for (int i = 0; i < replacement.length; i++) {
+                Slot slot = new Slot();
+                replacement[i] = slot;
+                slot.staging = StagingSupport.createInstance(this.gpuDevice, "Hi-Z Occlusion Test Staging #" + i);
+                slot.staging.ensureCapacity(this.gpuDevice, commandEncoder, newInputCapacity);
+                slot.inputBuffer = gpuDevice.createBuffer(
+                    () -> "Hi-Z Occlusion Test Input",
+                    GpuBuffer.USAGE_COPY_DST | GpuBufferConstants.USAGE_SHADER_STORAGE,
+                    newInputCapacity
+                );
+                slot.outputBuffer = gpuDevice.createBuffer(
+                    () -> "Hi-Z Occlusion Test Output",
+                    GpuBuffer.USAGE_COPY_DST | GpuBufferConstants.USAGE_SHADER_STORAGE | GpuBuffer.USAGE_MAP_READ,
+                    (long) newElementCapacity * Integer.BYTES
+                );
+                slot.testCBBuffer = gpuDevice.createBuffer(
+                    () -> "Hi-Z Occlusion Test CB",
+                    GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_UNIFORM,
+                    OcclusionTestCB.SIZE
+                );
             }
-            inputBuffer = gpuDevice.createBuffer(
-                () -> "Hi-Z Occlusion Test Input",
-                GpuBuffer.USAGE_COPY_DST | GpuBufferConstants.USAGE_SHADER_STORAGE,
-                requiredInputSize
-            );
+        } catch (RuntimeException exception) {
+            this.closeSlots(replacement);
+            throw exception;
         }
+        this.discardSlots();
+        this.slots = replacement;
+        this.inputCapacity = newInputCapacity;
+        this.elementCapacity = newElementCapacity;
+    }
 
-        if (outputBuffer == null || outputBuffer.size() < requiredOutputSize) {
-            if (outputBuffer != null) {
-                outputBuffer.close();
+    private void discardSlots() {
+        Slot[] discarded = this.slots;
+        this.slots = new Slot[0];
+        this.slotRing.clear();
+        this.inputCapacity = 0;
+        this.elementCapacity = 0;
+        this.generation++;
+        this.closeSlots(discarded);
+    }
+
+    private void closeSlots(Slot[] slots) {
+        RuntimeException failure = null;
+        for (Slot slot : slots) {
+            if (slot == null) continue;
+            try {
+                slot.close();
+            } catch (RuntimeException exception) {
+                if (failure == null) {
+                    failure = exception;
+                } else {
+                    failure.addSuppressed(exception);
+                }
             }
-            outputBuffer = gpuDevice.createBuffer(
-                () -> "Hi-Z Occlusion Test Output",
-                GpuBuffer.USAGE_COPY_DST | GpuBufferConstants.USAGE_SHADER_STORAGE | GpuBuffer.USAGE_MAP_READ,
-                requiredOutputSize
-            );
+        }
+        if (failure != null) {
+            this.logger.error("Failed to close Hi-Z slots", failure);
         }
     }
 
     @Override
     public boolean isEmpty() {
-        return this.previousFrameState.keyAssociations.isEmpty();
+        return this.previousFrameState == null || this.previousFrameState.keyAssociations.isEmpty();
     }
 
     @Override
@@ -318,33 +444,128 @@ public class HierarchicalZOcclusionCuller implements OcclusionCuller {
             -1,
             this.culled,
             this.size - this.culled,
-            this.previousFrameState.keyAssociations.size(),
+            this.previousFrameState == null ? 0 : this.previousFrameState.keyAssociations.size(),
             null
         );
     }
 
     @Override
     public boolean shouldDraw(Object feature) {
+        if (this.currentFrameState == null || this.previousFrameState == null || this.results == null) return true;
         OcclusionKey key = this.currentFrameState.keyAssociations.get(feature);
-        if (key == null || results == null) {
-            return true;
-        }
-        int orDefault = this.previousFrameState.keyToIdMap.getOrDefault(key, -1);
-        if (orDefault < 0) {
-            return true;
-        }
-        if (orDefault > results.length) {
-            this.logger.warn("Trying to read invalid position {} as it exceeds results.length.", orDefault);
-            return true;
-        }
-        return results[orDefault] > 0;
+        if (key == null) return true;
+        int id = this.previousFrameState.keyToIdMap.getOrDefault(key, -1);
+        if (id < 0 || id >= this.size) return true;
+        return this.results[id] > 0;
     }
 
     @Override
-    public void close() throws Exception {
-        this.testCBBuffer.close();
-        if (this.inputBuffer != null) this.inputBuffer.close();
-        if (this.outputBuffer != null) this.outputBuffer.close();
+    public void close() {
+        if (this.closed) return;
+        this.closed = true;
+        this.discardSlots();
+        this.clearResults();
+        this.currentFrameState = null;
+        try {
+            this.depthTexConverter.close();
+        } finally {
+            this.downsampler.close();
+        }
+    }
+
+    private static class Slot implements AutoCloseable {
+        private StagingSupport staging;
+        private GpuBuffer inputBuffer;
+        private GpuBuffer outputBuffer;
+        private GpuBuffer testCBBuffer;
+        private GpuFence fence;
+        private long frameId;
+        private long generation;
+        private int elementCount;
+        private FrameState frameState;
+        private boolean valid;
+
+        @Override
+        public void close() {
+            this.frameState = null;
+            this.valid = false;
+            try {
+                if (this.fence != null) this.fence.close();
+            } finally {
+                this.fence = null;
+                try {
+                    if (this.staging != null) this.staging.close();
+                } finally {
+                    this.staging = null;
+                    try {
+                        if (this.inputBuffer != null) this.inputBuffer.close();
+                    } finally {
+                        this.inputBuffer = null;
+                        try {
+                            if (this.outputBuffer != null) this.outputBuffer.close();
+                        } finally {
+                            this.outputBuffer = null;
+                            try {
+                                if (this.testCBBuffer != null) this.testCBBuffer.close();
+                            } finally {
+                                this.testCBBuffer = null;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    static class SlotRing {
+        static final int COUNT = 3;
+        private final boolean[] occupied = new boolean[COUNT];
+        private final ArrayDeque<Integer> pending = new ArrayDeque<>();
+        private int next;
+
+        int acquire(IntConsumer completeOldest) {
+            for (int i = 0; i < COUNT; i++) {
+                int index = (this.next + i) % COUNT;
+                if (this.occupied[index]) continue;
+                this.occupied[index] = true;
+                this.next = (index + 1) % COUNT;
+                return index;
+            }
+            if (this.pending.isEmpty()) {
+                throw new IllegalStateException("Hi-Z slots reserved without submission");
+            }
+            int oldest = this.pending.getFirst();
+            completeOldest.accept(oldest);
+            if (this.occupied[oldest]) {
+                throw new IllegalStateException("Hi-Z slot completion did not release ownership");
+            }
+            return this.acquire(completeOldest);
+        }
+
+        void submit(int index) {
+            if (!this.occupied[index] || this.pending.contains(index)) {
+                throw new IllegalStateException("Invalid Hi-Z slot submission");
+            }
+            this.pending.addLast(index);
+        }
+
+        void release(int index) {
+            if (!this.occupied[index]) {
+                throw new IllegalStateException("Hi-Z slot is not owned");
+            }
+            this.pending.remove(index);
+            this.occupied[index] = false;
+        }
+
+        List<Integer> pending() {
+            return List.copyOf(this.pending);
+        }
+
+        void clear() {
+            this.pending.clear();
+            Arrays.fill(this.occupied, false);
+            this.next = 0;
+        }
     }
 
     record FrameState(

@@ -306,9 +306,40 @@ public class SinglePassDownsampler {
     }
 
     private void deleteTextures() {
-        if (mipTextures != null) {
-            for (GpuTexture mipTexture : mipTextures) {
-                mipTexture.close();
+        GpuTexture[] textures = this.mipTextures;
+        this.mipTextures = null;
+        this.mipLayers = null;
+        RuntimeException failure = null;
+        if (textures != null) {
+            for (GpuTexture texture : textures) {
+                if (texture == null) continue;
+                try {
+                    texture.close();
+                } catch (RuntimeException exception) {
+                    if (failure == null) failure = exception;
+                    else failure.addSuppressed(exception);
+                }
+            }
+        }
+        if (failure != null) throw failure;
+    }
+
+    private boolean closed;
+
+    public void close() {
+        if (this.closed) return;
+        this.closed = true;
+        try {
+            this.deleteTextures();
+        } finally {
+            try {
+                this.spdParamsBuffer.close();
+            } finally {
+                try {
+                    this.spdGlobalAtomicCounterBuffer.close();
+                } finally {
+                    this.inputSampler.close();
+                }
             }
         }
     }

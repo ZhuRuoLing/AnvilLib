@@ -131,4 +131,22 @@ public class DepthTexConverter {
 
         this.convertParams.upload(commandEncoder, this.convertParamsBuffer.slice());
     }
+
+    private boolean closed;
+
+    public void close() {
+        if (this.closed) return;
+        this.closed = true;
+        GpuTexture texture = this.output;
+        this.output = null;
+        try {
+            if (texture != null) texture.close();
+        } finally {
+            try {
+                this.convertParamsBuffer.close();
+            } finally {
+                this.convertSampler.close();
+            }
+        }
+    }
 }

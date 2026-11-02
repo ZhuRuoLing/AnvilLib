@@ -28,6 +28,15 @@ tasks.named('test') {
     failOnNoDiscoveredTests = false
 }
 
+sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
+
+tasks.register('runHiZSlotRingTest', JavaExec) {
+    group = 'verification'
+    description = 'Runs lightweight Hi-Z slot ownership and CPU staging checks.'
+    classpath = sourceSets.test.runtimeClasspath + sourceSets.main.compileClasspath
+    mainClass = 'dev.anvilcraft.lib.v2.rendering.optimization.occlusion.hiz.HiZSlotRingTest'
+}
+
 tasks.named('check') {
-    dependsOn tasks.named('runStd140LayoutRulesTest')
+    dependsOn tasks.named('runStd140LayoutRulesTest'), tasks.named('runHiZSlotRingTest')
 }
